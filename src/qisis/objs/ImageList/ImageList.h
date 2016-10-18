@@ -1,0 +1,240 @@
+#ifndef ImageList_H
+#define ImageList_H
+
+#include <QDebug>
+#include <QObject>
+#include <QList>
+#include <QMetaType>
+
+#include "Image.h"
+#include "ImageDisplayProperties.h"
+#include "ImageListActionWorkOrder.h"
+#include "SerialNumberList.h"
+#include "WorkOrder.h"
+#include "XmlStackedHandler.h"
+
+class QStringList;
+class QXmlStreamWriter;
+
+namespace Isis {
+  class FileName;
+  class XmlStackedHandlerReader;
+
+  /**
+   * @brief Internalizes a list of images and allows for operations on the entire list
+   * 
+   * @description This class reads a list of images from an images.xml file and internalizes them
+   * as aQList of images.  It also allows for modifications to the entire list of
+   * images and storing the image list as an images.xml file.
+   * 
+   * @author 2012-??-?? ???
+   *
+   * @internal 
+   * @history 2014-01-08 Tracie Sucharski - Added layer re-ordering connections to all images 
+   *                         in list instead of just the first image.  Fixes #1755.
+   * @history 2014-06-13 Tracie Sucharski - Added serialNumberList method.
+   * @history 2016-06-08 Jesse Mapel - Updated documentation and merged from IPCE to ISIS branch.
+   *                         Fixes #3961.
+   */
+  class ImageList : public QObject, public QList<Image *> {
+    Q_OBJECT
+
+    public:
+      friend class ImageListActionWorkOrder;
+
+      ImageList(QString name, QString path, QObject *parent = NULL);
+      explicit ImageList(QObject *parent = NULL);
+      explicit ImageList(QList<Image *>, QObject *parent = NULL);
+      explicit ImageList(Project *project,
+                         XmlStackedHandlerReader *xmlReader, QObject *parent = NULL);
+      explicit ImageList(QStringList &);
+      ImageList(const ImageList &);
+      ~ImageList();
+
+      SerialNumberList serialNumberList();
+
+      // These are overridden (-ish) in order to add notifications to the list changing
+      void append(Image * const & value);
+      void append(const QList<Image *> &value);
+
+      void clear();
+
+      iterator erase(iterator pos);
+      iterator erase(iterator begin, iterator end);
+
+      void insert(int i, Image * const & value);
+      iterator insert(iterator before, Image * const & value);
+
+      void prepend(Image * const & value);
+      void push_back(Image * const & value);
+      void push_front(Image * const & value);
+      int removeAll(Image * const & value);
+      void removeAt(int i);
+      void removeFirst();
+      void removeLast();
+      bool removeOne(Image * const & value);
+      void swap(QList<Image *> &other);
+      Image *takeAt(int i);
+      Image *takeFirst();
+      Image *takeLast();
+
+      ImageList &operator+=(const QList<Image *> &other);
+      ImageList &operator+=(Image * const &other);
+      ImageList &operator<<(const QList<Image *> &other);
+      ImageList &operator<<(Image * const &other);
+      ImageList &operator=(const QList<Image *> &rhs);
+
+      // This is our own assignment, but it needs to notify just like the operator=(QList)
+      ImageList &operator=(const ImageList &rhs);
+
+      // Done overriding (-ish)
+
+
+      QList<QAction *> supportedActions(Project *project = NULL);
+      bool allSupport(ImageDisplayProperties::Property prop);
+
+      void setName(QString newName);
+      void setPath(QString newPath);
+
+      QString name() const;
+      QString path() const;
+
+      void deleteFromDisk(Project *project);
+      void save(QXmlStreamWriter &stream, const Project *project, FileName newProjectRoot) const;
+
+
+    signals:
+      void countChanged(int newCount);
+
+    private:
+      /**
+       * This class is used to read an images.xml file into an image list
+       * 
+       * @author 2012-07-01 Steven Lambright
+       *
+       * @internal
+       */
+      class XmlHandler : public XmlStackedHandler {
+        public:
+          XmlHandler(ImageList *imageList, Project *project);
+
+          virtual bool startElement(const QString &namespaceURI, const QString &localName,
+                                    const QString &qName, const QXmlAttributes &atts);
+          virtual bool endElement(const QString &namespaceURI, const QString &localName,
+                                  const QString &qName);
+
+        private:
+          Q_DISABLE_COPY(XmlHandler);
+
+          /**
+           * This stores a pointer to the image list that will be read into
+           */
+          ImageList *m_imageList;
+          /**
+           * This stores a pointer to the project that the images in the image list will be a part of
+           */
+          Project *m_project;
+      };
+
+
+      /**
+       * This functor is used for copying the images between two projects quickly. This is designed
+       *   to work with QtConcurrentMap, though the results are all NULL (QtConcurrentMap is much
+       *   faster than many QtConcurrentRun calls).
+       *
+       * @author 2012-09-?? Steven Lambright
+       *
+       * @internal
+       */
+      class CopyImageDataFunctor : public std::unary_function<Image * const &, void *> {
+        public:
+          CopyImageDataFunctor(const Project *project, FileName newProjectRoot);
+          CopyImageDataFunctor(const CopyImageDataFunctor &other);
+          ~CopyImageDataFunctor();
+
+          void *operator()(Image * const &imageToCopy);
+
+          CopyImageDataFunctor &operator=(const CopyImageDataFunctor &rhs);
+
+        private:
+          /**
+           * This stores the name of the project that is going to be copied to.
+           */
+          const Project *m_project;
+          /**
+           * This stores the path to the root of the project that is going to be copied to.
+           */
+          FileName m_newProjectRoot;
+      };
+
+    private:
+      /**
+       * Creates an ImageListActionWorkOrder and sets the image list as the data for the work order.
+       * 
+       * @param project The project the work order is for
+       * @param action The action the work order performs
+       * 
+       * @return @b QAction * The created work order
+       */
+      QAction *createWorkOrder(Project *project, ImageListActionWorkOrder::Action action) {
+        QAction *result = NULL;
+
+        if (project) {
+          result = new ImageListActionWorkOrder(action, project);
+          ((ImageListActionWorkOrder *)result)->setData(this);
+        }
+        else {
+          result = new QAction(
+              ImageListActionWorkOrder::qualifyString(ImageListActionWorkOrder::toString(action),
+                                                      this),
+              this);
+        }
+
+        return result;
+      }
+
+      void applyAlphas(QStringList alphaValues);
+      void applyColors(QStringList colorValues, int column = 0);
+      void applyShowLabel(QStringList showLabelValues);
+      void applyShowFill(QStringList showFillValues);
+      void applyShowDNs(QStringList showDNsValues);
+      void applyShowOutline(QStringList showOutlineValues);
+      bool askAlpha(int *alphaResult) const;
+      bool askNewColor(QColor *colorResult) const;
+      QStringList saveAndApplyAlpha(int newAlpha);
+      QStringList saveAndApplyColor(QColor newColor);
+      QStringList saveAndApplyRandomColor();
+
+    private slots:
+      void askAndUpdateAlpha();
+      void askAndUpdateColor();
+      void showRandomColor();
+      QStringList saveAndToggleShowDNs();
+      QStringList saveAndToggleShowFill();
+      QStringList saveAndToggleShowLabel();
+      QStringList saveAndToggleShowOutline();
+
+    private:
+      /**
+       * This stores the image list's name
+       */
+      QString m_name;
+
+      /**
+       * This stores the directory name that contains the images in this image list.
+       *
+       * For example:
+       *   import1
+       * or
+       *   import2
+       *
+       * This path is relative to Project::imageDataRoot()
+       */
+      QString m_path;
+  };
+  // TODO: add QDataStream >> and << ???
+}
+
+Q_DECLARE_METATYPE(Isis::ImageList *);
+
+#endif

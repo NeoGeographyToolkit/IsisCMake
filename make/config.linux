@@ -1,0 +1,15 @@
+#---------------------------------------------------------------------------
+#  Determine Linux Architecture.
+#---------------------------------------------------------------------------
+
+ifeq ($(HOST_ARCH),Linux)
+  ifeq ($(HOST_MACH),x86_64)
+
+    testFile = $(wildcard $(ISISROOT)/make/config.linux-x86_64_$(HOST_OS))
+    ifeq ($(testFile), $(ISISROOT)/make/config.linux-x86_64_$(HOST_OS))
+      include $(ISISROOT)/make/config.linux-x86_64_$(HOST_OS)
+    else
+      include $(ISISROOT)/make/config.linux-x86_64
+    endif
+  endif
+endif
