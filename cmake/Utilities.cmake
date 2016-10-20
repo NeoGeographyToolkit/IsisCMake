@@ -21,10 +21,10 @@ function(generate_protobuf_files PROTO_GEN_OUT folder)
   file(GLOB PROTO_INPUT RELATIVE ${folder} "*.proto")
   
   # If no .proto files in this folder we are finished.
-  list(LENGTH ${PROTO_INPUT} numFiles)
+  list(LENGTH "${PROTO_INPUT}" numFiles)
   if (${numFiles} EQUAL 0)
     set(${PROTO_GEN_OUT} "" PARENT_SCOPE)
-    return();
+    return()
   endif()
 
   # Protobuf compiler

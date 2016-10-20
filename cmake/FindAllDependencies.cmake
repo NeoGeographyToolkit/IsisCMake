@@ -6,6 +6,8 @@
 
 # TODO: Indent all!
 
+set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
+
 set(INCLUDE_DIR "${thirdPartyDir}/include")
 set(LIB_DIR     "${thirdPartyDir}/lib")
 set(BIN_DIR     "${thirdPartyDir}/bin")
@@ -13,45 +15,48 @@ set(BIN_DIR     "${thirdPartyDir}/bin")
 #---------------------------------------------------------------------------
 # Set up for Qt
 #---------------------------------------------------------------------------
-set(qtDir "${thirdPartyDir}/qt/qt5.6.0/")
+set(qtDir "${INCLUDE_DIR}/qt/qt5.6.0")
 # Each of the folders in the main QT folder is needed as an include directory
 SUBDIRLIST(${qtDir} qtFolders)
 set(QTINCDIR ${qtDir})
 foreach(f ${qtFolders})
-  set(QTINCDIR ${QTINCDIR} ${f}) 
+  set(QTINCDIR ${QTINCDIR} ${qtDir}/${f}) 
 endforeach()
+#message("QTINCDIR = ${QTINCDIR}")
 
 set(QTLIBDIR ${LIB_DIR})
-set(QTLIB    "-lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus")
+set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
 
 set(QT_DYNAMIC_LIBS)
-set(QT_DYNAMIC_IN "${LIB_DIR}/libQt5Concurrent.so \
-                   ${LIB_DIR}/libQt5Core.so \
-                   ${LIB_DIR}/libQt5DBus.so \
-                   ${LIB_DIR}/libQt5Gui.so \
-                   ${LIB_DIR}/libQt5Multimedia.so \
-                   ${LIB_DIR}/libQt5MultimediaWidgets.so \
-                   ${LIB_DIR}/libQt5Network.so \
-                   ${LIB_DIR}/libQt5OpenGL.so \
-                   ${LIB_DIR}/libQt5Positioning.so \
-                   ${LIB_DIR}/libQt5PrintSupport.so \
-                   ${LIB_DIR}/libQt5Qml.so \
-                   ${LIB_DIR}/libQt5Quick.so \
-                   ${LIB_DIR}/libQt5Sensors.so \
-                   ${LIB_DIR}/libQt5Sql.so \
-                   ${LIB_DIR}/libQt5Svg.so \
-                   ${LIB_DIR}/libQt5Test.so \
-                   ${LIB_DIR}/libQt5WebChannel.so \
-                   ${LIB_DIR}/libQt5WebEngineCore.so \
-                   ${LIB_DIR}/libQt5WebEngine.so \
-                   ${LIB_DIR}/libQt5WebEngineWidgets.so \
-                   ${LIB_DIR}/libQt5Widgets.so \
-                   ${LIB_DIR}/libQt5XcbQpa.so \
-                   ${LIB_DIR}/libQt5Xml.so \
-                   ${LIB_DIR}/libQt5XmlPatterns.so")
+set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
+                   ${LIB_DIR}/libQt5Core.so
+                   ${LIB_DIR}/libQt5DBus.so
+                   ${LIB_DIR}/libQt5Gui.so
+                   ${LIB_DIR}/libQt5Multimedia.so
+                   ${LIB_DIR}/libQt5MultimediaWidgets.so
+                   ${LIB_DIR}/libQt5Network.so
+                   ${LIB_DIR}/libQt5OpenGL.so
+                   ${LIB_DIR}/libQt5Positioning.so
+                   ${LIB_DIR}/libQt5PrintSupport.so
+                   ${LIB_DIR}/libQt5Qml.so
+                   ${LIB_DIR}/libQt5Quick.so
+                   ${LIB_DIR}/libQt5Sensors.so
+                   ${LIB_DIR}/libQt5Sql.so
+                   ${LIB_DIR}/libQt5Svg.so
+                   ${LIB_DIR}/libQt5Test.so
+                   ${LIB_DIR}/libQt5WebChannel.so
+                   ${LIB_DIR}/libQt5WebEngineCore.so
+                   ${LIB_DIR}/libQt5WebEngine.so
+                   ${LIB_DIR}/libQt5WebEngineWidgets.so
+                   ${LIB_DIR}/libQt5Widgets.so
+                   ${LIB_DIR}/libQt5XcbQpa.so
+                   ${LIB_DIR}/libQt5Xml.so
+                   ${LIB_DIR}/libQt5XmlPatterns.so)
 foreach(f ${QT_DYNAMIC_IN})
-  set(QT_DYNAMIC_LIBS "${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6*[^g]")
+  set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6*[^g])
 endforeach()
+# TODO: Check on this
+#message("QT_DYNAMIC_LIBS = ${QT_DYNAMIC_LIBS}")
 
 
 # Binary paths
@@ -97,7 +102,7 @@ set(NAIFLIB    "-ldsk -lcspice")
 #---------------------------------------------------------------------------
 # Set up for TNT
 #---------------------------------------------------------------------------
-set(TNTINCDIR "${INCLUDE_DIR}/tnt/tnt126 ${INCLUDE_DIR}/tnt/tnt126/tnt")
+set(TNTINCDIR ${INCLUDE_DIR}/tnt/tnt126 ${INCLUDE_DIR}/tnt/tnt126/tnt)
 set(TNTLIBDIR)
 set(TNTLIB)
 
@@ -138,7 +143,7 @@ set(X11LIB    "-lX11")
 #---------------------------------------------------------------------------
 # Set up for GMM
 #---------------------------------------------------------------------------
-set(GMINCDIR "${INCLUDE_DIR}/gmm/gmm-5.0  ${INCLUDE_DIR}/gmm/gmm-5.0/gmm")
+set(GMINCDIR ${INCLUDE_DIR}/gmm/gmm-5.0  ${INCLUDE_DIR}/gmm/gmm-5.0/gmm)
 set(GMMLIBDIR)
 set(GMLIB)
 
@@ -180,7 +185,7 @@ set(KAKADULIB    "-lkdu_a63R")
 
 # Detect if Kakadu library is available
 set(JP2KFLAG "0")
-if(EXISTS "${KAKADUINCDIR})
+if(EXISTS "${KAKADUINCDIR}")
   set(JP2KFLAG "1")
 endif()
 
@@ -194,10 +199,10 @@ set(BOOSTINCDIR "${INCLUDE_DIR}/boost/boost1.59.0")
 set(BOOSTLIB    "")
 #BOOSTLIB    = 
 #BOOSTLIBDIR = -L$(ISIS3LOCAL)/lib
-#BOOSTLIB    = -lboost_date_time -lboost_filesystem -lboost_graph -lboost_math_c99f \
-#              -lboost_math_c99l -lboost_math_c99 -lboost_math_tr1f -lboost_math_tr1l \
-#              -lboost_math_tr1 -lboost_prg_exec_monitor -lboost_program_options \
-#              -lboost_regex -lboost_serialization -lboost_signals -lboost_system \
+#BOOSTLIB    = -lboost_date_time -lboost_filesystem -lboost_graph -lboost_math_c99f
+#              -lboost_math_c99l -lboost_math_c99 -lboost_math_tr1f -lboost_math_tr1l
+#              -lboost_math_tr1 -lboost_prg_exec_monitor -lboost_program_options
+#              -lboost_regex -lboost_serialization -lboost_signals -lboost_system
 #              -lboost_thread -lboost_unit_test_framework -lboost_wave -lboost_wserialization
 
 #---------------------------------------------------------------------------
@@ -212,7 +217,7 @@ set(CHOLMODLIB    "-lcholmod -lamd -lcamd -lccolamd -lcolamd -llapack -lsuitespa
 #---------------------------------------------------------------------------
 set(HDF5INCDIR "${INCLUDE_DIR}/hdf5")
 set(HDF5LIBDIR "${LIB_DIR}")
-set(HDF5LIB    "-lhdf5 -lhdf5_hl -lhdf5_cpp -lhdf5_hl_cpp")
+set(HDF5LIB    -lhdf5 -lhdf5_hl -lhdf5_cpp -lhdf5_hl_cpp)
 
 #---------------------------------------------------------------------------
 # Set up for OpenCV libraries 
@@ -222,11 +227,11 @@ set(HDF5LIB    "-lhdf5 -lhdf5_hl -lhdf5_cpp -lhdf5_hl_cpp")
 #---------------------------------------------------------------------------
 set(OPENCVINCDIR "${INCLUDE_DIR}")
 set(OPENCVLIBDIR "${LIB_DIR}")
-set(OPENCVLIB    "-lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_features2d \
-                  -lopencv_flann -lopencv_gpu -lopencv_highgui -lopencv_imgproc \
-                  -lopencv_legacy -lopencv_ml -lopencv_nonfree -lopencv_objdetect \
-                  -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_ts \
-                  -lopencv_video -lopencv_videostab")
+set(OPENCVLIB     -lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_features2d
+                  -lopencv_flann -lopencv_gpu -lopencv_highgui -lopencv_imgproc
+                  -lopencv_legacy -lopencv_ml -lopencv_nonfree -lopencv_objdetect
+                  -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_ts
+                  -lopencv_video -lopencv_videostab)
 
 #---------------------------------------------------------------------------
 # Set up for Natural Neigbor Library (NN)
@@ -266,8 +271,8 @@ set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libcholmod.so")
 set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libsuperlu*.so")
 set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libsuitesparseconfig.so")
 set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/liblapack.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} "$(ISIS3SYSLIB)/libblas*.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} "$(ISIS3ALTSYSLIB)/libgfortran.so*")
+set(THIRDPARTYLIBS "${THIRDPARTYLIBS} $(ISIS3SYSLIB)/libblas*.so*")
+set(THIRDPARTYLIBS "${THIRDPARTYLIBS} $(ISIS3ALTSYSLIB)/libgfortran.so*")
 set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libxerces-c*.so*")
 set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libgeotiff*.so*")
 set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libtiff*.so*")
@@ -305,77 +310,79 @@ set(THIRDPARTYPLUGINS "${ISIS3LOCAL}/plugins/")
 # Consolidate information
 #---------------------------------------------------------------------------
 
-set(ALLINCDIRS "${XTRAINCDIRS} \
-                ${ISISINCDIR} \
-                ${CWDINCDIR} \
-                ${QTINCDIR} \
-                ${QWTINCDIR} \
-                ${XERCESINCDIR} \
-                ${GEOTIFFINCDIR} \
-                ${TIFFINCDIR} \
-                ${NAIFINCDIR} \
-                ${TNTINCDIR} \
-                ${JAMAINCDIR} \
-                ${GEOSINCDIR} \
-                ${GSLINCDIR} \
-                ${GMMINCDIR} \
-                ${PROTOBUFINCDIR} \
-                ${BOOSTINCDIR} \
-                ${CHOLMODINCDIR} \
-                ${HDF5INCDIR} \
-                ${SUPERLUINCDIR} \
-                ${OPENCVINCDIR} \
-                ${NNINCDIR} \
-                ${DEFAULTINCDIR}")
+set(ALLINCDIRS  ${XTRAINCDIRS}
+                ${ISISINCDIR}
+                ${CWDINCDIR}
+                ${QTINCDIR}
+                ${QWTINCDIR}
+                ${XERCESINCDIR}
+                ${GEOTIFFINCDIR}
+                ${TIFFINCDIR}
+                ${NAIFINCDIR}
+                ${TNTINCDIR}
+                ${JAMAINCDIR}
+                ${GEOSINCDIR}
+                ${GSLINCDIR}
+                ${GMMINCDIR}
+                ${PROTOBUFINCDIR}
+                ${BOOSTINCDIR}
+                ${CHOLMODINCDIR}
+                ${HDF5INCDIR}
+                ${SUPERLUINCDIR}
+                ${OPENCVINCDIR}
+                ${NNINCDIR}
+                ${DEFAULTINCDIR})
 
-set(ALLLIBDIRS "${XTRALIBDIRS} \
-                ${ISISLIBDIR} \
-                ${QTLIBDIR} \
-                ${QWTLIBDIR} \
-                ${XERCESLIBDIR} \
-                ${GEOTIFFLIBDIR} \
-                ${TIFFLIBDIR} \
-                ${NAIFLIBDIR} \
-                ${TNTLIBDIR} \
-                ${JAMALIBDIR} \
-                ${GEOSLIBDIR} \
-                ${GSLLIBDIR} \
-                ${GMMLIBDIR} \
-                ${PROTOBUFLIBDIR} \
-                ${BOOSTLIBDIR} \
-                ${CHOLMODLIBDIR} \
-                ${HDF5LIBDIR} \
-                ${SUPERLULIBDIR}")
+set(ALLLIBDIRS  ${XTRALIBDIRS}
+                ${ISISLIBDIR}
+                ${QTLIBDIR}
+                ${QWTLIBDIR}
+                ${XERCESLIBDIR}
+                ${GEOTIFFLIBDIR}
+                ${TIFFLIBDIR}
+                ${NAIFLIBDIR}
+                ${TNTLIBDIR}
+                ${JAMALIBDIR}
+                ${GEOSLIBDIR}
+                ${GSLLIBDIR}
+                ${GMMLIBDIR}
+                ${PROTOBUFLIBDIR}
+                ${BOOSTLIBDIR}
+                ${CHOLMODLIBDIR}
+                ${HDF5LIBDIR}
+                ${SUPERLULIBDIR})
 
-set(ALLLIBS  "${ISISLIB} \
-              ${ISISSYSLIBS} \
-              ${XTRALIBS} \
-              ${QTLIB} \
-              ${QWTLIB} \
-              ${XERCESLIB} \
-              ${GEOTIFFLIB} \
-              ${TIFFLIB} \
-              ${NAIFLIB} \
-              ${TNTLIB} \
-              ${JAMALIB} \
-              ${GEOSLIB} \
-              ${GSLLIB} \
-              ${X11LIB} \
-              ${GMMLIB} \
-              ${PROTOBUFLIB} \
-              ${BOOSTLIB} \
-              ${CHOLMODLIB} \
-              ${HDF5LIB} \
-              ${SUPERLULIB}")
+set(ALLLIBS   ${ISISLIB}
+              ${ISISSYSLIBS}
+              ${XTRALIBS}
+              ${QTLIB}
+              ${QWTLIB}
+              ${XERCESLIB}
+              ${GEOTIFFLIB}
+              ${TIFFLIB}
+              ${NAIFLIB}
+              ${TNTLIB}
+              ${JAMALIB}
+              ${GEOSLIB}
+              ${GSLLIB}
+              ${X11LIB}
+              ${GMMLIB}
+              ${PROTOBUFLIB}
+              ${BOOSTLIB}
+              ${CHOLMODLIB}
+              ${HDF5LIB}
+              ${SUPERLULIB})
 #ifeq ($(findstring STATIC, $(MODE)),STATIC)
 #  ALLLIBS = $(ISISSTATIC) $(ISISLIB) $(ISISDYNAMIC)
 #endif
 
 # Only include Kakadu if it is available
 if(${JP2KFLAG} EQUAL "1")
-  set(ALLINCDIRS "${ALLINCDIRS} ${KAKADUINCDIR}")
-  set(ALLLIBDIRS "${ALLLIBDIRS} ${KAKADULIBDIR}")
-  set(ALLLIBS    "${ALLLIBSS}   ${KAKADULIB}"   )
+  set(ALLINCDIRS ${ALLINCDIRS} ${KAKADUINCDIR})
+  set(ALLLIBDIRS ${ALLLIBDIRS} ${KAKADULIBDIR})
+  set(ALLLIBS    ${ALLLIBSS}   ${KAKADULIB}   )
 endif()
+
+#message(All libs = "${ALLLIBS}")
 
 

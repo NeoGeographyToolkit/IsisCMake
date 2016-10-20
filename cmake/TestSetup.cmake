@@ -21,7 +21,7 @@ macro(add_unit_test_target testFile truthFile)
   
   # Redirect the test and truth file through a CMake script to run the
   #  test and check the outputs
-  add_test(NAME ${test_target} # TODO: Make a new name
+  add_test(NAME ${testFile} # TODO: Make a new name?
            COMMAND ${CMAKE_COMMAND}
            -DTEST_PROG=${testFile}
            -DTRUTH_FILE=${truthFile}

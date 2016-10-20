@@ -59,6 +59,12 @@ set(BUILD_SHARED_LIBS ON)
 # Set paths to all the required libraries.
 include(FindAllDependencies)
 
+# Allow everything to include the 3rd party headers
+#message("ALLINCDIRS = ${ALLINCDIRS}")
+message("ALLLIBDIRS = ${ALLLIBDIRS}")
+include_directories(${ALLINCDIRS})
+link_directories(${ALLLIBDIRS})
+
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
 

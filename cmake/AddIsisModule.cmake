@@ -39,7 +39,7 @@ function(add_isis_app_test)
 
 # Just contains a makefile
 
-endfunction(add_isis_module_test)
+endfunction(add_isis_app_test)
 
 
 
@@ -48,11 +48,17 @@ endfunction(add_isis_module_test)
 # - Is there ever more than one file?
 macro(make_obj_unit_test moduleName testFile truthFile)
 
+
+
   # Get file name without extension
-  get_filename_component(name truthFile NAME_WE)
+  get_filename_component(filename ${truthFile} NAME_WE)
   
   # Generate a name for the executable  
   set(executableName "test_${moduleName}_${filename}")
+
+  message("testfile = ${testFile}")
+  message("truthfile = ${truthFile}")
+  message("executableName = ${executableName}")
 
   # Create the executable and link it to the module library
   add_executable( ${executableName} ${testFile}  )
@@ -85,14 +91,14 @@ function(add_isis_obj folder sourceFiles testFiles truthFiles)
   list(REMOVE_ITEM sources "${unitTest}")
 
   # Add the unit test file for this folder if it exists.
-  if(EXISTS "${unitTest})
+  if(EXISTS "${unitTest}")
     set(${testFiles} ${unitTest} PARENT_SCOPE)  
   endif()
 
   message("Found headers: ${headers}")
   
-  set(${sourceFiles} "${headers} ${sources} ${protoFiles}" PARENT_SCOPE)
-  set(${truthFiles}  "${truths}"  PARENT_SCOPE)
+  set(${sourceFiles} ${headers} ${sources} ${protoFiles} PARENT_SCOPE)
+  set(${truthFiles}  ${truths}  PARENT_SCOPE)
 
 endfunction(add_isis_obj)
 
@@ -128,7 +134,7 @@ function(add_isis_module name)
   #SUBDIRLIST(${appsDir} appFolders)
   #SUBDIRLIST(${tstsDir} tstFolders)
   # DEBUG - Start with one folder
-  set(objFolders "${objsDir}/Angle" )
+  set(objFolders "${objsDir}/Constants" )
   set(appFolders "${appsDir}/algebra" )
   set(tstFolders "${tstsDir}/CropCam2map" )
 
@@ -143,23 +149,23 @@ function(add_isis_module name)
     set(truthFiles    ${truthFiles}    ${thisTruthFiles})
   endforeach(f)
   message("All source files: ${sourceFiles}")
+  #message("All test files: ${unitTestFiles}")
+  #message("All truth files: ${truthFiles}")
 
   #message("Found app folders: ${APP_FOLDERS}")
   #message("Found obj folders: ${OBJ_FOLDERS}")
   #message("Found test folders: ${TST_FOLDERS}")
 
-
-
   # Now add the library in CMake
   add_library(${name} ${sourceFiles})
 
-  #set_target_properties(${libName} PROPERTIES LINKER_LANGUAGE CXX)
+  set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX)
   
   # Base module depends on 3rd party libs, other libs also depend on base.
   if(${name} STREQUAL "base")
     target_link_libraries(${name} "${ALLLIBS}")
-  else
-    target_link_libraries(${name} "${base} ${ALLLIBS}")
+  else()
+    target_link_libraries(${name} "base ${ALLLIBS}")
   endif()
 
   # Mark library for installation
@@ -183,17 +189,17 @@ function(add_isis_module name)
   foreach(val RANGE ${numTests})
     list(GET unitTestFiles ${val} testFile )
     list(GET truthFiles    ${val} truthFile)
-    make_obj_unit_test(${name} testFile truthFile)
+    make_obj_unit_test(${name} ${testFile} ${truthFile})
   endforeach()
   
   # Process the apps
   foreach(f ${appFolders})
-    add_isis_app(${f})
+    #add_isis_app(${f})
   endforeach()
   
   # Process the tests
   foreach(f ${tstFolders})
-    add_isis_module_test(${f})
+    #add_isis_module_test(${f})
   endforeach()  
   
 endfunction(add_isis_module)
