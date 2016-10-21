@@ -12,6 +12,9 @@ set(INCLUDE_DIR "${thirdPartyDir}/include")
 set(LIB_DIR     "${thirdPartyDir}/lib")
 set(BIN_DIR     "${thirdPartyDir}/bin")
 
+# TODO: Any way to set this automatically?
+#set(ENV{LD_LIBRARY_PATH} ${LIB_DIR})
+
 #---------------------------------------------------------------------------
 # Set up for Qt
 #---------------------------------------------------------------------------

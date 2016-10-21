@@ -29,8 +29,6 @@ function(generate_protobuf_files PROTO_GEN_OUT folder)
 
   message("FOUND PROTOBUFF FILES ${PROTO_INPUT}")
 
-  # Protobuf compiler
-  set(PROTOC_C_OUT_FLAG --cpp_out)
 
   # TODO: Verify this works!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   # Set where generated files go to and add that directory to the include path
@@ -52,7 +50,7 @@ function(generate_protobuf_files PROTO_GEN_OUT folder)
   # - The generated files will be put in the CMake build directory, not the source tree.
   message("Protobuff Output files: ${PROTO_GEN}")
   add_custom_command(OUTPUT   ${PROTO_GEN}
-                     COMMAND  ${PROTOC} ${PROTO_INPUT} ${PROTOC_C_OUT_FLAG} ${CMAKE_CURRENT_BINARY_DIR}
+                     COMMAND  ${PROTOC} --proto_path ${folder} --cpp_out ${CMAKE_CURRENT_BINARY_DIR} ${PROTO_INPUT}
                      DEPENDS  ${PROTO_INPUT}
                      WORKING_DIRECTORY ${folder}
                      COMMENT "Generating Protocol Buffers...")
