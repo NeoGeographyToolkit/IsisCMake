@@ -87,8 +87,9 @@ function(add_isis_obj folder)
   file(GLOB sources "${folder}/*.c" "${folder}/*.cpp")
   file(GLOB truths  "${folder}/*.truth")
 
-  # Generate protobuf files if needed.
+  # Generate protobuf and ui files if needed.
   generate_protobuf_files(protoFiles ${folder})
+  generate_ui_files(uiFiles ${folder})
 
   # Don't include the unit test in the main source list
   set(unitTest ${folder}/unitTest.cpp)
@@ -101,7 +102,7 @@ function(add_isis_obj folder)
 
   #message("Found headers: ${headers}")
   
-  set(thisSourceFiles ${headers} ${sources} ${protoFiles} PARENT_SCOPE)
+  set(thisSourceFiles ${headers} ${sources} ${protoFiles} ${uiFiles} PARENT_SCOPE)
   set(thisTruthFiles  ${truths}  PARENT_SCOPE)
 
   # DEBUG: Verify that the number of tests and truths are equal!

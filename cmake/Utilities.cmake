@@ -12,6 +12,53 @@ MACRO(SUBDIRLIST curdir result)
   SET(${result} ${dirlist})
 ENDMACRO()
 
+#------------------------------------------------------------
+
+# Generate ui_*.h files from *.ui files using QT tool uic.
+function( generate_ui_files UI_GEN_OUT folder)
+
+  # Finds all .ui files in the current dir
+  file(GLOB UI_INPUT "${folder}/*.ui")
+
+  # If no .ui files in this folder we are finished.
+  list(LENGTH UI_INPUT numFiles)
+  if (${numFiles} EQUAL 0)
+    set(${UI_GEN_OUT} "" PARENT_SCOPE)
+    return()
+  endif()
+
+  message("FOUND UI FILES ${UI_INPUT}")
+
+  # Set where generated files go to and add that directory to the include path
+  set(UI_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
+  include_directories(${UI_GEN_DIR})
+
+  # For each input protobuf file
+  foreach(UI_FILE ${UI_INPUT})
+    # Get the name of the file without extension
+    get_filename_component(UI_NAME ${UI_FILE} NAME_WE)
+    
+    # Add the generated file to UI_GEN variable
+    set(OUT_UI_FILE "${UI_GEN_DIR}/ui_${UI_NAME}.h")
+    set(UI_GEN       ${UI_GEN} ${OUT_UI_FILE})
+
+    # Add the custom command that will generate this file
+    # - The generated files will be put in the CMake build directory, 
+    #   not the source tree    
+    add_custom_command(OUTPUT   ${OUT_UI_FILE}
+                       COMMAND  ${UIC}  ${UI_FILE} -o ${OUT_UI_FILE}
+                       DEPENDS  ${UI_FILE}
+                       WORKING_DIRECTORY ${folder}
+                       COMMENT "Generating UI headers...")
+
+  endforeach()
+
+  message("UI Output files: ${UI_GEN}")
+  set(${UI_GEN_OUT} ${UI_GEN} PARENT_SCOPE) # Set up output variable
+
+endfunction(generate_ui_files)
+
+#------------------------------------------------------------
 
 # Generate ProtoBuf output files for an obj folder.
 # ${PROTOC} must point to the protobuf tool
@@ -30,7 +77,6 @@ function(generate_protobuf_files PROTO_GEN_OUT folder)
   message("FOUND PROTOBUFF FILES ${PROTO_INPUT}")
 
 
-  # TODO: Verify this works!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   # Set where generated files go to and add that directory to the include path
   set(PROTO_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
   include_directories(${PROTO_GEN_DIR})
