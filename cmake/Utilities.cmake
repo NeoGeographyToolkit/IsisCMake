@@ -6,7 +6,7 @@ MACRO(SUBDIRLIST curdir result)
   SET(dirlist "")
   FOREACH(child ${children})
     IF(IS_DIRECTORY ${curdir}/${child})
-      LIST(APPEND dirlist ${child})
+      LIST(APPEND dirlist ${curdir}/${child})
     ENDIF()
   ENDFOREACH()
   SET(${result} ${dirlist})
@@ -18,14 +18,16 @@ ENDMACRO()
 function(generate_protobuf_files PROTO_GEN_OUT folder)
 
   # Finds all .proto files in the current dir
-  file(GLOB PROTO_INPUT RELATIVE ${folder} "*.proto")
-  
+  file(GLOB PROTO_INPUT "${folder}/*.proto")
+
   # If no .proto files in this folder we are finished.
-  list(LENGTH "${PROTO_INPUT}" numFiles)
+  list(LENGTH PROTO_INPUT numFiles)
   if (${numFiles} EQUAL 0)
     set(${PROTO_GEN_OUT} "" PARENT_SCOPE)
     return()
   endif()
+
+  message("FOUND PROTOBUFF FILES ${PROTO_INPUT}")
 
   # Protobuf compiler
   set(PROTOC_C_OUT_FLAG --cpp_out)

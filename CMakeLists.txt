@@ -52,6 +52,7 @@ set(PACKAGE_URL        "https://isis.astrogeology.usgs.gov/")
 
 set(BUILD_SHARED_LIBS ON)
 
+set(ISISCPPFLAGS -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 
 #===============================================================================
 # Build the project!
@@ -61,7 +62,7 @@ include(FindAllDependencies)
 
 # Allow everything to include the 3rd party headers
 #message("ALLINCDIRS = ${ALLINCDIRS}")
-message("ALLLIBDIRS = ${ALLLIBDIRS}")
+#message("ALLLIBDIRS = ${ALLLIBDIRS}")
 include_directories(${ALLINCDIRS})
 link_directories(${ALLLIBDIRS})
 
@@ -71,8 +72,12 @@ set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
 #set(THIRD_PARTY_LIB_DIR    "${CMAKE_SOURCE_DIR}/3rdParty/lib")
 #set(THIRD_PARTY_PLUGIN_DIR "${CMAKE_SOURCE_DIR}/3rdParty/plugins")
 
+#message("ISISCPPFLAGS = ${ISISCPPFLAGS}")
 
-
+# TODO: Is there a cleaner way to convert the list to a string?
+string (REPLACE ";" " " FLAGS_STR "${ISISCPPFLAGS}")
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${FLAGS_STR}" )
+message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 
 # All of the source code is in here.
 add_subdirectory(src)

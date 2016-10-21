@@ -71,11 +71,15 @@ endmacro()
 
 #----------------------------------------------------
 # Load information about a single obj folder
-function(add_isis_obj folder sourceFiles testFiles truthFiles)
+function(add_isis_obj folder)
+#function(add_isis_obj folder sourceFiles testFiles truthFiles)
 
   # Includes the class, unit test app, and unit test truth result
 
-  message("Proccesing OBJ folder: ${folder}")
+  message("Processing OBJ folder: ${folder}")
+
+  # Look inside this folder for include files
+  include_directories(${folder})
 
   # Find the source and header files
   # TODO: Verify only one truth file!
@@ -84,7 +88,7 @@ function(add_isis_obj folder sourceFiles testFiles truthFiles)
   file(GLOB truths  "${folder}/*.truth")
 
   # Generate protobuf files if needed.
-  generate_protobuf_files(protoFiles folder)
+  generate_protobuf_files(protoFiles ${folder})
 
   # Don't include the unit test in the main source list
   set(unitTest ${folder}/unitTest.cpp)
@@ -92,13 +96,24 @@ function(add_isis_obj folder sourceFiles testFiles truthFiles)
 
   # Add the unit test file for this folder if it exists.
   if(EXISTS "${unitTest}")
-    set(${testFiles} ${unitTest} PARENT_SCOPE)  
+    set(thisTestFiles ${unitTest} PARENT_SCOPE)  
   endif()
 
-  message("Found headers: ${headers}")
+  #message("Found headers: ${headers}")
   
-  set(${sourceFiles} ${headers} ${sources} ${protoFiles} PARENT_SCOPE)
-  set(${truthFiles}  ${truths}  PARENT_SCOPE)
+  set(thisSourceFiles ${headers} ${sources} ${protoFiles} PARENT_SCOPE)
+  set(thisTruthFiles  ${truths}  PARENT_SCOPE)
+
+  # DEBUG: Verify that the number of tests and truths are equal!
+  list(LENGTH thisTestFiles numTest)
+  list(LENGTH thisTruthFiles numTruth)
+  if(NOT (${numTest} EQUAL ${numTruth}) )
+    message("UNEQUAL TEST!!!!!!")
+    message("unitTest = ${unitTest}")
+    message("testFiles = ${thisTestFiles}")
+    message("truths = ${thisTruthFiles}")
+  endif()
+
 
 endfunction(add_isis_obj)
 
@@ -123,32 +138,58 @@ endfunction(add_isis_module_test)
 # - Each module will build into an entire library file!
 function(add_isis_module name)
 
-  # Folders: apps, lib, tests
-  set(objsDir "${CMAKE_CURRENT_LIST_DIR}/${name}/objs")
-  set(appsDir "${CMAKE_CURRENT_LIST_DIR}/${name}/apps")
-  set(tstsDir "${CMAKE_CURRENT_LIST_DIR}/${name}/tsts")
+  # First argument is the module name.
+  # Arguments after the first are the folders to look in.
+  set(topFolders ${ARGN})
 
-  # Start with the objs folder
+  message("topFolders = ${topFolders}")
 
-  #SUBDIRLIST(${objsDir} objFolders)
-  #SUBDIRLIST(${appsDir} appFolders)
-  #SUBDIRLIST(${tstsDir} tstFolders)
+  set(objFolders)
+  set(appFolders)
+  set(tstFolders)
+  foreach(f ${topFolders})
+
+    message("Processing TOP FOLDER ${f}")
+
+    # Folders: apps, lib, tests
+    set(objsDir "${CMAKE_CURRENT_LIST_DIR}/${f}/objs")
+    set(appsDir "${CMAKE_CURRENT_LIST_DIR}/${f}/apps")
+    set(tstsDir "${CMAKE_CURRENT_LIST_DIR}/${f}/tsts")
+
+    # Start with the objs folder
+
+    SUBDIRLIST(${objsDir} thisObjFolders)
+    #SUBDIRLIST(${appsDir} thisAppFolders)
+    #SUBDIRLIST(${tstsDir} thisTstFolders)
+
+    set(objFolders ${objFolders} ${thisObjFolders})
+    #set(appFolders ${appFolders} ${thisAppFolders})
+    #set(tstFolders ${tstFolders} ${thisTstFolders})
+
+  endforeach()
+
   # DEBUG - Start with one folder
-  set(objFolders "${objsDir}/Constants" )
-  set(appFolders "${appsDir}/algebra" )
-  set(tstFolders "${tstsDir}/CropCam2map" )
+  #set(objFolders ${objsDir}/Preference)
+  #set(appFolders ${appsDir}/algebra )
+  #set(tstFolders ${tstsDir}/CropCam2map )
+
+  #message("objFolders = ${objFolders}")
 
   
   set(sourceFiles)
   set(unitTestFiles)
   set(truthFiles)
   foreach(f ${objFolders})
-    add_isis_obj(${f} thisSourceFiles thisTestFiles thisTruthFiles)
+    set(thisSourceFiles)
+    set(thisTestFiles)
+    set(thisTruthFiles)
+    #add_isis_obj(${f} thisSourceFiles thisTestFiles thisTruthFiles)
+    add_isis_obj(${f})
     set(sourceFiles   ${sourceFiles}   ${thisSourceFiles})
     set(unitTestFiles ${unitTestFiles} ${thisTestFiles})
     set(truthFiles    ${truthFiles}    ${thisTruthFiles})
   endforeach(f)
-  message("All source files: ${sourceFiles}")
+  #message("All source files: ${sourceFiles}")
   #message("All test files: ${unitTestFiles}")
   #message("All truth files: ${truthFiles}")
 
@@ -186,10 +227,11 @@ function(add_isis_module name)
   # Now that the library is added, add all the unit tests for it.
   list(LENGTH unitTestFiles temp)
   math(EXPR numTests "${temp} - 1")
+  message("NUM_TESTS = ${numTests}")
   foreach(val RANGE ${numTests})
     list(GET unitTestFiles ${val} testFile )
     list(GET truthFiles    ${val} truthFile)
-    make_obj_unit_test(${name} ${testFile} ${truthFile})
+    #make_obj_unit_test(${name} ${testFile} ${truthFile})
   endforeach()
   
   # Process the apps

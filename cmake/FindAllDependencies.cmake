@@ -15,11 +15,36 @@ set(BIN_DIR     "${thirdPartyDir}/bin")
 #---------------------------------------------------------------------------
 # Set up for Qt
 #---------------------------------------------------------------------------
+# *Most* of the folders in the main QT folder are needed as an include directory
 set(qtDir "${INCLUDE_DIR}/qt/qt5.6.0")
-# Each of the folders in the main QT folder is needed as an include directory
-SUBDIRLIST(${qtDir} qtFolders)
+set(qtIncludes  Qt
+                QtCore
+                QtAssistant
+                QtConcurrent
+                QtDBus
+                QtGui
+                QtMultimedia
+                QtMultimediaWidgets
+                QtNetwork
+                QtOpenGL # Needed to install mesa-common-dev for this!
+                QtPositioning
+                QtPrintSupport
+                QtQml
+                QtQuick
+                QtScript
+                QtScriptTools
+                QtSensors
+                QtSql
+                QtSvg
+                QtTest
+                QtWebChannel
+                QtWebEngine
+                QtWebEngineWidgets
+                QtWidgets
+                QtXml
+                QtXmlPatterns)
 set(QTINCDIR ${qtDir})
-foreach(f ${qtFolders})
+foreach(f ${qtIncludes})
   set(QTINCDIR ${QTINCDIR} ${qtDir}/${f}) 
 endforeach()
 #message("QTINCDIR = ${QTINCDIR}")
@@ -138,21 +163,23 @@ set(GSLLIB    "-lgsl -lgslcblas")
 #---------------------------------------------------------------------------
 set(X11INCDIR)
 set(X11LIBDIR)
-set(X11LIB    "-lX11")
+set(X11LIB    "-lX11") # Must install package libX11-dev
 
 #---------------------------------------------------------------------------
 # Set up for GMM
 #---------------------------------------------------------------------------
-set(GMINCDIR ${INCLUDE_DIR}/gmm/gmm-5.0  ${INCLUDE_DIR}/gmm/gmm-5.0/gmm)
+set(GMMINCDIR ${INCLUDE_DIR}/gmm/gmm-5.0  ${INCLUDE_DIR}/gmm/gmm-5.0/gmm)
 set(GMMLIBDIR)
-set(GMLIB)
+set(GMMLIB)
+
+set(ISISCPPFLAGS ${ISISCPPFLAGS} -DGMM_USES_SUPERLU)
 
 #---------------------------------------------------------------------------
 # Set up for SuperLU
 #---------------------------------------------------------------------------
 set(SUPERLUINCDIR "${INCLUDE_DIR}/superlu/superlu4.3")
 set(SUPERLULIBDIR "${LIB_DIR}")
-set(SUPERLULIB    "-lsuperlu_4.3 -lblas -lgfortran")
+set(SUPERLULIB    "-lsuperlu_4.3 -lblas -lgfortran") # Must install packages liblas-dev and gfortran
 
 #---------------------------------------------------------------------------
 # Set up for Google Protocol Buffers (ProtoBuf)
@@ -331,7 +358,8 @@ set(ALLINCDIRS  ${XTRAINCDIRS}
                 ${SUPERLUINCDIR}
                 ${OPENCVINCDIR}
                 ${NNINCDIR}
-                ${DEFAULTINCDIR})
+                ${DEFAULTINCDIR}
+                ${GMMINCDIR})
 
 set(ALLLIBDIRS  ${XTRALIBDIRS}
                 ${ISISLIBDIR}
@@ -350,7 +378,8 @@ set(ALLLIBDIRS  ${XTRALIBDIRS}
                 ${BOOSTLIBDIR}
                 ${CHOLMODLIBDIR}
                 ${HDF5LIBDIR}
-                ${SUPERLULIBDIR})
+                ${SUPERLULIBDIR}
+                ${GMMLIBDIR})
 
 set(ALLLIBS   ${ISISLIB}
               ${ISISSYSLIBS}
@@ -371,7 +400,8 @@ set(ALLLIBS   ${ISISLIB}
               ${BOOSTLIB}
               ${CHOLMODLIB}
               ${HDF5LIB}
-              ${SUPERLULIB})
+              ${SUPERLULIB}
+              ${GMMLIB})
 #ifeq ($(findstring STATIC, $(MODE)),STATIC)
 #  ALLLIBS = $(ISISSTATIC) $(ISISLIB) $(ISISDYNAMIC)
 #endif
