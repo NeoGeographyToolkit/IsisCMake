@@ -97,7 +97,7 @@ set(RCC "${BIN_DIR}/rcc")
 #message("Qt5Widgets_DIR = ${Qt5Widgets_DIR}")
 #find_package(Qt5Widgets)
 
-
+# Had to manually install required dependencies libsnappy-dev and libsrtp-dev
 
 #---------------------------------------------------------------------------
 # Set up for Qwt
@@ -189,7 +189,7 @@ set(ISISCPPFLAGS ${ISISCPPFLAGS} -DGMM_USES_SUPERLU)
 #---------------------------------------------------------------------------
 set(SUPERLUINCDIR "${INCLUDE_DIR}/superlu/superlu4.3")
 set(SUPERLULIBDIR "${LIB_DIR}")
-set(SUPERLULIB    "-lsuperlu_4.3 -lblas -lgfortran") # Must install packages liblas-dev and gfortran
+set(SUPERLULIB    "-lsuperlu_4.3 -lblas -lgfortran") # Must install packages libblas-dev and gfortran
 
 #---------------------------------------------------------------------------
 # Set up for Google Protocol Buffers (ProtoBuf)

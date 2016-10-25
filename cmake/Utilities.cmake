@@ -74,8 +74,6 @@ function( generate_moc_files MOC_GEN_OUT folder)
     exec_program("grep" ARGS "Q_OBJECT ${f}"
                     OUTPUT_VARIABLE result
                     RETURN_VALUE code)
-    message("code = ${code}")
-    message("result = ${result}")
     if(${code} STREQUAL "0")
       set(MOC_INPUT ${MOC_INPUT} ${f})
     endif()
