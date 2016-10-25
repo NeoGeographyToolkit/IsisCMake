@@ -56,23 +56,23 @@ macro(make_obj_unit_test moduleName testFile truthFile)
   # Generate a name for the executable  
   set(executableName "test_${moduleName}_${filename}")
 
-  message("testfile = ${testFile}")
-  message("truthfile = ${truthFile}")
-  message("executableName = ${executableName}")
+  #message("testfile = ${testFile}")
+  #message("truthfile = ${truthFile}")
+  #message("executableName = ${executableName}")
 
   # Create the executable and link it to the module library
+  #message("link to ${moduleName}")
   add_executable( ${executableName} ${testFile}  )
-  target_link_libraries(${executableName} ${moduleName}) # TODO: Check!
+  target_link_libraries(${executableName} ${moduleName} ${ALLLIBS}) # TODO: Check!
 
   # Add this test to the unit test command
-  add_unit_test_target(${executableName} ${truthFile})
+  #add_unit_test_target(${executableName} ${truthFile})
 
 endmacro()
 
 #----------------------------------------------------
 # Load information about a single obj folder
 function(add_isis_obj folder)
-#function(add_isis_obj folder sourceFiles testFiles truthFiles)
 
   # Includes the class, unit test app, and unit test truth result
 
@@ -90,6 +90,7 @@ function(add_isis_obj folder)
   # Generate protobuf and ui files if needed.
   generate_protobuf_files(protoFiles ${folder})
   generate_ui_files(uiFiles ${folder})
+  generate_moc_files(mocFiles ${folder})
 
   # Don't include the unit test in the main source list
   set(unitTest ${folder}/unitTest.cpp)
@@ -97,24 +98,37 @@ function(add_isis_obj folder)
 
   # Add the unit test file for this folder if it exists.
   if(EXISTS "${unitTest}")
-    set(thisTestFiles ${unitTest} PARENT_SCOPE)  
+    set(thisTestFiles ${unitTest}) 
+  else()
+    set(thisTestFiles)  
   endif()
 
   #message("Found headers: ${headers}")
-  
-  set(thisSourceFiles ${headers} ${sources} ${protoFiles} ${uiFiles} PARENT_SCOPE)
-  set(thisTruthFiles  ${truths}  PARENT_SCOPE)
 
-  # DEBUG: Verify that the number of tests and truths are equal!
+
+  # Output assignments are locally first so we can check them at the local scope.
+  set(thisSourceFiles ${headers} ${sources} ${protoFiles} ${uiFiles} ${mocFiles})
+  set(thisTruthFiles  ${truths} )
+
+  
+  # TODO: Choose the truth file based on the OS!!!!
+  # Verify that the number of tests and truths are equal!
   list(LENGTH thisTestFiles numTest)
   list(LENGTH thisTruthFiles numTruth)
   if(NOT (${numTest} EQUAL ${numTruth}) )
     message("UNEQUAL TEST!!!!!!")
-    message("unitTest = ${unitTest}")
     message("testFiles = ${thisTestFiles}")
     message("truths = ${thisTruthFiles}")
+    list(GET thisTruthFiles 0 thisTruthFiles )
+    message("Selected truth file = ${thisTruthFiles}")
+    #message( FATAL_ERROR "STOP." )
   endif()
-
+  
+  #set(thisSourceFiles ${headers} ${sources} ${protoFiles} ${uiFiles} PARENT_SCOPE)
+  #set(thisTruthFiles  ${truths}  PARENT_SCOPE)
+  set(thisTestFiles   ${thisTestFiles}   PARENT_SCOPE)
+  set(thisSourceFiles ${thisSourceFiles} PARENT_SCOPE)
+  set(thisTruthFiles  ${thisTruthFiles}  PARENT_SCOPE)
 
 endfunction(add_isis_obj)
 
@@ -184,12 +198,13 @@ function(add_isis_module name)
     set(thisSourceFiles)
     set(thisTestFiles)
     set(thisTruthFiles)
-    #add_isis_obj(${f} thisSourceFiles thisTestFiles thisTruthFiles)
     add_isis_obj(${f})
     set(sourceFiles   ${sourceFiles}   ${thisSourceFiles})
     set(unitTestFiles ${unitTestFiles} ${thisTestFiles})
     set(truthFiles    ${truthFiles}    ${thisTruthFiles})
   endforeach(f)
+  #list(SORT unitTestFiles)
+  #list(SORT truthFiles)
   #message("All source files: ${sourceFiles}")
   #message("All test files: ${unitTestFiles}")
   #message("All truth files: ${truthFiles}")
@@ -232,7 +247,7 @@ function(add_isis_module name)
   foreach(val RANGE ${numTests})
     list(GET unitTestFiles ${val} testFile )
     list(GET truthFiles    ${val} truthFile)
-    #make_obj_unit_test(${name} ${testFile} ${truthFile})
+    make_obj_unit_test(${name} ${testFile} ${truthFile})
   endforeach()
   
   # Process the apps

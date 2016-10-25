@@ -54,6 +54,8 @@ set(BUILD_SHARED_LIBS ON)
 
 set(ISISCPPFLAGS -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 
+# TODO: Get OS version so we can pick some settings.
+
 #===============================================================================
 # Build the project!
 

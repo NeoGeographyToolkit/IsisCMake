@@ -92,6 +92,13 @@ set(UIC "${BIN_DIR}/uic")
 set(MOC "${BIN_DIR}/moc")
 set(RCC "${BIN_DIR}/rcc")
 
+# TODO: Is this required?  Looks like QT needs to be properly installed for this to work.
+#set(Qt5Widgets_DIR ${LIB_DIR}/cmake/Qt5Widgets)
+#message("Qt5Widgets_DIR = ${Qt5Widgets_DIR}")
+#find_package(Qt5Widgets)
+
+
+
 #---------------------------------------------------------------------------
 # Set up for Qwt
 #---------------------------------------------------------------------------
