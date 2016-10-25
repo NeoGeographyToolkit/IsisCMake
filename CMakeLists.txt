@@ -56,6 +56,17 @@ set(ISISCPPFLAGS -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 
 # TODO: Get OS version so we can pick some settings.
 
+# TODO: Additional requirements!
+
+# - For building, need
+# export LD_LIBRARY_PATH=/home/smcmich1/code/3rdParty/lib/
+# in order for the build tools to work properly.
+
+# - For running the unit tests, requires
+# export ISISROOT=/home/smcmich1/code
+# and obviously can only be done on the build machine.
+
+
 #===============================================================================
 # Build the project!
 
@@ -71,6 +82,9 @@ link_directories(${ALLLIBDIRS})
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
 
+# Have binaries use a relative rpath to the lib folder
+SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib3rd")
+
 #set(THIRD_PARTY_LIB_DIR    "${CMAKE_SOURCE_DIR}/3rdParty/lib")
 #set(THIRD_PARTY_PLUGIN_DIR "${CMAKE_SOURCE_DIR}/3rdParty/plugins")
 
@@ -80,6 +94,10 @@ set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
 string (REPLACE ";" " " FLAGS_STR "${ISISCPPFLAGS}")
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${FLAGS_STR}" )
 message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+
+# Needed for add_test
+#enable_testing()
+include(CTest)
 
 # All of the source code is in here.
 add_subdirectory(src)

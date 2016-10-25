@@ -70,7 +70,6 @@ function( generate_moc_files MOC_GEN_OUT folder)
   file(GLOB CANDIDATE_FILES "${folder}/*.h")
   set(MOC_INPUT)
   foreach(f ${CANDIDATE_FILES})
-    message("searching =  ${f}")
     exec_program("grep" ARGS "Q_OBJECT ${f}"
                     OUTPUT_VARIABLE result
                     RETURN_VALUE code)
@@ -87,7 +86,7 @@ function( generate_moc_files MOC_GEN_OUT folder)
     return()
   endif()
 
-  message("FOUND MOC FILES ${MOC_INPUT}")
+  #message("FOUND MOC FILES ${MOC_INPUT}")
 
   # Set where generated files go to and add that directory to the include path
   set(MOC_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -113,7 +112,7 @@ function( generate_moc_files MOC_GEN_OUT folder)
 
   endforeach()
 
-  message("MOC Output files: ${MOC_GEN}")
+  #message("MOC Output files: ${MOC_GEN}")
   set(${MOC_GEN_OUT} ${MOC_GEN} PARENT_SCOPE) # Set up output variable
 
 endfunction(generate_moc_files)

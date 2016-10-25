@@ -65,8 +65,11 @@ macro(make_obj_unit_test moduleName testFile truthFile)
   add_executable( ${executableName} ${testFile}  )
   target_link_libraries(${executableName} ${moduleName} ${ALLLIBS}) # TODO: Check!
 
+  # TODO: Make test build/installion optional!
+  install(TARGETS ${executableName} DESTINATION tests)
+
   # Add this test to the unit test command
-  #add_unit_test_target(${executableName} ${truthFile})
+  add_unit_test_target(${executableName} ${truthFile})
 
 endmacro()
 
