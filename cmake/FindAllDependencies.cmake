@@ -270,6 +270,10 @@ set(OPENCVLIB     -lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_featu
                   -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_ts
                   -lopencv_video -lopencv_videostab)
 
+# Missing the following required OpenCV libraries:
+#    libavcodec.so.54, libavformat.so.54, libavutil.so.52, libswscale.so.2
+# Installed with apt-get libavcodec-dev, libswscale-dev, libavformat-dev
+
 #---------------------------------------------------------------------------
 # Set up for Natural Neigbor Library (NN)
 #

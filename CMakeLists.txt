@@ -66,7 +66,6 @@ set(ISISCPPFLAGS -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 # export ISISROOT=/home/smcmich1/code
 # and obviously can only be done on the build machine.
 
-
 #===============================================================================
 # Build the project!
 

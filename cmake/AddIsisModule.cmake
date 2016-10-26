@@ -7,21 +7,35 @@
 
 
 #----------------------------------------------------
-function(add_isis_app folder lib_dependencies)
+function(add_isis_app folder libDependencies)
 
-# Folders: assets, tsts
+  # Folders: assets, tsts
 
+  get_filename_component(appName ${folder}  NAME)
   message("Proccesing APP folder: ${folder}")
 
   # Find the source and header files
-  # TODO: Verify only one truth file!
   file(GLOB headers "${folder}/*.h" "${folder}/*.hpp")
   file(GLOB sources "${folder}/*.c" "${folder}/*.cpp")
   
+  # Generate required QT files
+  generate_moc_files(mocFiles ${folder})
+
   # Set up the executable 
-  add_executable(${app_name} "${headers} ${sources}")
-  target_link_libraries(${app_name} ${lib_dependencies})
-  install(TARGETS ${app_name} DESTINATION bin)
+  #message("libDependencies = ${libDependencies}")
+  add_executable(${appName} ${headers} ${sources} ${mocFiles})
+  set_target_properties(${appName} PROPERTIES LINKER_LANGUAGE CXX)
+
+  # Handle individual apps that have additional library requirements
+  set(finalLibDeps ${libDependencies})
+  if((${appName} STREQUAL "amicacal") OR (${appName} STREQUAL "findfeatures"))
+    set(finalLibDeps ${finalLibDeps} ${OPENCVLIB})
+  elseif(${appName} STREQUAL "cnet2dem")
+    set(finalLibDeps ${finalLibDeps} ${NNLIB})
+  endif()
+
+  target_link_libraries(${appName} ${finalLibDeps})
+  install(TARGETS ${appName} DESTINATION apps)
 
   # TODO: What to do with documentation files??
   
@@ -30,6 +44,8 @@ function(add_isis_app folder lib_dependencies)
   # TODO: Where are the input and truth files?
   # TODO: Need to read in the make file contents!
   #       -> May need to write a python script to parse the makefiles!
+
+  #message( FATAL_ERROR "DEBUG" )
 
 endfunction(add_isis_app)
 
@@ -57,7 +73,7 @@ macro(make_obj_unit_test moduleName testFile truthFile libNames)
   foreach (f ${libNames})
     if(${f} STREQUAL ${filename})
       set(matchedLibs ${f})
-      message("Linking library ${matchedLibs} to test ${filename}")
+      #message("Linking library ${matchedLibs} to test ${filename}")
     endif()
   endforeach()
   #message("matchedLibs = ${matchedLibs}")
@@ -149,7 +165,7 @@ function(add_isis_obj folder)
     # Folder with a plugin means that this is a separate library!
     # Add it here and then we are done with the source files.
 
-    message("Found plugins: ${plugins}")
+    #message("Found plugins: ${plugins}")
 
     if(NOT (${numPlugins} EQUAL 1))
       message( FATAL_ERROR "Error: Multiple plugins found in folder!" )
@@ -166,7 +182,7 @@ function(add_isis_obj folder)
 
     # Append the plugin file to a single file in the install/lib folder
     set(pluginPath ${CMAKE_INSTALL_PREFIX}/lib/${pluginName})
-    message("Appending plugin to ${pluginPath}")
+    #message("Appending plugin to ${pluginPath}")
     cat(${plugins} ${pluginPath})
 
     # Record this library name for the caller
@@ -217,22 +233,14 @@ function(add_isis_module name)
     # Start with the objs folder
 
     SUBDIRLIST(${objsDir} thisObjFolders)
-    #SUBDIRLIST(${appsDir} thisAppFolders)
+    SUBDIRLIST(${appsDir} thisAppFolders)
     #SUBDIRLIST(${tstsDir} thisTstFolders)
 
     set(objFolders ${objFolders} ${thisObjFolders})
-    #set(appFolders ${appFolders} ${thisAppFolders})
+    set(appFolders ${appFolders} ${thisAppFolders})
     #set(tstFolders ${tstFolders} ${thisTstFolders})
 
   endforeach()
-
-  # DEBUG - Start with one folder
-  #set(objFolders ${objsDir}/Preference)
-  #set(appFolders ${appsDir}/algebra )
-  #set(tstFolders ${tstsDir}/CropCam2map )
-
-  #message("objFolders = ${objFolders}")
-
   
   set(sourceFiles)
   set(unitTestFiles)
@@ -249,11 +257,6 @@ function(add_isis_module name)
     set(truthFiles    ${truthFiles}    ${newTruthFiles})
     set(libNames      ${libNames}      ${newLibName})
   endforeach(f)
-  #list(SORT unitTestFiles)
-  #list(SORT truthFiles)
-  #message("All source files: ${sourceFiles}")
-  #message("All test files: ${unitTestFiles}")
-  #message("All truth files: ${truthFiles}")
   message("Plugin libs: ${libNames}")
 
   #message("Found app folders: ${APP_FOLDERS}")
@@ -263,11 +266,11 @@ function(add_isis_module name)
   # Now that we have the library info, call function to add it to the build!
   # - Base module depends on 3rd party libs, other libs also depend on base.
   if(${name} STREQUAL "base")
-    add_library_wrapper(${name} "${sourceFiles}" "${ALLLIBS}")
+    set(reqLibs ${ALLLIBS})
   else()
-    set(reqLibs "-lbase ${ALLLIBS}")
-    add_library_wrapper(${name} "${sourceFiles}" "${reqLibs}")
+    set(reqLibs "base;${ALLLIBS}")
   endif()
+  add_library_wrapper(${name} "${sourceFiles}" "${reqLibs}")
 
 
   # Now that the library is added, add all the unit tests for it.
@@ -282,7 +285,8 @@ function(add_isis_module name)
   
   # Process the apps
   foreach(f ${appFolders})
-    #add_isis_app(${f})
+    # Apps always require the core library
+    add_isis_app(${f} "base;${ALLLIBS}")
   endforeach()
   
   # Process the tests
