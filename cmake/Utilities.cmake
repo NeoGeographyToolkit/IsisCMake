@@ -13,6 +13,44 @@ MACRO(SUBDIRLIST curdir result)
   SET(${result} ${dirlist})
 ENDMACRO()
 
+# Append the contents of IN_FILE to the end of OUT_FILE
+function(cat IN_FILE OUT_FILE)
+
+  # If the output file does not exist, init with an empty file.
+  if(NOT EXISTS "${OUT_FILE}")
+    file(WRITE OUT_FILE "")
+  endif()
+
+  # Perform the file concatenation.
+  file(READ ${IN_FILE} CONTENTS)
+  file(APPEND ${OUT_FILE} "${CONTENTS}")
+endfunction()
+
+#------------------------------------------------------------
+function(add_library_wrapper name sourceFiles libDependencies)
+
+  #get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+  #message("inc_dirs = ${inc_dirs}")
+
+
+  # Add library, set dependencies, and add to installation list.
+  add_library(${name} ${sourceFiles})
+  set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX) 
+  target_link_libraries(${name} ${libDependencies})
+  install(TARGETS ${name} DESTINATION lib)
+
+  # Set all the header files to be installed to the include directory
+  foreach(f ${sourceFiles})
+    get_filename_component(extension ${f} EXT) # Get file extension  
+    string( TOLOWER "${extension}" extensionLower )
+    if( extensionLower STREQUAL ".h" OR extensionLower STREQUAL ".hpp" OR extensionLower STREQUAL ".tcc")
+      set(fullPath "${CMAKE_CURRENT_SOURCE_DIR}/${f}") # TODO: Check this!
+      INSTALL(FILES ${f} DESTINATION include/${name})
+    endif()
+  endforeach(f)
+
+endfunction(add_library_wrapper)
+
 #------------------------------------------------------------
 
 # TODO: Can we consolidate the following three functions?

@@ -79,8 +79,15 @@ include(FindAllDependencies)
 include_directories(${ALLINCDIRS})
 link_directories(${ALLLIBDIRS})
 
+# Allow linking to output dir
+link_directories(${CMAKE_INSTALL_PREFIX}/lib)
+
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
+
+# TODO: Deal with some hard coded path issues:
+# - $ISISROOT/src/blah/blah
+# - Copy 3rd party libs to install dir?
 
 # Have binaries use a relative rpath to the lib folder
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib3rd")
@@ -99,11 +106,13 @@ message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 #enable_testing()
 include(CTest)
 
+# Delete any existing plugin files in the installation folder
+#  so that we don't get any duplication.
+file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
+file(REMOVE ${installedPlugins})
+
 # All of the source code is in here.
 add_subdirectory(src)
-
-
-
 
 
 

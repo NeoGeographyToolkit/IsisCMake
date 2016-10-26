@@ -46,13 +46,21 @@ endfunction(add_isis_app_test)
 #----------------------------------------------------
 # Set up the lone unit test in an obj folder
 # - Is there ever more than one file?
-macro(make_obj_unit_test moduleName testFile truthFile)
-
-
+macro(make_obj_unit_test moduleName testFile truthFile libNames)
 
   # Get file name without extension
   get_filename_component(filename ${truthFile} NAME_WE)
-  
+
+  # See if there are any libraries that match the name
+  # - If there are, we need to link to them!
+  set(matchedLibs)
+  foreach (f ${libNames})
+    if(${f} STREQUAL ${filename})
+      set(matchedLibs ${f})
+      message("Linking library ${matchedLibs} to test ${filename}")
+    endif()
+  endforeach()
+  #message("matchedLibs = ${matchedLibs}")
   # Generate a name for the executable  
   set(executableName "test_${moduleName}_${filename}")
 
@@ -63,7 +71,10 @@ macro(make_obj_unit_test moduleName testFile truthFile)
   # Create the executable and link it to the module library
   #message("link to ${moduleName}")
   add_executable( ${executableName} ${testFile}  )
-  target_link_libraries(${executableName} ${moduleName} ${ALLLIBS}) # TODO: Check!
+  set(depLibs "base;${ALLLIBS};${matchedLibs}") # TODO: Check!
+  #message("depLibs = ${depLibs}")
+  target_link_libraries(${executableName} ${moduleName} ${depLibs}) # TODO: Check!
+  #message( FATAL_ERROR "STOP." )
 
   # TODO: Make test build/installion optional!
   install(TARGETS ${executableName} DESTINATION tests)
@@ -89,6 +100,7 @@ function(add_isis_obj folder)
   file(GLOB headers "${folder}/*.h" "${folder}/*.hpp")
   file(GLOB sources "${folder}/*.c" "${folder}/*.cpp")
   file(GLOB truths  "${folder}/*.truth")
+  file(GLOB plugins "${folder}/*.plugin")
 
   # Generate protobuf and ui files if needed.
   generate_protobuf_files(protoFiles ${folder})
@@ -106,32 +118,62 @@ function(add_isis_obj folder)
     set(thisTestFiles)  
   endif()
 
-  #message("Found headers: ${headers}")
-
 
   # Output assignments are locally first so we can check them at the local scope.
   set(thisSourceFiles ${headers} ${sources} ${protoFiles} ${uiFiles} ${mocFiles})
   set(thisTruthFiles  ${truths} )
-
   
   # TODO: Choose the truth file based on the OS!!!!
   # Verify that the number of tests and truths are equal!
   list(LENGTH thisTestFiles numTest)
   list(LENGTH thisTruthFiles numTruth)
   if(NOT (${numTest} EQUAL ${numTruth}) )
-    message("UNEQUAL TEST!!!!!!")
-    message("testFiles = ${thisTestFiles}")
-    message("truths = ${thisTruthFiles}")
+    #message("UNEQUAL TEST!!!!!!")
+    #message("testFiles = ${thisTestFiles}")
+    #message("truths = ${thisTruthFiles}")
     list(GET thisTruthFiles 0 thisTruthFiles )
     message("Selected truth file = ${thisTruthFiles}")
     #message( FATAL_ERROR "STOP." )
   endif()
+
+  # Always pass the test and truth files to the caller
+  set(newTestFiles   ${thisTestFiles}   PARENT_SCOPE)
+  set(newTruthFiles  ${thisTruthFiles}  PARENT_SCOPE)
   
-  #set(thisSourceFiles ${headers} ${sources} ${protoFiles} ${uiFiles} PARENT_SCOPE)
-  #set(thisTruthFiles  ${truths}  PARENT_SCOPE)
-  set(thisTestFiles   ${thisTestFiles}   PARENT_SCOPE)
-  set(thisSourceFiles ${thisSourceFiles} PARENT_SCOPE)
-  set(thisTruthFiles  ${thisTruthFiles}  PARENT_SCOPE)
+  list(LENGTH plugins numPlugins)
+  if(${numPlugins} EQUAL 0)
+    # No plugins, pass the source files back to the caller to add to
+    #  the larger library.
+    set(newSourceFiles ${thisSourceFiles} PARENT_SCOPE)
+  else()
+    # Folder with a plugin means that this is a separate library!
+    # Add it here and then we are done with the source files.
+
+    message("Found plugins: ${plugins}")
+
+    if(NOT (${numPlugins} EQUAL 1))
+      message( FATAL_ERROR "Error: Multiple plugins found in folder!" )
+    endif()
+
+    get_filename_component(libName    ${folder}  NAME)
+    get_filename_component(pluginName ${plugins} NAME)
+    message("Adding special library: ${libName}")
+    #message("SOURCE FILES: ${thisSourceFiles}")
+
+    # TODO: Which dependencies?
+    #set(reqLibs "base ${ALLLIBS}")
+    add_library_wrapper(${libName} "${thisSourceFiles}" "${ALLLIBS}")
+
+    # Append the plugin file to a single file in the install/lib folder
+    set(pluginPath ${CMAKE_INSTALL_PREFIX}/lib/${pluginName})
+    message("Appending plugin to ${pluginPath}")
+    cat(${plugins} ${pluginPath})
+
+    # Record this library name for the caller
+    set(newLibName  ${libName}  PARENT_SCOPE)
+
+  endif()
+
 
 endfunction(add_isis_obj)
 
@@ -146,8 +188,6 @@ function(add_isis_module_test folder)
   # These are probably similar to the app tests in how they are handled.
 
 endfunction(add_isis_module_test)
-
-
 
 #----------------------------------------------------
 
@@ -197,50 +237,37 @@ function(add_isis_module name)
   set(sourceFiles)
   set(unitTestFiles)
   set(truthFiles)
+  set(libNames)
   foreach(f ${objFolders})
-    set(thisSourceFiles)
-    set(thisTestFiles)
-    set(thisTruthFiles)
+    set(newSourceFiles)
+    set(newTestFiles)
+    set(newTruthFiles)
+    set(newLibName)
     add_isis_obj(${f})
-    set(sourceFiles   ${sourceFiles}   ${thisSourceFiles})
-    set(unitTestFiles ${unitTestFiles} ${thisTestFiles})
-    set(truthFiles    ${truthFiles}    ${thisTruthFiles})
+    set(sourceFiles   ${sourceFiles}   ${newSourceFiles})
+    set(unitTestFiles ${unitTestFiles} ${newTestFiles})
+    set(truthFiles    ${truthFiles}    ${newTruthFiles})
+    set(libNames      ${libNames}      ${newLibName})
   endforeach(f)
   #list(SORT unitTestFiles)
   #list(SORT truthFiles)
   #message("All source files: ${sourceFiles}")
   #message("All test files: ${unitTestFiles}")
   #message("All truth files: ${truthFiles}")
+  message("Plugin libs: ${libNames}")
 
   #message("Found app folders: ${APP_FOLDERS}")
   #message("Found obj folders: ${OBJ_FOLDERS}")
   #message("Found test folders: ${TST_FOLDERS}")
 
-  # Now add the library in CMake
-  add_library(${name} ${sourceFiles})
-
-  set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX)
-  
-  # Base module depends on 3rd party libs, other libs also depend on base.
+  # Now that we have the library info, call function to add it to the build!
+  # - Base module depends on 3rd party libs, other libs also depend on base.
   if(${name} STREQUAL "base")
-    target_link_libraries(${name} "${ALLLIBS}")
+    add_library_wrapper(${name} "${sourceFiles}" "${ALLLIBS}")
   else()
-    target_link_libraries(${name} "base ${ALLLIBS}")
+    set(reqLibs "-lbase ${ALLLIBS}")
+    add_library_wrapper(${name} "${sourceFiles}" "${reqLibs}")
   endif()
-
-  # Mark library for installation
-  install(TARGETS ${name} DESTINATION lib)
-
-
-  # Set all the header files to be installed to the include directory
-  foreach(f ${sourceFiles})
-    get_filename_component(extension ${f} EXT) # Get file extension  
-    string( TOLOWER "${extension}" extensionLower )
-    if( extensionLower STREQUAL ".h" OR extensionLower STREQUAL ".hpp" OR extensionLower STREQUAL ".tcc")
-      set(fullPath "${CMAKE_CURRENT_SOURCE_DIR}/${f}") # TODO: Check this!
-      INSTALL(FILES ${f} DESTINATION include/${name})
-    endif()
-  endforeach(f)
 
 
   # Now that the library is added, add all the unit tests for it.
@@ -250,7 +277,7 @@ function(add_isis_module name)
   foreach(val RANGE ${numTests})
     list(GET unitTestFiles ${val} testFile )
     list(GET truthFiles    ${val} truthFile)
-    make_obj_unit_test(${name} ${testFile} ${truthFile})
+    make_obj_unit_test(${name} ${testFile} ${truthFile} "${libNames}")
   endforeach()
   
   # Process the apps

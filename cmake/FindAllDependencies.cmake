@@ -189,7 +189,7 @@ set(ISISCPPFLAGS ${ISISCPPFLAGS} -DGMM_USES_SUPERLU)
 #---------------------------------------------------------------------------
 set(SUPERLUINCDIR "${INCLUDE_DIR}/superlu/superlu4.3")
 set(SUPERLULIBDIR "${LIB_DIR}")
-set(SUPERLULIB    "-lsuperlu_4.3 -lblas -lgfortran") # Must install packages libblas-dev and gfortran
+set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
 
 #---------------------------------------------------------------------------
 # Set up for Google Protocol Buffers (ProtoBuf)
@@ -247,7 +247,7 @@ set(BOOSTLIB    "")
 #---------------------------------------------------------------------------
 set(CHOLMODINCDIR "${INCLUDE_DIR}/SuiteSparse/SuiteSparse4.4.5/SuiteSparse")
 set(CHOLMODLIBDIR "${LIB_DIR}")
-set(CHOLMODLIB    "-lcholmod -lamd -lcamd -lccolamd -lcolamd -llapack -lsuitesparseconfig")
+set(CHOLMODLIB    -lcholmod -lamd -lcamd -lccolamd -lcolamd -llapack -lsuitesparseconfig)
 
 #---------------------------------------------------------------------------
 # Set up for HDF5 libraries 
