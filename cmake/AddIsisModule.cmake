@@ -22,7 +22,6 @@ function(add_isis_app folder libDependencies)
   generate_moc_files(mocFiles ${folder})
 
   # Set up the executable 
-  #message("libDependencies = ${libDependencies}")
   add_executable(${appName} ${headers} ${sources} ${mocFiles})
   set_target_properties(${appName} PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -33,6 +32,7 @@ function(add_isis_app folder libDependencies)
   elseif(${appName} STREQUAL "cnet2dem")
     set(finalLibDeps ${finalLibDeps} ${NNLIB})
   endif()
+  #message("finalLibDeps = ${finalLibDeps}")
 
   target_link_libraries(${appName} ${finalLibDeps})
   install(TARGETS ${appName} DESTINATION apps)
@@ -44,8 +44,6 @@ function(add_isis_app folder libDependencies)
   # TODO: Where are the input and truth files?
   # TODO: Need to read in the make file contents!
   #       -> May need to write a python script to parse the makefiles!
-
-  #message( FATAL_ERROR "DEBUG" )
 
 endfunction(add_isis_app)
 
@@ -62,15 +60,15 @@ endfunction(add_isis_app_test)
 #----------------------------------------------------
 # Set up the lone unit test in an obj folder
 # - Is there ever more than one file?
-macro(make_obj_unit_test moduleName testFile truthFile libNames)
+macro(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
 
   # Get file name without extension
   get_filename_component(filename ${truthFile} NAME_WE)
 
-  # See if there are any libraries that match the name
+  # See if there are any plugin libraries that match the name
   # - If there are, we need to link to them!
   set(matchedLibs)
-  foreach (f ${libNames})
+  foreach (f ${pluginLibs})
     if(${f} STREQUAL ${filename})
       set(matchedLibs ${f})
       #message("Linking library ${matchedLibs} to test ${filename}")
@@ -87,7 +85,7 @@ macro(make_obj_unit_test moduleName testFile truthFile libNames)
   # Create the executable and link it to the module library
   #message("link to ${moduleName}")
   add_executable( ${executableName} ${testFile}  )
-  set(depLibs "base;${ALLLIBS};${matchedLibs}") # TODO: Check!
+  set(depLibs "${reqLibs};${matchedLibs}") # TODO: Check!
   #message("depLibs = ${depLibs}")
   target_link_libraries(${executableName} ${moduleName} ${depLibs}) # TODO: Check!
   #message( FATAL_ERROR "STOP." )
@@ -102,7 +100,7 @@ endmacro()
 
 #----------------------------------------------------
 # Load information about a single obj folder
-function(add_isis_obj folder)
+function(add_isis_obj folder reqLibs)
 
   # Includes the class, unit test app, and unit test truth result
 
@@ -176,9 +174,7 @@ function(add_isis_obj folder)
     message("Adding special library: ${libName}")
     #message("SOURCE FILES: ${thisSourceFiles}")
 
-    # TODO: Which dependencies?
-    #set(reqLibs "base ${ALLLIBS}")
-    add_library_wrapper(${libName} "${thisSourceFiles}" "${ALLLIBS}")
+    add_library_wrapper(${libName} "${thisSourceFiles}" "${reqLibs}")
 
     # Append the plugin file to a single file in the install/lib folder
     set(pluginPath ${CMAKE_INSTALL_PREFIX}/lib/${pluginName})
@@ -186,7 +182,7 @@ function(add_isis_obj folder)
     cat(${plugins} ${pluginPath})
 
     # Record this library name for the caller
-    set(newLibName  ${libName}  PARENT_SCOPE)
+    set(newPluginLib ${libName}  PARENT_SCOPE)
 
   endif()
 
@@ -216,7 +212,7 @@ function(add_isis_module name)
   # Arguments after the first are the folders to look in.
   set(topFolders ${ARGN})
 
-  message("topFolders = ${topFolders}")
+  message("Search program folders ${topFolders}")
 
   set(objFolders)
   set(appFolders)
@@ -241,52 +237,67 @@ function(add_isis_module name)
     #set(tstFolders ${tstFolders} ${thisTstFolders})
 
   endforeach()
+
+  # Now that we have the library info, call function to add it to the build!
+  # - Base module depends on 3rd party libs, other libs also depend on base.
+  if(${name} STREQUAL ${CORE_LIB_NAME})
+    set(reqLibs ${ALLLIBS})
+  else()
+    set(reqLibs "${CORE_LIB_NAME};${ALLLIBS}")
+  endif()
   
   set(sourceFiles)
   set(unitTestFiles)
   set(truthFiles)
-  set(libNames)
+  set(pluginLibs)
   foreach(f ${objFolders})
     set(newSourceFiles)
     set(newTestFiles)
     set(newTruthFiles)
-    set(newLibName)
-    add_isis_obj(${f})
+    set(newPluginLib)
+    add_isis_obj(${f} "${reqLibs}")
     set(sourceFiles   ${sourceFiles}   ${newSourceFiles})
     set(unitTestFiles ${unitTestFiles} ${newTestFiles})
     set(truthFiles    ${truthFiles}    ${newTruthFiles})
-    set(libNames      ${libNames}      ${newLibName})
+    set(pluginLibs    ${pluginLibs}    ${newPluginLib})
   endforeach(f)
-  message("Plugin libs: ${libNames}")
+  message("Plugin libs: ${pluginLibs}")
 
   #message("Found app folders: ${APP_FOLDERS}")
   #message("Found obj folders: ${OBJ_FOLDERS}")
   #message("Found test folders: ${TST_FOLDERS}")
 
-  # Now that we have the library info, call function to add it to the build!
-  # - Base module depends on 3rd party libs, other libs also depend on base.
-  if(${name} STREQUAL "base")
-    set(reqLibs ${ALLLIBS})
-  else()
-    set(reqLibs "base;${ALLLIBS}")
+  # Some modules don't generate a library
+  list(LENGTH sourceFiles temp)
+  if (NOT ${temp} EQUAL 0)
+    add_library_wrapper(${name} "${sourceFiles}" "${reqLibs}")
+
+    # Have the plugin libraries depend on the module library
+    foreach(plug ${pluginLibs})
+      target_link_libraries(${plug} ${name})
+    endforeach()
+
+    # For everything beyond the module library, require the module library.
+    set(reqLibs "${reqLibs};${name}")
+    message("reqLibs = ${reqLibs}")
+    #message( FATAL_ERROR "STOP." )
+
+    # Now that the library is added, add all the unit tests for it.
+    list(LENGTH unitTestFiles temp)
+    math(EXPR numTests "${temp} - 1")
+    message("NUM_TESTS = ${numTests}")
+    foreach(val RANGE ${numTests})
+      list(GET unitTestFiles ${val} testFile )
+      list(GET truthFiles    ${val} truthFile)
+      make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
+    endforeach()
+
   endif()
-  add_library_wrapper(${name} "${sourceFiles}" "${reqLibs}")
-
-
-  # Now that the library is added, add all the unit tests for it.
-  list(LENGTH unitTestFiles temp)
-  math(EXPR numTests "${temp} - 1")
-  message("NUM_TESTS = ${numTests}")
-  foreach(val RANGE ${numTests})
-    list(GET unitTestFiles ${val} testFile )
-    list(GET truthFiles    ${val} truthFile)
-    make_obj_unit_test(${name} ${testFile} ${truthFile} "${libNames}")
-  endforeach()
-  
+ 
   # Process the apps
   foreach(f ${appFolders})
     # Apps always require the core library
-    add_isis_app(${f} "base;${ALLLIBS}")
+    add_isis_app(${f} "${reqLibs}")
   endforeach()
   
   # Process the tests

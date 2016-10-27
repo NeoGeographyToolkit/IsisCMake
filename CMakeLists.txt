@@ -81,6 +81,8 @@ link_directories(${ALLLIBDIRS})
 # Allow linking to output dir
 link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
+set(CORE_LIB_NAME isis)
+
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
 

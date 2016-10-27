@@ -26,6 +26,16 @@ function(cat IN_FILE OUT_FILE)
   file(APPEND ${OUT_FILE} "${CONTENTS}")
 endfunction()
 
+
+# Get the correct location to generate code for an input folder
+MACRO(get_code_gen_dir inputFolder outputFolder)
+  file(RELATIVE_PATH relPath ${PROJECT_SOURCE_DIR} ${inputFolder})
+  set(${outputFolder} "${PROJECT_BINARY_DIR}/${relPath}")
+  file(MAKE_DIRECTORY ${${outputFolder}})
+  # Also add this folder to the include path
+  include_directories(${${outputFolder}})
+ENDMACRO()
+
 #------------------------------------------------------------
 function(add_library_wrapper name sourceFiles libDependencies)
 
@@ -71,8 +81,7 @@ function( generate_ui_files UI_GEN_OUT folder)
   #message("FOUND UI FILES ${UI_INPUT}")
 
   # Set where generated files go to and add that directory to the include path
-  set(UI_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
-  include_directories(${UI_GEN_DIR})
+  get_code_gen_dir(${folder} UI_GEN_DIR)
 
   # For each input protobuf file
   foreach(UI_FILE ${UI_INPUT})
@@ -127,8 +136,8 @@ function( generate_moc_files MOC_GEN_OUT folder)
   #message("FOUND MOC FILES ${MOC_INPUT}")
 
   # Set where generated files go to and add that directory to the include path
-  set(MOC_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
-  include_directories(${MOC_GEN_DIR})
+  get_code_gen_dir(${folder} MOC_GEN_DIR)
+  #message("MOC_GEN_DIR = ${MOC_GEN_DIR}")
 
   # For each input protobuf file
   foreach(MOC_FILE ${MOC_INPUT})
@@ -138,6 +147,7 @@ function( generate_moc_files MOC_GEN_OUT folder)
     # Add the generated file to UI_GEN variable
     set(OUT_MOC_FILE "${MOC_GEN_DIR}/moc_${MOC_NAME}.cpp")
     set(MOC_GEN       ${MOC_GEN} ${OUT_MOC_FILE})
+    #message("OUT_MOC_FILE = ${OUT_MOC_FILE}")
 
     # Add the custom command that will generate this file
     # - The generated files will be put in the CMake build directory, 
@@ -176,8 +186,7 @@ function(generate_protobuf_files PROTO_GEN_OUT folder)
 
 
   # Set where generated files go to and add that directory to the include path
-  set(PROTO_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR})
-  include_directories(${PROTO_GEN_DIR})
+  get_code_gen_dir(${folder} PROTO_GEN_DIR)
 
   # For each input protobuf file
   foreach(PROTO_FILE ${PROTO_INPUT})
@@ -194,7 +203,7 @@ function(generate_protobuf_files PROTO_GEN_OUT folder)
   # - The generated files will be put in the CMake build directory, not the source tree.
   #message("Protobuff Output files: ${PROTO_GEN}")
   add_custom_command(OUTPUT   ${PROTO_GEN}
-                     COMMAND  ${PROTOC} --proto_path ${folder} --cpp_out ${CMAKE_CURRENT_BINARY_DIR} ${PROTO_INPUT}
+                     COMMAND  ${PROTOC} --proto_path ${folder} --cpp_out ${PROTO_GEN_DIR} ${PROTO_INPUT}
                      DEPENDS  ${PROTO_INPUT}
                      WORKING_DIRECTORY ${folder}
                      COMMENT "Generating Protocol Buffers...")
