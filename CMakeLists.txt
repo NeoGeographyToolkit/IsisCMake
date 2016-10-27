@@ -112,6 +112,9 @@ include(CTest)
 file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
 file(REMOVE ${installedPlugins})
 
+# Copy this required preference file to the installation folder.
+configure_file("IsisPreferences" "${CMAKE_INSTALL_PREFIX}/IsisPreferences" COPYONLY)
+
 # All of the source code is in here.
 add_subdirectory(src)
 

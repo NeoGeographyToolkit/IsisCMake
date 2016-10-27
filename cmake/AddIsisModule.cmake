@@ -17,7 +17,15 @@ function(add_isis_app folder libDependencies)
   # Find the source and header files
   file(GLOB headers "${folder}/*.h" "${folder}/*.hpp")
   file(GLOB sources "${folder}/*.c" "${folder}/*.cpp")
+  file(GLOB xmlFiles "${folder}/*.xml")
   
+  # All the XML files need to be copied to the install directory
+  foreach(f ${xmlFiles})
+    get_filename_component(filename ${f} NAME)
+    set(installPath "${CMAKE_INSTALL_PREFIX}/bin/xml/${filename}")
+    configure_file(${f} ${installPath} COPYONLY)
+  endforeach()
+
   # Generate required QT files
   generate_moc_files(mocFiles ${folder})
 
@@ -35,7 +43,7 @@ function(add_isis_app folder libDependencies)
   #message("finalLibDeps = ${finalLibDeps}")
 
   target_link_libraries(${appName} ${finalLibDeps})
-  install(TARGETS ${appName} DESTINATION apps)
+  install(TARGETS ${appName} DESTINATION bin)
 
   # TODO: What to do with documentation files??
   
@@ -104,7 +112,7 @@ function(add_isis_obj folder reqLibs)
 
   # Includes the class, unit test app, and unit test truth result
 
-  message("Processing OBJ folder: ${folder}")
+  #message("Processing OBJ folder: ${folder}")
 
   # Look inside this folder for include files
   include_directories(${folder})
@@ -171,7 +179,7 @@ function(add_isis_obj folder reqLibs)
 
     get_filename_component(libName    ${folder}  NAME)
     get_filename_component(pluginName ${plugins} NAME)
-    message("Adding special library: ${libName}")
+    #message("Adding special library: ${libName}")
     #message("SOURCE FILES: ${thisSourceFiles}")
 
     add_library_wrapper(${libName} "${thisSourceFiles}" "${reqLibs}")
