@@ -15,6 +15,10 @@ set(BIN_DIR     "${thirdPartyDir}/bin")
 # TODO: Any way to set this automatically?
 #set(ENV{LD_LIBRARY_PATH} ${LIB_DIR})
 
+set(XALAN   "${BIN_DIR}/Xalan")
+set(LATEX   "${BIN_DIR}/latex")
+set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
+
 #---------------------------------------------------------------------------
 # Set up for Qt
 #---------------------------------------------------------------------------

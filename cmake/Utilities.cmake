@@ -1,12 +1,21 @@
 
+# Small space saving functions
+function(copy_file src dest)
+  configure_file(${src} ${dest} COPYONLY)
+endfunction()
 
+function(copy_folder src dest)
+  exec_program("cp" ARGS "-r ${src} ${dest}" OUTPUT_VARIABLE dummy)
+endfunction()
 
 # This macro returns a list of all the subdirectories in the given directory
 MACRO(SUBDIRLIST curdir result)
   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
   SET(dirlist "")
   FOREACH(child ${children})
-    IF(IS_DIRECTORY ${curdir}/${child})
+    # Skip files and hidden folders.
+    string(SUBSTRING ${child} 0 1 firstChar)
+    IF( (IS_DIRECTORY ${curdir}/${child}) AND (NOT ${firstChar} STREQUAL ".") )
       LIST(APPEND dirlist ${curdir}/${child})
     ENDIF()
   ENDFOREACH()
@@ -35,6 +44,15 @@ MACRO(get_code_gen_dir inputFolder outputFolder)
   # Also add this folder to the include path
   include_directories(${${outputFolder}})
 ENDMACRO()
+
+# Copy all input files to the output folder
+function(copy_files_to_folder files folder)
+  foreach(f ${files})
+    get_filename_component(filename ${f} NAME)
+    set(outputPath "${folder}/${filename}")
+    configure_file(${f} ${outputPath} COPYONLY)
+  endforeach()
+endfunction()
 
 #------------------------------------------------------------
 function(add_library_wrapper name sourceFiles libDependencies)
@@ -210,4 +228,12 @@ function(generate_protobuf_files PROTO_GEN_OUT folder)
 
   set(${PROTO_GEN_OUT} ${PROTO_GEN} PARENT_SCOPE) # Set up output variable
 endfunction(generate_protobuf_files)
+
+
+
+
+
+
+
+
 

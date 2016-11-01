@@ -14,6 +14,7 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(AddIsisModule)
 include(Utilities)
 include(TestSetup)
+include(BuildDocs)
 
 #===============================================================================
 # Project information
@@ -107,21 +108,30 @@ message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 #enable_testing()
 include(CTest)
 
-# Delete any existing plugin files in the installation folder
+# Delete any existing plugin files in the instal folder
 #  so that we don't get any duplication.
 file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
-file(REMOVE ${installedPlugins})
+if(installedPlugins)
+  file(REMOVE ${installedPlugins})
+endif()
 
-# Copy this required preference file to the installation folder.
+# Copy this required preference file to the instal folder.
 configure_file("IsisPreferences" "${CMAKE_INSTALL_PREFIX}/IsisPreferences" COPYONLY)
 
+# Add a config file to the bin directory so that QT can find the plugin libraries.
+file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
+
+## TODO: Is this required????!?!?!?!
+## Copy the template folder to the install folder.
+#file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/templates/gui")
+#file(GLOB templates "templates/gui/*")
+#copy_files_to_folder(${templates} "${CMAKE_INSTALL_PREFIX}/templates/gui")
+
+# TODO: Nominally this is all here, but it needs to be checked!
+#build_docs()
+
+
 # All of the source code is in here.
-add_subdirectory(src)
-
-
-
-
-
-
+#add_subdirectory(src)
 
 
