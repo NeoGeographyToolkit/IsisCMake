@@ -177,7 +177,12 @@ set(GSLLIB    "-lgsl -lgslcblas")
 #---------------------------------------------------------------------------
 set(X11INCDIR)
 set(X11LIBDIR)
-set(X11LIB    "-lX11") # Must install package libX11-dev
+if(NOT APPLE)
+  set(X11LIB "-lX11") # Must install package libX11-dev
+else()
+  set(X11LIB ) # Don't use on OSX
+endif()
+
 
 #---------------------------------------------------------------------------
 # Set up for GMM
