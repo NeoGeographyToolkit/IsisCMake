@@ -15,6 +15,7 @@ include(AddIsisModule)
 include(Utilities)
 include(TestSetup)
 include(BuildDocs)
+include(InstallThirdParty)
 
 #===============================================================================
 # Project information
@@ -54,6 +55,12 @@ set(PACKAGE_URL        "https://isis.astrogeology.usgs.gov/")
 set(BUILD_SHARED_LIBS ON)
 
 set(ISISCPPFLAGS -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
+
+option(buildDocs     "Build the documentation" OFF)
+option(buildCore     "Build the core ISIS modules" OFF)
+option(buildMissions "Build the mission specific modules" OFF)
+
+option(installThirdParty "Copy third party libraries to output directory" OFF)
 
 # TODO: Get OS version so we can pick some settings.
 
@@ -108,7 +115,7 @@ message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 #enable_testing()
 include(CTest)
 
-# Delete any existing plugin files in the instal folder
+# Delete any existing plugin files in the install folder
 #  so that we don't get any duplication.
 file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
 if(installedPlugins)
@@ -127,11 +134,20 @@ file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plu
 #file(GLOB templates "templates/gui/*")
 #copy_files_to_folder(${templates} "${CMAKE_INSTALL_PREFIX}/templates/gui")
 
-# TODO: Nominally this is all here, but it needs to be checked!
-#build_docs()
+# Build the documentation
+if (buildDocs)
+  build_docs()
+endif()
 
 
 # All of the source code is in here.
-#add_subdirectory(src)
+add_subdirectory(src)
+
+# Copy the third party libraries to the installation folder.
+if (installThirdParty)
+  install_third_party()
+endif()
+
+
 
 

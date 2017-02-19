@@ -8,6 +8,7 @@ function(copy_folder src dest)
   exec_program("cp" ARGS "-r ${src} ${dest}" OUTPUT_VARIABLE dummy)
 endfunction()
 
+
 # This macro returns a list of all the subdirectories in the given directory
 MACRO(SUBDIRLIST curdir result)
   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)

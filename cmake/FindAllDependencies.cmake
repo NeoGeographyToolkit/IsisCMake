@@ -10,14 +10,17 @@ set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
 
 set(INCLUDE_DIR "${thirdPartyDir}/include")
 set(LIB_DIR     "${thirdPartyDir}/lib")
+set(PLUGIN_DIR  "${thirdPartyDir}/plugins")
 set(BIN_DIR     "${thirdPartyDir}/bin")
 
 # TODO: Any way to set this automatically?
 #set(ENV{LD_LIBRARY_PATH} ${LIB_DIR})
 
 set(XALAN   "${BIN_DIR}/Xalan")
-set(LATEX   "${BIN_DIR}/latex")
-set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
+#set(LATEX   "${BIN_DIR}/latex") # MISSING
+#set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
+set(DOXYGEN "/home/smcmich1/doxygen-1.8.8/bin/doxygen")
+# Also need the DOT tool for doxygen.
 
 #---------------------------------------------------------------------------
 # Set up for Qt
@@ -85,7 +88,7 @@ set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
                    ${LIB_DIR}/libQt5Xml.so
                    ${LIB_DIR}/libQt5XmlPatterns.so)
 foreach(f ${QT_DYNAMIC_IN})
-  set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6*[^g])
+  set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6.0)
 endforeach()
 # TODO: Check on this
 #message("QT_DYNAMIC_LIBS = ${QT_DYNAMIC_LIBS}")
@@ -304,55 +307,56 @@ set(NNLIB    "-lnn")
 #---------------------------------------------------------------------------
 
 #  Libraries
-set(THIRDPARTYLIBS ${QT_DYNAMIC_LIBS})
+set(THIRDPARTYLIBS)
 
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libqwt.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libprotobuf.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libgeos-*.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libgeos_c.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libdsk.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libcspice.so*")
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libcwd_r.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libcolamd.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libccolamd.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libamd.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libcamd.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libcholmod.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libsuperlu*.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libsuitesparseconfig.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/liblapack.so")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} $(ISIS3SYSLIB)/libblas*.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} $(ISIS3ALTSYSLIB)/libgfortran.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libxerces-c*.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libgeotiff*.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libtiff*.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libgsl*.so*")
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} "${ISIS3SYSLIB}/libicuuc.so*")
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} "${ISIS3SYSLIB}/libicudata.so*")
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libpq.so*")
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} "${ISIS3SYSLIB}/libmysqlclient_r.so*")
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} "${ISIS3SYSLIB}/libssl.so*")
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} "${ISIS3SYSLIB}/libcrypto.so*")
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} "/lib64/libreadline.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libkdu_a63R.so*")
+# Normal libraries
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libcolamd.so)
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libccolamd.so)
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libamd.so)
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libcamd.so)
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libcholmod.so)
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libsuitesparseconfig.so)
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/liblapack.so)
 
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libhdf5.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libhdf5_hl.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libhdf5_cpp.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libhdf5_hl_cpp.so*")
+# Wildcard library list
+
+set(wildcardLibraries libqwt.so* libprotobuf.so* libgeos-*.so libgeos_c.so* libdsk.so* libcspice.so* libsuperlu*.so libxerces-c*.so* libgeotiff*.so* libtiff*.so* libgsl*.so* libkdu_a63R.so* libhdf5.so* libhdf5_hl.so* libhdf5_cpp.so* libhdf5_hl_cpp.so* libopencv_*.so* libtbb.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libcwd_r.so*)
+
+# For each item in this list, expand the wildcard to get the actual library list.
+foreach(wildcardLib ${wildcardLibraries})
+  file(GLOB expandedLibs ${LIB_DIR}/${wildcardLib})
+  #message("wildcardLib = ${wildcardLib}")
+  #message("expandedLibs = ${expandedLibs}")
+  set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${expandedLibs})
+endforeach()
 
 # Add all the OpenCV libraries
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libopencv_*.so*")
-set(THIRDPARTYLIBS "${THIRDPARTYLIBS} ${LIB_DIR}/libtbb.so*")
 # TODO: What is up with these three?
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavcodec.so*))
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavformat.so*))
-#set(THIRDPARTYLIBS "${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavutil.so*))
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavcodec.so*))
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavformat.so*))
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavutil.so*))
 
 
-#  Plugins
-set(THIRDPARTYPLUGINS "${ISIS3LOCAL}/plugins/")
 
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${QT_DYNAMIC_LIBS})
+
+# TODO: Check on these
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(ISIS3SYSLIB)/libblas*.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(ISIS3ALTSYSLIB)/libgfortran.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libicuuc.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libicudata.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libpq.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libmysqlclient_r.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libssl.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libcrypto.so*)
+#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} /lib64/libreadline.so*)
+
+# Plugins
+file(GLOB_RECURSE THIRDPARTYPLUGINS "${PLUGIN_DIR}/*.so")
+
+#message("third party libs = ${THIRDPARTYLIBS}")
+#message("third party plugins = ${THIRDPARTYPLUGINS}")
 
 
 
