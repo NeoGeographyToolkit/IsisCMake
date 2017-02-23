@@ -20,7 +20,7 @@ macro(add_unit_test_target testFile truthFile)
   #add_dependencies(run_unit_tests ${test_target}_runtest)
   
   set(thisFolder "${PROJECT_SOURCE_DIR}/cmake")
-  set(testInstallFolder ${CMAKE_INSTALL_PREFIX}/tests)
+  set(testInstallFolder ${CMAKE_INSTALL_PREFIX}/tests) # TODO: Change dir!
   set(fullTestPath "${testInstallFolder}/${testFile}")
 
   # Redirect the test and truth file through a CMake script to run the

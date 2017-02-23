@@ -5,8 +5,21 @@ function(copy_file src dest)
 endfunction()
 
 function(copy_folder src dest)
-  exec_program("cp" ARGS "-r ${src} ${dest}" OUTPUT_VARIABLE dummy)
+  execute_process(cp -r ${src} ${dest})
 endfunction()
+
+function(verify_file_exists path)
+  if(NOT EXISTS ${path})
+    message( FATAL_ERROR "Required file ${path} does not exist!" )
+  endif()
+endfunction()
+
+
+# Set up a symlink file for installation
+#function(install_symlink link target)
+#  install(CODE "EXECUTE_PROCESS(COMMAND cmake -E create_symlink ${link} ${target})")
+#endfunction()
+
 
 
 # This macro returns a list of all the subdirectories in the given directory
@@ -74,7 +87,8 @@ function(add_library_wrapper name sourceFiles libDependencies)
     string( TOLOWER "${extension}" extensionLower )
     if( extensionLower STREQUAL ".h" OR extensionLower STREQUAL ".hpp" OR extensionLower STREQUAL ".tcc")
       set(fullPath "${CMAKE_CURRENT_SOURCE_DIR}/${f}") # TODO: Check this!
-      INSTALL(FILES ${f} DESTINATION include/${name})
+      message("Install include file ${f} to inc")
+      INSTALL(FILES ${f} DESTINATION inc)
     endif()
   endforeach(f)
 
@@ -136,10 +150,10 @@ function( generate_moc_files MOC_GEN_OUT folder)
   file(GLOB CANDIDATE_FILES "${folder}/*.h")
   set(MOC_INPUT)
   foreach(f ${CANDIDATE_FILES})
-    exec_program("grep" ARGS "Q_OBJECT ${f}"
+    execute_process(COMMAND grep Q_OBJECT ${f}
                     OUTPUT_VARIABLE result
-                    RETURN_VALUE code)
-    if(${code} STREQUAL "0")
+                    RESULT_VARIABLE code)
+    if("${code}" STREQUAL "0")
       set(MOC_INPUT ${MOC_INPUT} ${f})
     endif()
   endforeach()

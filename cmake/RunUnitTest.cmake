@@ -14,9 +14,9 @@ file(REMOVE ${tempFile}) # Make sure no old file exists
 #message("CMD = ${TEST_PROG} 1>${tempFile} 2>&1")
 
 # Run the unit test executable and pipe the output to a text file.
-exec_program("${TEST_PROG} 1>${tempFile} 2>&1"
-            OUTPUT_VARIABLE result
-            RETURN_VALUE code)
+execute_process(${TEST_PROG} 1>${tempFile} 2>&1
+                OUTPUT_VARIABLE result
+                RETURN_VALUE code)
 if(result)
     message("Test failed: ${result}, ${code}")
 endif()

@@ -57,10 +57,9 @@ set(BUILD_SHARED_LIBS ON)
 set(ISISCPPFLAGS -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 
 option(buildDocs     "Build the documentation" OFF)
-option(buildCore     "Build the core ISIS modules" OFF)
-option(buildMissions "Build the mission specific modules" OFF)
+option(buildCore     "Build the core ISIS modules" ON)
+option(buildMissions "Build the mission specific modules" ON)
 
-option(installThirdParty "Copy third party libraries to output directory" OFF)
 
 # TODO: Get OS version so we can pick some settings.
 
@@ -89,14 +88,10 @@ link_directories(${ALLLIBDIRS})
 # Allow linking to output dir
 link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
-set(CORE_LIB_NAME isis)
+set(CORE_LIB_NAME isis3)
 
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
-
-# TODO: Deal with some hard coded path issues:
-# - $ISISROOT/src/blah/blah
-# - Copy 3rd party libs to install dir?
 
 # Have binaries use a relative rpath to the lib folder
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib3rd")
@@ -122,8 +117,10 @@ if(installedPlugins)
   file(REMOVE ${installedPlugins})
 endif()
 
-# Copy this required preference file to the instal folder.
-configure_file("IsisPreferences" "${CMAKE_INSTALL_PREFIX}/IsisPreferences" COPYONLY)
+# Set up a few top level files for installation
+INSTALL(FILES IsisPreferences DESTINATION ${CMAKE_INSTALL_PREFIX})
+INSTALL(FILES license.txt     DESTINATION ${CMAKE_INSTALL_PREFIX})
+INSTALL(FILES version         DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Add a config file to the bin directory so that QT can find the plugin libraries.
 file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
@@ -143,11 +140,8 @@ endif()
 # All of the source code is in here.
 add_subdirectory(src)
 
-# Copy the third party libraries to the installation folder.
-if (installThirdParty)
-  install_third_party()
-endif()
-
+# Set up third party libraries for installation
+install_third_party()
 
 
 

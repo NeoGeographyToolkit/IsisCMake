@@ -38,8 +38,7 @@ function(copy_app_docs_info)
       copy_file(${appF}/${appName}.xml ${thisDataFolder}/${moduleName}.xml)
       if(EXISTS ${appF}/assets)
         file(MAKE_DIRECTORY ${thisDataFolder}/assets)
-        exec_program("cp" ARGS "-r ${appF}/assets ${thisDataFolder}"
-                     OUTPUT_VARIABLE dummy)
+        execute_process(COMMAND cp -r ${appF}/assets ${thisDataFolder})
       endif()
     endforeach() # End loop through apps
 
@@ -65,8 +64,7 @@ function(build_upper_level)
   # These folders are populated inside "build_documents_folder"
 
   # Create index.html file
-  exec_program("${XALAN}" ARGS "${XALAN_VALIDATE_OPTION} ${XALAN_PARAM_OPTION} menuPath \"'./'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/index.html ${XALAN_INFILE_OPTION} ${docBuildFolder}/build/homepage.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/main.xsl"
-               OUTPUT_VARIABLE dummy)
+  execute_process(COMMAND ${XALAN} ${XALAN_VALIDATE_OPTION} ${XALAN_PARAM_OPTION} menuPath \"'./'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/index.html ${XALAN_INFILE_OPTION} ${docBuildFolder}/build/homepage.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/main.xsl)
 endfunction()
 
 #------------------------------------------------------------
@@ -93,7 +91,7 @@ function(build_documents_folder)
     # Each folder in documents gets a section added to doctoc
     get_filename_component(docName ${f} NAME_WE)
     #message("Processing ${docName}")
-    exec_program("${XALAN}" ARGS "${XALAN_PARAM_OPTION} dirParam \"'${docName}'\"  ${XALAN_INFILE_OPTION} ${f}/${docName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/IsisDocumentTOCbuild.xsl" OUTPUT_VARIABLE result)
+    execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} dirParam \"'${docName}'\"  ${XALAN_INFILE_OPTION} ${f}/${docName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/IsisDocumentTOCbuild.xsl OUTPUT_VARIABLE result)
     file(APPEND ${doctocPath} ${result})
     #message("result = ${result}")
   endforeach()
@@ -132,22 +130,22 @@ function(build_documents_folder)
   # These go in top level folders in /doc/
 
   # ABOUT ISIS TOC
-  exec_program("${XALAN}" ARGS "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/AboutIsis/index.html   ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/AboutIsis.xsl" OUTPUT_VARIABLE dummy)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/AboutIsis/index.html   ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/AboutIsis.xsl)
 
   # GENERAL TOC
-  exec_program("${XALAN}" ARGS  "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/General/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/General.xsl" OUTPUT_VARIABLE dummy)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/General/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/General.xsl)
 
   # GUIDES TOC
-  exec_program("${XALAN}" ARGS  "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Guides/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Guides.xsl" OUTPUT_VARIABLE dummy)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Guides/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Guides.xsl)
 
   # INSTALLATION TOC
-  exec_program("${XALAN}" ARGS  "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Installation/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Installation.xsl" OUTPUT_VARIABLE dummy)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Installation/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Installation.xsl)
 
   # TECHNICAL INFO TOC
-  exec_program("${XALAN}" ARGS  "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/TechnicalInfo/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/TechnicalInfo.xsl" OUTPUT_VARIABLE dummy)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/TechnicalInfo/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/TechnicalInfo.xsl)
 
   # USER DOCS TOC
-  exec_program("${XALAN}" ARGS  "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/UserDocs/index.html    ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/UserDocs.xsl" OUTPUT_VARIABLE dummy)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/UserDocs/index.html    ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/UserDocs.xsl)
 
 
 endfunction()
@@ -174,8 +172,8 @@ function(build_application_docs)
   file(MAKE_DIRECTORY "${installTabbedFolder}")
   file(MAKE_DIRECTORY "${installPrinterFolder}/styles")
   file(MAKE_DIRECTORY "${installTabbedFolder}/styles")
-  exec_program("cp" ARGS "${printerStyleFolder}/*.css ${installPrinterFolder}/styles/")
-  exec_program("cp" ARGS "${tabbedStyleFolder}/*.css ${installTabbedFolder}/styles/")
+  execute_process(cp "${printerStyleFolder}/*.css" ${installPrinterFolder}/styles/)
+  execute_process(cp "${tabbedStyleFolder}/*.css" ${installTabbedFolder}/styles/)
 
   # Loop through module folders
   SUBDIRLIST(${appDataFolder} moduleFolders)
@@ -199,9 +197,9 @@ function(build_application_docs)
       copy_folder(${f}/assets ${pfAppFolder}/assets)
       copy_folder(${f}/assets ${tbAppFolder}/assets)
 
-      exec_program("${XALAN}" ARGS   "${XALAN_PARAM_OPTION} menuPath \"'../../../../'\" ${XALAN_OUTFILE_OPTION} ${pfAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${printerStyleFolder}/IsisApplicationDocStyle.xsl" OUTPUT_VARIABLE dummy)
+      execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../../../../'\" ${XALAN_OUTFILE_OPTION} ${pfAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${printerStyleFolder}/IsisApplicationDocStyle.xsl)
 
-      exec_program("${XALAN}" ARGS   "${XALAN_PARAM_OPTION} menuPath \"'../../../../'\" ${XALAN_OUTFILE_OPTION} ${tbAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${tabbedStyleFolder}/IsisApplicationDocStyle.xsl" OUTPUT_VARIABLE dummy)
+      execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../../../../'\" ${XALAN_OUTFILE_OPTION} ${tbAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${tabbedStyleFolder}/IsisApplicationDocStyle.xsl)
 
     endforeach() # End loop through app folders
 
@@ -225,7 +223,7 @@ function(build_application_docs)
 
       # Use Xalan to generate a piece of the TOC and append it to the file
       get_filename_component(docName ${f} NAME_WE)
-      exec_program("${XALAN}" ARGS "${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/Application/build/IsisApplicationTOCbuild.xsl" OUTPUT_VARIABLE result)
+      execute_process(COMMAND ${XALAN} ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/Application/build/IsisApplicationTOCbuild.xsl)
       file(APPEND ${appTocPath} ${result})
       #message("result = ${result}")
     endforeach()
@@ -246,16 +244,16 @@ function(add_extra_tocs)
   set(tocXml      "${CMAKE_INSTALL_PREFIX}/bin/xml/applicationTOC.xml")
 
   # Build alpha.html
-  exec_program("${XALAN}" ARGS "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/alpha.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_alpha.xsl")
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/alpha.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_alpha.xsl)
 
   # Build index.html
-  exec_program("${XALAN}" ARGS "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/index.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_category.xsl")
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/index.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_category.xsl)
 
   # Build oldvnew.html
-  exec_program("${XALAN}" ARGS "${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/oldvnew.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_oldvnew.xsl")
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/oldvnew.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_oldvnew.xsl)
 
   # Build applicationCategories.xml
-  exec_program("${XALAN}" ARGS "${XALAN_OUTFILE_OPTION} ${CMAKE_INSTALL_PREFIX}/bin/xml/applicationCategories.xml ${XALAN_INFILE_OPTION} ${docBuildFolder}/Schemas/Application/application.xsd ${XALAN_XSL_OPTION} ${buildFolder}/IsisApplicationCategoriesbuild.xsl")
+  execute_process(COMMAND ${XALAN} ${XALAN_OUTFILE_OPTION} ${CMAKE_INSTALL_PREFIX}/bin/xml/applicationCategories.xml ${XALAN_INFILE_OPTION} ${docBuildFolder}/Schemas/Application/application.xsd ${XALAN_XSL_OPTION} ${buildFolder}/IsisApplicationCategoriesbuild.xsl)
 
 endfunction()
 
@@ -288,7 +286,7 @@ function(build_object_conf)
   set(docInstallDir  ${docInstallFolder}/Object )
 
   # Copy settings files from the source folder to the build folder
-  exec_program("cp" ARGS "${PROJECT_SOURCE_DIR}/src/docsys/Object/build/* ${objConfDir}")
+  execute_process(cp "${PROJECT_SOURCE_DIR}/src/docsys/Object/build/*" ${objConfDir})
 
   # Append to the app conf file
   cat(${objConfDir}/apps_tag.conf ${appsConf})
@@ -393,8 +391,7 @@ function(build_object_docs)
 
   message("Copying assets...")
   file(MAKE_DIRECTORY "${docInstallFolder}/Object")
-  exec_program("cp" ARGS "-r ${docBuildFolder}/Object/assets ${docInstallFolder}/Object/"
-               OUTPUT_VARIABLE dummy)
+  execute_process(cp -r ${docBuildFolder}/Object/assets ${docInstallFolder}/Object/)
 
   # TODO: Check no double assets folder?
 
@@ -403,15 +400,14 @@ function(build_object_docs)
   file(MAKE_DIRECTORY ${docInstallFolder}/Object/Developer)
   file(MAKE_DIRECTORY ${docInstallFolder}/Object/Programmer)
   file(MAKE_DIRECTORY ${docInstallFolder}/documents/DocStyle/assets)
-  exec_program("cp" ARGS " ${docBuildFolder}/Object/*.html ${docInstallFolder}/Object/"
-               OUTPUT_VARIABLE dummy)
+  execute_process(cp "${docBuildFolder}/Object/*.html" ${docInstallFolder}/Object/)
   #copy_file(${objBuildDir}/isisDoxyDefs.doxydef ${docInstallFolder}/documents/DocStyle/assets/isisDoxyDefs.doxydef)
 
 
   message("Building apps documentation")
   execute_process(COMMAND ${DOXYGEN} "${objConfDir}/apps_tag_temp.conf"
                   WORKING_DIRECTORY ${docBuildFolder}/src/docsys/Object/)
-  exec_program(${XALAN} ARGS ${XALAN_OUTFILE_OPTION} ${objConfDir}/apps/apps_fix.tag ${XALAN_INFILE_OPTION} ${objConfDir}/apps/apps.tag ${XALAN_XSL_OPTION} ${objConfDir}/IsisApplicationTagFix.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_OUTFILE_OPTION} ${objConfDir}/apps/apps_fix.tag ${XALAN_INFILE_OPTION} ${objConfDir}/apps/apps.tag ${XALAN_XSL_OPTION} ${objConfDir}/IsisApplicationTagFix.xsl)
   copy_file(${objConfDir}/apps/apps_fix.tag ${docInstallFolder}/Object/apps/apps_fix.tag)
 
 
@@ -439,12 +435,11 @@ function(build_docs)
   set(docInstallFolder ${CMAKE_INSTALL_PREFIX}/doc) # Final output documentation
 
   # Clean up existing files
-  exec_program("rm" ARGS "-rf ${docBuildFolder}"   OUTPUT_VARIABLE dummy)
-  exec_program("rm" ARGS "-rf ${docInstallFolder}" OUTPUT_VARIABLE dummy)
+  execute_process(rm -rf ${docBuildFolder})
+  execute_process(rm -rf ${docInstallFolder})
 
   # Copy everything from src/docsys to docBuildFolder
-  exec_program("cp" ARGS "-r ${PROJECT_SOURCE_DIR}/src/docsys ${docBuildFolder}"
-               OUTPUT_VARIABLE dummy)
+  execute_process(cp -r ${PROJECT_SOURCE_DIR}/src/docsys ${docBuildFolder})
 
   file(MAKE_DIRECTORY "${docBuildFolder}/Application")
   file(MAKE_DIRECTORY "${docBuildFolder}/Application/data")

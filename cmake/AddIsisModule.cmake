@@ -41,8 +41,7 @@ function(add_isis_app folder libDependencies)
   target_link_libraries(${appName} ${finalLibDeps})
   install(TARGETS ${appName} DESTINATION bin)
 
-  # TODO: What to do with documentation files??
-  
+ 
   # Set up the app tests
 
   # TODO: Where are the input and truth files?
@@ -167,7 +166,7 @@ function(add_isis_obj folder reqLibs)
     # Folder with a plugin means that this is a separate library!
     # Add it here and then we are done with the source files.
 
-    #message("Found plugins: ${plugins}")
+    message("Found plugins: ${plugins}")
 
     if(NOT (${numPlugins} EQUAL 1))
       message( FATAL_ERROR "Error: Multiple plugins found in folder!" )

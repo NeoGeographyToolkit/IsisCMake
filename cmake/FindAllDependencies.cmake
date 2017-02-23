@@ -22,6 +22,10 @@ set(XALAN   "${BIN_DIR}/Xalan")
 set(DOXYGEN "/home/smcmich1/doxygen-1.8.8/bin/doxygen")
 # Also need the DOT tool for doxygen.
 
+verify_file_exists(${XALAN})
+#verify_file_exists(${LATEX})
+verify_file_exists(${XALAN})
+
 #---------------------------------------------------------------------------
 # Set up for Qt
 #---------------------------------------------------------------------------
@@ -98,6 +102,10 @@ endforeach()
 set(UIC "${BIN_DIR}/uic")
 set(MOC "${BIN_DIR}/moc")
 set(RCC "${BIN_DIR}/rcc")
+
+verify_file_exists(${UIC})
+verify_file_exists(${MOC})
+verify_file_exists(${RCC})
 
 # TODO: Is this required?  Looks like QT needs to be properly installed for this to work.
 #set(Qt5Widgets_DIR ${LIB_DIR}/cmake/Qt5Widgets)
@@ -210,6 +218,8 @@ set(PROTOBUFINCDIR "${INCLUDE_DIR}/google-protobuf/protobuf2.6.1")
 set(PROTOBUFLIBDIR "${LIB_DIR}")
 set(PROTOBUFLIB    "-lprotobuf")
 set(PROTOC         "${BIN_DIR}/protoc")
+
+verify_file_exists(${PROTOC})
 
 #---------------------------------------------------------------------------
 # Set up for kakadu
@@ -332,7 +342,7 @@ foreach(wildcardLib ${wildcardLibraries})
 endforeach()
 
 # Add all the OpenCV libraries
-# TODO: What is up with these three?
+# These and some other libs are missing from the 3rd party folder:
 #set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavcodec.so*))
 #set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavformat.so*))
 #set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavutil.so*))

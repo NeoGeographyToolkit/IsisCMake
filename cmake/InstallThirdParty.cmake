@@ -17,17 +17,24 @@ function(install_third_party_libs)
     # Copy file to output directory    
     file(RELATIVE_PATH relPath "${thirdPartyDir}/lib" ${library})
     
+    #message("RELATIVE_PATH = ${relPath}")
+    
     execute_process(COMMAND readlink ${library} OUTPUT_VARIABLE link)    
     if ("${link}" STREQUAL "")
       # Copy original files
-      message("  Installing ${library}")
-      configure_file(${library} "${installLibFolder}/${relPath}" COPYONLY)  
+      INSTALL(FILES ${library} DESTINATION ${installLibFolder})
     else()
       # Recreate symlinks
       string(REGEX REPLACE "\n$" "" link "${link}") # Strip trailing newline
-      execute_process(COMMAND cmake -E create_symlink ${link} ${installLibFolder}/${relPath}) 
+      # TODO: Why does cmake link command not work?
+      #install_symlink(${link} ${installLibFolder}/${relPath})
+      #message("name = ${installLibFolder}/${relPath} target = ${link}")
+      install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${link} ${installLibFolder}/${relPath})")
     endif()
        
+	  
+	  
+	  
 	  
 	  # LINUX
 	  if(NOT APPLE)
@@ -98,9 +105,10 @@ function(install_third_party_plugins)
 
   # Copy all of the plugin files
 	foreach(plugin ${THIRDPARTYPLUGINS})
-	  message("  Installing ${plugin}") 
 	  file(RELATIVE_PATH relPath "${thirdPartyDir}/plugins" ${plugin})
-	  configure_file(${plugin} "${installPluginFolder}/${relPath}" COPYONLY)
+	  get_filename_component(relPath ${relPath} DIRECTORY) # Strip filename
+	  INSTALL(FILES ${plugin} DESTINATION ${installPluginFolder}/${relPath})
+	  #INSTALL(FILES ${plugin} DESTINATION ${installPluginFolder})
 	endforeach()
 	
 	# TODO
@@ -126,8 +134,17 @@ endfunction()
 # Install all third party stuff
 function(install_third_party)
 
+  # The files are available pre-build but are not copied until make-install is called.
+  message("Setting up 3rd party lib installation...")
   install_third_party_libs()
+  
+  message("Setting up 3rd party plugin installation...")
   install_third_party_plugins()
+
+  INSTALL(FILES "${CMAKE_SOURCE_DIR}/3rdParty/lib/README" 
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/3rdParty/lib)
+  INSTALL(FILES "${CMAKE_SOURCE_DIR}/3rdParty/plugin/README" 
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/3rdParty/plugin)
 
 endfunction()
 
