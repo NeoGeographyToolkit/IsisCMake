@@ -143,8 +143,9 @@ function(install_third_party)
 
   INSTALL(FILES "${CMAKE_SOURCE_DIR}/3rdParty/lib/README" 
           DESTINATION ${CMAKE_INSTALL_PREFIX}/3rdParty/lib)
-  INSTALL(FILES "${CMAKE_SOURCE_DIR}/3rdParty/plugin/README" 
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/3rdParty/plugin)
+  # TODO: This file is missing?
+  #INSTALL(FILES "${CMAKE_SOURCE_DIR}/3rdParty/plugins/README" 
+  #        DESTINATION ${CMAKE_INSTALL_PREFIX}/3rdParty/plugins)
 
 endfunction()
 

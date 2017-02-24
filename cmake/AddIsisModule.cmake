@@ -243,10 +243,13 @@ function(add_isis_module name)
 
   # Now that we have the library info, call function to add it to the build!
   # - Base module depends on 3rd party libs, other libs also depend on base.
+  # - Only the base module gets both a static and shared library.
   if(${name} STREQUAL ${CORE_LIB_NAME})
     set(reqLibs ${ALLLIBS})
+    set(alsoStatic ON)
   else()
     set(reqLibs "${CORE_LIB_NAME};${ALLLIBS}")
+    set(alsoStatic OFF)
   endif()
   
   set(sourceFiles)
@@ -273,7 +276,7 @@ function(add_isis_module name)
   # Some modules don't generate a library
   list(LENGTH sourceFiles temp)
   if (NOT ${temp} EQUAL 0)
-    add_library_wrapper(${name} "${sourceFiles}" "${reqLibs}")
+    add_library_wrapper(${name} "${sourceFiles}" "${reqLibs}" ${alsoStatic})
 
     # Have the plugin libraries depend on the module library
     foreach(plug ${pluginLibs})

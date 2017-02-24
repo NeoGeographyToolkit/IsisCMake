@@ -17,6 +17,11 @@ include(TestSetup)
 include(BuildDocs)
 include(InstallThirdParty)
 
+
+# TODO: MOVE THIS!
+#include(RunMakeFileTest)
+#run_app_makefile_test(${CMAKE_SOURCE_DIR}/src/lro/apps/lronac2isis/tsts/nacl-full/Makefile)
+
 #===============================================================================
 # Project information
 

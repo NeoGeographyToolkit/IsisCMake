@@ -69,17 +69,35 @@ function(copy_files_to_folder files folder)
 endfunction()
 
 #------------------------------------------------------------
+# Standard function to add a library and its components
 function(add_library_wrapper name sourceFiles libDependencies)
 
   #get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
   #message("inc_dirs = ${inc_dirs}")
 
+  # The only optional argument is
+  set(alsoStatic ${ARGN})
 
   # Add library, set dependencies, and add to installation list.
-  add_library(${name} ${sourceFiles})
+  add_library(${name} SHARED ${sourceFiles})
   set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX) 
   target_link_libraries(${name} ${libDependencies})
   install(TARGETS ${name} DESTINATION lib)
+    
+  if(alsoStatic)
+    # The static version needs a different name, but in the end the file
+    # needs to have the same name as the shared lib.
+    set(staticName "${name}_static") 
+    message("$$ ADDING STATIC LIBRARY ${staticName}")
+    add_library("${staticName}" STATIC ${sourceFiles})
+    set_target_properties(${staticName} PROPERTIES LINKER_LANGUAGE CXX) 
+    target_link_libraries(${staticName} ${libDependencies})
+    # Use this command instead of an install command to end up with the desired name.
+    add_custom_command(TARGET ${staticName} POST_BUILD 
+                       COMMAND cp ${CMAKE_BINARY_DIR}/src/lib${staticName}.a
+                                  ${CMAKE_INSTALL_PREFIX}/lib/lib${name}.a)
+  endif()
+
 
   # Set all the header files to be installed to the include directory
   foreach(f ${sourceFiles})
