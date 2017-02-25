@@ -5,7 +5,13 @@ function(copy_file src dest)
 endfunction()
 
 function(copy_folder src dest)
-  execute_process(cp -r ${src} ${dest})
+  execute_process(COMMAND cp -r ${src} ${dest})
+endfunction()
+
+# Use this function to copy all files matching a wildcard to the output folder.
+function(copy_wildcard wildcard outputFolder)
+  file(GLOB files ${wildcard})
+  file(COPY ${files} DESTINATION ${outputFolder})
 endfunction()
 
 function(verify_file_exists path)
@@ -14,6 +20,14 @@ function(verify_file_exists path)
   endif()
 endfunction()
 
+function(file_contains path s result)
+  file(READ ${path} contents)
+  string(FIND "${contents}" "${s}" position)
+  set(${result} ON PARENT_SCOPE)
+  if(${position} EQUAL -1)
+    set(${result} OFF PARENT_SCOPE)
+  endif()
+endfunction()
 
 # Set up a symlink file for installation
 #function(install_symlink link target)

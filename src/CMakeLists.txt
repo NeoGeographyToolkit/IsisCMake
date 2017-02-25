@@ -3,11 +3,11 @@
 # Each of these calls will add one library plus multiple apps and unit tests.
 # - The arguments are: (library_name, [list of folders needed for library])
 
-if (buildCore)
+if (${buildCore})
   add_isis_module(${CORE_LIB_NAME} base database control qisis system)
 endif()
 
-if (buildMissions)
+if (${buildMissions})
   add_isis_module(apollo apollo)
   add_isis_module(cassini cassini)
   add_isis_module(chandrayaan1 chandrayaan1)

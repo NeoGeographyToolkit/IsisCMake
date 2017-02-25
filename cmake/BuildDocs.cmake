@@ -115,12 +115,25 @@ function(build_documents_folder)
     # Make Xalan call to generate the .html output file from the .xml input file
     # - The original makefiles used an intermediate temporary makefile in this step.
 
-    set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "'../../'" ${XALAN_PARAM_OPTION} filenameParam "'${docName}.html'" ${XALAN_OUTFILE_OPTION} ${thisOutputFolder}/${docName}.html ${XALAN_INFILE_OPTION} ${f}/${docName}.xml  ${XALAN_XSL_OPTION} ${docBuildFolder}/docsys/build/IsisSubPageBuild.xsl)
+    # The .xsl file used here depends on if the file contains a primary=true tag
+    set(xslFile "IsisSubPageBuild.xsl")
+    file_contains("${f}/${docName}.xml" "<file primary=\"true\">" primary)
+    #message("primary = ${primary}")
+    if(${primary})
+      set(xslFile "IsisPrimaryPageBuild.xsl")
+    endif()
+
+    #set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "'../../'" ${XALAN_PARAM_OPTION} filenameParam "'${docName}.html'" ${XALAN_OUTFILE_OPTION} ${thisOutputFolder}/${docName}.html ${XALAN_INFILE_OPTION} ${f}/${docName}.xml  ${XALAN_XSL_OPTION} ${docBuildFolder}/docsys/build/${xslFile})
+    set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "'../../'" ${XALAN_PARAM_OPTION} filenameParam "'${docName}.html'" ${XALAN_OUTFILE_OPTION} ${thisOutputFolder}/${docName}.html ${XALAN_INFILE_OPTION} ${docName}.xml  ${XALAN_XSL_OPTION} ../../build/${xslFile})
     #message("command = ${xalanCommand}")
-    execute_process(COMMAND ${xalanCommand})
+    execute_process(COMMAND ${xalanCommand} WORKING_DIRECTORY ${f})
 
     # Copy any assets to the install folder
-    copy_folder(${f}/assets ${thisOutputFolder}/assets)
+    if(EXISTS "${f}/assets")
+      copy_folder(${f}/assets ${thisOutputFolder}/assets)
+    endif()
+
+    #message( FATAL_ERROR "STOP." )
 
   endforeach()
 
@@ -130,23 +143,22 @@ function(build_documents_folder)
   # These go in top level folders in /doc/
 
   # ABOUT ISIS TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/AboutIsis/index.html   ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/AboutIsis.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/AboutIsis/index.html   ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/AboutIsis.xsl)
 
   # GENERAL TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/General/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/General.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/General/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/General.xsl)
 
   # GUIDES TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Guides/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Guides.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Guides/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Guides.xsl)
 
   # INSTALLATION TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Installation/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Installation.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Installation/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Installation.xsl)
 
   # TECHNICAL INFO TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/TechnicalInfo/index.html ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/TechnicalInfo.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/TechnicalInfo/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/TechnicalInfo.xsl)
 
   # USER DOCS TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/UserDocs/index.html    ${XALAN_INFILE_OPTION} ${dotocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/UserDocs.xsl)
-
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/UserDocs/index.html    ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/UserDocs.xsl)
 
 endfunction()
 
@@ -172,8 +184,8 @@ function(build_application_docs)
   file(MAKE_DIRECTORY "${installTabbedFolder}")
   file(MAKE_DIRECTORY "${installPrinterFolder}/styles")
   file(MAKE_DIRECTORY "${installTabbedFolder}/styles")
-  execute_process(cp "${printerStyleFolder}/*.css" ${installPrinterFolder}/styles/)
-  execute_process(cp "${tabbedStyleFolder}/*.css" ${installTabbedFolder}/styles/)
+  copy_wildcard("${printerStyleFolder}/*.css" ${installPrinterFolder}/styles/)
+  copy_wildcard("${tabbedStyleFolder}/*.css"  ${installTabbedFolder}/styles/ )
 
   # Loop through module folders
   SUBDIRLIST(${appDataFolder} moduleFolders)
@@ -194,8 +206,10 @@ function(build_application_docs)
       file(MAKE_DIRECTORY "${pfAppFolder}")
       file(MAKE_DIRECTORY "${tbAppFolder}")
 
-      copy_folder(${f}/assets ${pfAppFolder}/assets)
-      copy_folder(${f}/assets ${tbAppFolder}/assets)
+      if(EXISTS "${f}/assets")
+        copy_folder(${f}/assets ${pfAppFolder}/assets)
+        copy_folder(${f}/assets ${tbAppFolder}/assets)
+      endif()
 
       execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../../../../'\" ${XALAN_OUTFILE_OPTION} ${pfAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${printerStyleFolder}/IsisApplicationDocStyle.xsl)
 
@@ -217,13 +231,17 @@ function(build_application_docs)
   foreach(mod ${moduleFolders})
     get_filename_component(moduleName ${mod} NAME_WE)
 
+    message("Looking at module ${moduleName}")
+
     # Loop through application folders
     SUBDIRLIST(${mod} appDataFolders)
     foreach(f ${appDataFolders})
 
-      # Use Xalan to generate a piece of the TOC and append it to the file
       get_filename_component(docName ${f} NAME_WE)
-      execute_process(COMMAND ${XALAN} ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/Application/build/IsisApplicationTOCbuild.xsl)
+      #message("Adding TOC for app ${docName}")
+
+      # Use Xalan to generate a piece of the TOC and append it to the file
+      execute_process(COMMAND ${XALAN} ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/Application/build/IsisApplicationTOCbuild.xsl  OUTPUT_VARIABLE result)
       file(APPEND ${appTocPath} ${result})
       #message("result = ${result}")
     endforeach()
@@ -286,15 +304,14 @@ function(build_object_conf)
   set(docInstallDir  ${docInstallFolder}/Object )
 
   # Copy settings files from the source folder to the build folder
-  execute_process(cp "${PROJECT_SOURCE_DIR}/src/docsys/Object/build/*" ${objConfDir})
+  copy_wildcard("${PROJECT_SOURCE_DIR}/src/docsys/Object/build/*" ${objConfDir})
 
   # Append to the app conf file
   cat(${objConfDir}/apps_tag.conf ${appsConf})
   file(APPEND ${appsConf} "LATEX_CMD_NAME   = ${LATEX}\n")
   file(APPEND ${appsConf} "OUTPUT_DIRECTORY = ${docInstallDir}\n")
-  file(APPEND ${appsConf} "STRIP_FROM_PATH  = ${CMAKE_INSTALL_PREFIX}/\n")
-  file(APPEND ${appsConf} "INPUT            = ${CMAKE_INSTALL_PREFIX}/src/ \\\n")
-  file(APPEND ${appsConf} "                   ${objConfDir}/isisAppsDoxyDefs.doxydef\n")
+  file(APPEND ${appsConf} "STRIP_FROM_PATH  = ${PROJECT_SOURCE_DIR}/\n")
+  file(APPEND ${appsConf} "INPUT            = ${PROJECT_SOURCE_DIR}/src/ ${objConfDir}/isisAppsDoxyDefs.doxydef\n")
   file(APPEND ${appsConf} "HTML_HEADER      = ${objConfDir}/IsisObjectHeaderApps.html\n")
   file(APPEND ${appsConf} "HTML_FOOTER      = ${objConfDir}/IsisObjectFooter.html\n")
   file(APPEND ${appsConf} "HTML_OUTPUT      = apps\n")
@@ -310,8 +327,8 @@ function(build_object_conf)
   file(APPEND ${programmerConf} "FILE_PATTERNS    = *objs*.h \ \n")
   file(APPEND ${programmerConf} "                   *objs*.cpp \ \n")
   file(APPEND ${programmerConf} "                   *build/isisDoxyDefs.doxydef\n")
-  file(APPEND ${programmerConf} "STRIP_FROM_PATH  = ${CMAKE_INSTALL_PREFIX}/\n")
-  file(APPEND ${programmerConf} "INPUT            = ${objConfDir}/isisDoxyDefs.doxydef ${CMAKE_INSTALL_PREFIX}/src/ \n")
+  file(APPEND ${programmerConf} "STRIP_FROM_PATH  = ${PROJECT_SOURCE_DIR}/\n")
+  file(APPEND ${programmerConf} "INPUT            = ${PROJECT_SOURCE_DIR}/src/ ${objConfDir}/isisAppsDoxyDefs.doxydef\n")
   file(APPEND ${programmerConf} "HTML_HEADER      = ${objConfDir}/IsisObjectHeaderProgrammers.html\n")
   file(APPEND ${programmerConf} "HTML_FOOTER      = ${objConfDir}/IsisObjectFooter.html\n")
   file(APPEND ${programmerConf} "HTML_OUTPUT      = Programmer\n")
@@ -346,8 +363,7 @@ function(build_object_conf)
   file(APPEND ${developerConf} "LATEX_CMD_NAME   = ${LATEX}\n")
   file(APPEND ${developerConf} "OUTPUT_DIRECTORY = ${docInstallDir}\n")
   file(APPEND ${developerConf} "STRIP_FROM_PATH  = ${CMAKE_INSTALL_PREFIX}/\n")
-  file(APPEND ${developerConf} "INPUT            = ${CMAKE_INSTALL_PREFIX}/src/ \\\n")
-  file(APPEND ${developerConf} "                   ${objConfDir}/isisDoxyDefs.doxydef\n")
+  file(APPEND ${developerConf} "INPUT            = ${PROJECT_SOURCE_DIR}/src/ ${objConfDir}/isisAppsDoxyDefs.doxydef\n")
   file(APPEND ${developerConf} "HTML_HEADER      = ${objConfDir}/IsisObjectHeader.html\n")
   file(APPEND ${developerConf} "HTML_FOOTER      = ${objConfDir}/IsisObjectFooter.html\n")
   file(APPEND ${developerConf} "HTML_OUTPUT      = Developer\n")
@@ -391,7 +407,7 @@ function(build_object_docs)
 
   message("Copying assets...")
   file(MAKE_DIRECTORY "${docInstallFolder}/Object")
-  execute_process(cp -r ${docBuildFolder}/Object/assets ${docInstallFolder}/Object/)
+  execute_process(COMMAND cp -r ${docBuildFolder}/Object/assets ${docInstallFolder}/Object/)
 
   # TODO: Check no double assets folder?
 
@@ -400,10 +416,10 @@ function(build_object_docs)
   file(MAKE_DIRECTORY ${docInstallFolder}/Object/Developer)
   file(MAKE_DIRECTORY ${docInstallFolder}/Object/Programmer)
   file(MAKE_DIRECTORY ${docInstallFolder}/documents/DocStyle/assets)
-  execute_process(cp "${docBuildFolder}/Object/*.html" ${docInstallFolder}/Object/)
+  copy_wildcard("${docBuildFolder}/Object/*.html" ${docInstallFolder}/Object/)
   #copy_file(${objBuildDir}/isisDoxyDefs.doxydef ${docInstallFolder}/documents/DocStyle/assets/isisDoxyDefs.doxydef)
 
-
+#message( FATAL_ERROR "STOP." )
   message("Building apps documentation")
   execute_process(COMMAND ${DOXYGEN} "${objConfDir}/apps_tag_temp.conf"
                   WORKING_DIRECTORY ${docBuildFolder}/src/docsys/Object/)
@@ -435,11 +451,11 @@ function(build_docs)
   set(docInstallFolder ${CMAKE_INSTALL_PREFIX}/doc) # Final output documentation
 
   # Clean up existing files
-  execute_process(rm -rf ${docBuildFolder})
-  execute_process(rm -rf ${docInstallFolder})
+  execute_process(COMMAND rm -rf ${docBuildFolder})
+  execute_process(COMMAND rm -rf ${docInstallFolder})
 
   # Copy everything from src/docsys to docBuildFolder
-  execute_process(cp -r ${PROJECT_SOURCE_DIR}/src/docsys ${docBuildFolder})
+  execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/src/docsys ${docBuildFolder})
 
   file(MAKE_DIRECTORY "${docBuildFolder}/Application")
   file(MAKE_DIRECTORY "${docBuildFolder}/Application/data")

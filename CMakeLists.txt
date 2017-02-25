@@ -137,7 +137,7 @@ file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plu
 #copy_files_to_folder(${templates} "${CMAKE_INSTALL_PREFIX}/templates/gui")
 
 # Build the documentation
-if (buildDocs)
+if (${buildDocs})
   build_docs()
 endif()
 
@@ -146,7 +146,9 @@ endif()
 add_subdirectory(src)
 
 # Set up third party libraries for installation
-install_third_party()
+if (${buildCore} OR ${buildMissions})
+  install_third_party()
+endif()
 
 
 
