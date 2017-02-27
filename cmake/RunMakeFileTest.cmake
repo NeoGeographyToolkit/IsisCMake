@@ -38,13 +38,13 @@ function(run_app_makefile_test makefile)
   math(EXPR commandLoc "${commandLoc}+10")
   string(SUBSTRING "${makefileContents}" ${commandLoc} -1 command)
   
-  #message("definitions = ${definitions}")
-  #message("command = ${command}")
+  message("definitions = ${definitions}")
+  message("command = ${command}")
 
   set(modCommand ${command})
 
   # Parse out the name assignments
-  set(regexWord "[A-Za-z0-9 ]+")
+  set(regexWord "[A-Za-z0-9 \\.-]+")
   string(REGEX MATCHALL "${regexWord}=${regexWord}"
        parsedDefinitions "${definitions}")
   message("parsedDefinitions: ${parsedDefinitions}")
@@ -61,67 +61,90 @@ function(run_app_makefile_test makefile)
     string(REGEX MATCHALL "[^= ]+" parts "${pair}")
     list(GET parts 0 name)
     list(GET parts 1 value)
+
     #message("parts: ${parts}")
-    #message("name = $(${name})")
+    #message("name = ${name}")
     #message("value = ${value}")
-    string(REPLACE "$(${name})" ${value} modCommand ${modCommand})
+
+    # Handle specified tolerance parameters
+    # - These are just arguments specified in a roundabout method
+    
+    string(FIND "${name}" "TOLERANCE" tolPos)
+    if(${tolPos} EQUAL -1)
+      # Non-tolerance parameter
+      string(REPLACE "$(${name})" ${value} modCommand ${modCommand})
+    else()
+      # Extract the file name this value applies to
+      string(REPLACE ".TOLERANCE" "" fileName ${name})
+      #message("filename = ${fileName}")
+      # Insert the tolerance argument
+      string(REPLACE ${fileName} "${fileName} tolerance=${value}" modCommand ${modCommand})
+    endif()
+    
   endforeach()
  
   message("modCommand = ${modCommand}")
 
   # TODO: Execute the command, then handle the results!
   
+  # TODO: Handle TOLERANCE lines!
+  
   message(FATAL_ERROR "STOP EARLY")
 
 endfunction()
 
 # Compare a .CUB file from a test result with the truth file
-function(compare_test_result_cub testResult truthFile)
+function(compare_test_result_cub testResult truthFile result)
 
   set(tempFile ${testResult}.DIFF)
   set(cmd "${CMAKE_BINARY_DIR}/src/cubediff ${TSTARGS} from=${truthFile} from2=${testResult} to=compare.txt 1>>/dev/null 2>cubediffError.txt")
   execute_process(COMMAND ${cmd})
 
+  set(result ON PARENT_SCOPE)
 endfunction()
 
 # Compare a .TXT file from a test result with the truth file
-function(compare_test_result_txt testResult truthFile)
+function(compare_test_result_txt testResult truthFile result)
 
   set(cmd "/usr/bin/diff ${truthFile} ${testResult} > /dev/null")
   execute_process(COMMAND ${cmd})
 
+  set(result ON PARENT_SCOPE)
 endfunction()
 
 # Compare a .CSV file from a test result with the truth file
-function(compare_test_result_csv testResult truthFile)
+function(compare_test_result_csv testResult truthFile result)
 
   set(tempFile ${testResult}.DIFF)
   set(cmd "${CMAKE_SOURCE_DIR}/scripts/csvdiff.py ${truthFile} ${testResult} ${tempFile} >& /dev/null")
   execute_process(COMMAND ${cmd})
 
+  set(result ON PARENT_SCOPE)
 endfunction()
 
 # Compare a .PVL file from a test result with the truth file
-function(compare_test_result_pvl testResult truthFile)
+function(compare_test_result_pvl testResult truthFile result)
 
   set(tempFile ${testResult}.DIFF)
   set(cmd "${CMAKE_BINARY_DIR}/src/pvldiff ${TSTARGS} from=${truthFile} from2=${testResult} to=compare.txt diff=${tempFile} 1>>/dev/null 2>pvldiffError.txt")
   execute_process(COMMAND ${cmd})
 
+  set(result ON PARENT_SCOPE)
 endfunction()
 
 # Compare a .NET file from a test result with the truth file
-function(compare_test_result_net testResult truthFile)
+function(compare_test_result_net testResult truthFile result)
 
   set(tempFile ${testResult}.DIFF)
   set(cmd "${CMAKE_BINARY_DIR}/src/cnetdiff ${TSTARGS} from=${truthFile} from2=${testResult} to=compare.txt diff=${tempFile} 1>>/dev/null 2>cnetdiffError.txt")
   execute_process(COMMAND ${cmd})
 
+  set(result ON PARENT_SCOPE)
 endfunction()
 
 # Compare a test output to the corresponding truth file.
 # - Each type of file has a different comparison method.
-function(compare_test_result_file testResult truthFile)
+function(compare_test_result_file testResult truthFile result)
 
   # TODO: Common comparison tasks.
 
@@ -132,16 +155,42 @@ function(compare_test_result_file testResult truthFile)
   get_filename_component(ext ${truthFile} EXT)
   
   if (${ext} STREQ ".cub")
+    compare_test_result_cub(${testResult} ${truthFile} result)
   elseif (${ext} STREQ ".txt")
+    compare_test_result_txt(${testResult} ${truthFile} result)
   elseif (${ext} STREQ ".csv")
+    compare_test_result_csv(${testResult} ${truthFile} result)
   elseif (${ext} STREQ ".pvl")
+    compare_test_result_pvl(${testResult} ${truthFile} result)
   elseif (${ext} STREQ ".net")
+    compare_test_result_net(${testResult} ${truthFile} result)
   else()
     # TODO: Use DIFF here?
     message(FATAL_ERROR "No rule to check test results of type ${ext}")
   endif()
 
+  message("result = ${result}")
+  if(${result} STREQUAL ON)
+    message("Files ${testResult} and ${truthFile} are different!")
+    # TODO: Print error log!
+  else()
+    message("Files ${testResult} and ${truthFile} match!") # TODO: Remove
+  endif()
+
 endfunction()
 
-# TODO: Function to check each test result in the output folder
+# Function to check each test result in the output folder
+function(compare_folders truthFolder outputFolder)
+
+  # Get a list of all files in the truth folder
+  file(GLOB truthFiles truthFolder "*")
+  # Compare the contents of each truth file to the associated output file
+  foreach(fileName ${truthFiles})
+    message("fileName = ${fileName}")
+    compare_test_result_file(${outputFolder}/${fileName} ${truthFolder}/${fileName})
+  endforeach() 
+
+endfunction()
+
+# TODO: Higher level test function
 

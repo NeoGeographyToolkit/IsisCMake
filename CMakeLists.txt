@@ -19,8 +19,9 @@ include(InstallThirdParty)
 
 
 # TODO: MOVE THIS!
-#include(RunMakeFileTest)
+include(RunMakeFileTest)
 #run_app_makefile_test(${CMAKE_SOURCE_DIR}/src/lro/apps/lronac2isis/tsts/nacl-full/Makefile)
+run_app_makefile_test(${CMAKE_SOURCE_DIR}/src/mro/apps/hisharpen/tsts/default/Makefile)
 
 #===============================================================================
 # Project information
@@ -122,11 +123,6 @@ if(installedPlugins)
   file(REMOVE ${installedPlugins})
 endif()
 
-# Set up a few top level files for installation
-INSTALL(FILES IsisPreferences DESTINATION ${CMAKE_INSTALL_PREFIX})
-INSTALL(FILES license.txt     DESTINATION ${CMAKE_INSTALL_PREFIX})
-INSTALL(FILES version         DESTINATION ${CMAKE_INSTALL_PREFIX})
-
 # Add a config file to the bin directory so that QT can find the plugin libraries.
 file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
 
@@ -149,6 +145,18 @@ add_subdirectory(src)
 if (${buildCore} OR ${buildMissions})
   install_third_party()
 endif()
+
+
+# Set up a few top level files for installation
+install(FILES IsisPreferences DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES license.txt     DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(FILES version         DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+# Set up format version numbers for the main shared library on install
+install(CODE "EXECUTE_PROCESS(COMMAND mv ${CMAKE_INSTALL_PREFIX}/lib/libisis3.s0 ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0.s0)")
+install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0.s0 ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.s0)")
+install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.s0 ${CMAKE_INSTALL_PREFIX}/lib/libisis3.s0)")
+
 
 
 
