@@ -20,17 +20,22 @@ macro(add_unit_test_target testFile truthFile)
   #add_dependencies(run_unit_tests ${test_target}_runtest)
   
   set(thisFolder "${PROJECT_SOURCE_DIR}/cmake")
-  set(testInstallFolder ${CMAKE_INSTALL_PREFIX}/tests) # TODO: Change dir!
-  set(fullTestPath "${testInstallFolder}/${testFile}")
+  #set(testInstallFolder ${CMAKE_INSTALL_PREFIX}/tests) # TODO: Change dir?
+  #set(fullTestPath "${testInstallFolder}/${testFile}")
+  set(fullTestPath "${CMAKE_BINARY_DIR}/src/${testFile}")
 
   # Redirect the test and truth file through a CMake script to run the
   #  test and check the outputs
-  add_test(NAME ${testFile} # TODO: Make a new name?
+  set(testName ${testFile}) # TODO: Make a new name?
+  add_test(NAME ${testName} 
            COMMAND ${CMAKE_COMMAND}
            -DTEST_PROG=${fullTestPath}
            -DTRUTH_FILE=${truthFile}
            -P ${thisFolder}/RunUnitTest.cmake)
-  
+
+  #set_property(TEST ${testName} PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/src")
+
+
 endmacro()
 
 

@@ -5,18 +5,33 @@
 
 # TODO
 
+# Needed for ISIS to find its Preferences files where they
+# are buried in the src directory.
+# - In addition, library files and .plugin files need to be found
+#   in ISISROOT/lib.
+set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
+
+message("ENV{ISISROOT} = $ENV{ISISROOT}")
+
 # Set up temp file for program output
 #get_filename_component(TEST_NAME ${TEST_PROG} NAME_WE)
 set(tempFile "${TEST_PROG}.output")
-#message("tempFile = ${tempFile}")
+message("tempFile = ${tempFile}")
 file(REMOVE ${tempFile}) # Make sure no old file exists
 
-#message("CMD = ${TEST_PROG} 1>${tempFile} 2>&1")
+message("CMD = ${TEST_PROG} > ${tempFile} 2>&1")
+
+# The test programs need to be run from their source folders
+#  so that they can find input data files.
+get_filename_component(truthFolder ${TRUTH_FILE} DIRECTORY)
 
 # Run the unit test executable and pipe the output to a text file.
-execute_process(${TEST_PROG} 1>${tempFile} 2>&1
+execute_process(COMMAND ${TEST_PROG}
+                WORKING_DIRECTORY ${truthFolder}
+                OUTPUT_FILE ${tempFile}
+                ERROR_FILE ${tempFile}
                 OUTPUT_VARIABLE result
-                RETURN_VALUE code)
+                RESULT_VARIABLE code)
 if(result)
     message("Test failed: ${result}, ${code}")
 endif()

@@ -94,7 +94,8 @@ macro(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
   #message( FATAL_ERROR "STOP." )
 
   # TODO: Make test build/installion optional!
-  install(TARGETS ${executableName} DESTINATION tests)
+  set(testFolder tests) # TODO: Where do the unit tests go??
+  install(TARGETS ${executableName} DESTINATION ${testFolder})
 
   # Add this test to the unit test command
   add_unit_test_target(${executableName} ${truthFile})
@@ -179,10 +180,13 @@ function(add_isis_obj folder reqLibs)
 
     add_library_wrapper(${libName} "${thisSourceFiles}" "${reqLibs}")
 
-    # Append the plugin file to a single file in the install/lib folder
-    set(pluginPath ${CMAKE_INSTALL_PREFIX}/lib/${pluginName})
+    # Append the plugin file to a single file in the build directory
+    # where the .so files will be created.  During installation copy these
+    # plugin files to the installation library folder.
+    set(pluginPath ${CMAKE_BINARY_DIR}/src/${pluginName})
     #message("Appending plugin to ${pluginPath}")
     cat(${plugins} ${pluginPath})
+    install(FILES ${pluginPath} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 
     # Record this library name for the caller
     set(newPluginLib ${libName}  PARENT_SCOPE)
@@ -308,7 +312,7 @@ function(add_isis_module name)
   
   # Process the tests
   foreach(f ${tstFolders})
-    #add_isis_module_test(${f})
+    add_isis_module_test(${f})
   endforeach()  
   
 endfunction(add_isis_module)

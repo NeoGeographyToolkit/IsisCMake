@@ -19,9 +19,9 @@ include(InstallThirdParty)
 
 
 # TODO: MOVE THIS!
-include(RunMakeFileTest)
+#include(RunMakeFileTest)
 #run_app_makefile_test(${CMAKE_SOURCE_DIR}/src/lro/apps/lronac2isis/tsts/nacl-full/Makefile)
-run_app_makefile_test(${CMAKE_SOURCE_DIR}/src/mro/apps/hisharpen/tsts/default/Makefile)
+#run_app_makefile_test(${CMAKE_SOURCE_DIR}/src/mro/apps/hisharpen/tsts/default/Makefile)
 
 #===============================================================================
 # Project information
@@ -78,6 +78,7 @@ option(buildMissions "Build the mission specific modules" ON)
 # - For running the unit tests, requires
 # export ISISROOT=/home/smcmich1/code
 # and obviously can only be done on the build machine.
+#set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}")
 
 #===============================================================================
 # Build the project!
@@ -100,7 +101,8 @@ set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
 
 # Have binaries use a relative rpath to the lib folder
-SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib3rd")
+SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../3rdParty/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 #set(THIRD_PARTY_LIB_DIR    "${CMAKE_SOURCE_DIR}/3rdParty/lib")
 #set(THIRD_PARTY_PLUGIN_DIR "${CMAKE_SOURCE_DIR}/3rdParty/plugins")
@@ -113,7 +115,7 @@ SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${FLAGS_STR}" )
 message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 
 # Needed for add_test
-#enable_testing()
+enable_testing()
 include(CTest)
 
 # Delete any existing plugin files in the install folder
@@ -146,6 +148,10 @@ if (${buildCore} OR ${buildMissions})
   install_third_party()
 endif()
 
+# Set up this link so that the unit tests can find the plugin
+# information they need.
+execute_process(COMMAND ln -s "build/src" lib
+                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 # Set up a few top level files for installation
 install(FILES IsisPreferences DESTINATION ${CMAKE_INSTALL_PREFIX})
