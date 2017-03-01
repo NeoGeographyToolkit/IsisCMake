@@ -55,6 +55,12 @@ set(PACKAGE_BUGREPORT  "https://isis.astrogeology.usgs.gov/fixit")
 # Main website associated with the software package
 set(PACKAGE_URL        "https://isis.astrogeology.usgs.gov/")
 
+
+# Retrieve the OS string we use
+get_os_version(osVersionString)
+message("Detected OS: ${osVersionString}")
+
+
 #===============================================================================
 # Configuration options - Read from file?
 

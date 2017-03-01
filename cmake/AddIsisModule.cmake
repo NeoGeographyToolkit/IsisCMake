@@ -12,7 +12,7 @@ function(add_isis_app folder libDependencies)
   # Folders: assets, tsts
 
   get_filename_component(appName ${folder}  NAME)
-  message("Proccesing APP folder: ${folder}")
+  #message("Proccesing APP folder: ${folder}")
 
   # Find the source and header files
   file(GLOB headers "${folder}/*.h" "${folder}/*.hpp")
@@ -65,8 +65,9 @@ endfunction(add_isis_app_test)
 # - Is there ever more than one file?
 macro(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
 
-  # Get file name without extension
-  get_filename_component(filename ${truthFile} NAME_WE)
+  # Get the object name (last folder part)
+  get_filename_component(folder ${testFile} DIRECTORY)
+  get_filename_component(filename ${folder} NAME)
 
   # See if there are any plugin libraries that match the name
   # - If there are, we need to link to them!
@@ -110,6 +111,8 @@ function(add_isis_obj folder reqLibs)
 
   #message("Processing OBJ folder: ${folder}")
 
+  get_filename_component(folderName ${folder} NAME)
+
   # Look inside this folder for include files
   include_directories(${folder})
 
@@ -141,16 +144,39 @@ function(add_isis_obj folder reqLibs)
   set(thisSourceFiles ${headers} ${sources} ${protoFiles} ${uiFiles} ${mocFiles})
   set(thisTruthFiles  ${truths} )
   
-  # TODO: Choose the truth file based on the OS!!!!
-  # Verify that the number of tests and truths are equal!
+  # If there are multiple truth files, select based on the OS.
   list(LENGTH thisTestFiles numTest)
   list(LENGTH thisTruthFiles numTruth)
   if(NOT (${numTest} EQUAL ${numTruth}) )
+
     #message("UNEQUAL TEST!!!!!!")
+    #message("Detected OS: ${osVersionString}")
     #message("testFiles = ${thisTestFiles}")
     #message("truths = ${thisTruthFiles}")
-    list(GET thisTruthFiles 0 thisTruthFiles )
-    message("Selected truth file = ${thisTruthFiles}")
+
+    # Look for a truth file that contains the OS string
+    set(matchedTruth "NONE")
+    foreach(truthFile ${thisTruthFiles})
+      #message("Checking file ${truthFile}")
+      # If the truth file contains the OS string, use it.
+      string(FIND ${truthFile} ${osVersionString} position)
+      if(NOT ${position} EQUAL -1)
+        set(matchedTruth ${truthFile})
+        break()
+      endif()
+      
+    endforeach()
+    
+    # If no OS matched, use the default truth file.
+    if(${matchedTruth} STREQUAL "NONE")
+      set(matchedTruth "${folder}/${folderName}.truth")
+    else()
+      message("Selected OS truth file = ${matchedTruth}")
+      #message( FATAL_ERROR "STOP." )
+    endif()
+
+    set(thisTruthFiles ${matchedTruth})
+    #message("Selected truth file = ${thisTruthFiles}")
     #message( FATAL_ERROR "STOP." )
   endif()
 

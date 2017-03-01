@@ -82,6 +82,13 @@ function(copy_files_to_folder files folder)
   endforeach()
 endfunction()
 
+# Determine the text string used to describe this OS version
+function(get_os_version text)
+  message("TODO: Properly query the OS version!")
+  # TODO: Query this from the command line!
+  set(${text} "Linux_x86_64_Ubuntu14_04" PARENT_SCOPE)
+endfunction()
+
 #------------------------------------------------------------
 # Standard function to add a library and its components
 function(add_library_wrapper name sourceFiles libDependencies)
@@ -119,7 +126,7 @@ function(add_library_wrapper name sourceFiles libDependencies)
     string( TOLOWER "${extension}" extensionLower )
     if( extensionLower STREQUAL ".h" OR extensionLower STREQUAL ".hpp" OR extensionLower STREQUAL ".tcc")
       set(fullPath "${CMAKE_CURRENT_SOURCE_DIR}/${f}") # TODO: Check this!
-      message("Install include file ${f} to inc")
+      #message("Install include file ${f} to inc")
       INSTALL(FILES ${f} DESTINATION inc)
     endif()
   endforeach(f)
