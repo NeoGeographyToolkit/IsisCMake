@@ -10,8 +10,9 @@
 # - In addition, library files and .plugin files need to be found
 #   in ISISROOT/lib.
 set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
-
-message("ENV{ISISROOT} = $ENV{ISISROOT}")
+set(ENV{ISIS3DATA} "${DATA_ROOT}")
+message("ISISROOT = $ENV{ISISROOT}")
+message("ISIS3DATA = $ENV{ISIS3DATA}")
 
 # Set up temp file for program output
 #get_filename_component(TEST_NAME ${TEST_PROG} NAME_WE)

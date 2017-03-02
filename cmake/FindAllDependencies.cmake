@@ -26,6 +26,9 @@ verify_file_exists(${XALAN})
 #verify_file_exists(${LATEX})
 verify_file_exists(${XALAN})
 
+# Other packages that had to be installed:
+# libmng-dev
+
 #---------------------------------------------------------------------------
 # Set up for Qt
 #---------------------------------------------------------------------------
@@ -364,10 +367,11 @@ set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${QT_DYNAMIC_LIBS})
 
 # Plugins
 file(GLOB_RECURSE THIRDPARTYPLUGINS "${PLUGIN_DIR}/*.so")
+file(GLOB THIRDPARTYPLUGINFOLDERS "${PLUGIN_DIR}/*")
 
 #message("third party libs = ${THIRDPARTYLIBS}")
 #message("third party plugins = ${THIRDPARTYPLUGINS}")
-
+#message("third party plugins folders = ${THIRDPARTYPLUGINFOLDERS}")
 
 
 #---------------------------------------------------------------------------

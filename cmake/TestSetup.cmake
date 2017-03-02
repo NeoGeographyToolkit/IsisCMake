@@ -31,6 +31,7 @@ macro(add_unit_test_target testFile truthFile)
            COMMAND ${CMAKE_COMMAND}
            -DTEST_PROG=${fullTestPath}
            -DTRUTH_FILE=${truthFile}
+           -DDATA_ROOT=$ENV{ISIS3DATA}
            -P ${thisFolder}/RunUnitTest.cmake)
 
   #set_property(TEST ${testName} PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/src")

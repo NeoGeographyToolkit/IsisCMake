@@ -61,6 +61,10 @@ get_os_version(osVersionString)
 message("Detected OS: ${osVersionString}")
 
 
+# TODO: Make this an input option!!
+set(ENV{ISIS3DATA} "/home/smcmich1/release_isis/isis3data/")
+message("Using ISIS3DATA = $ENV{ISIS3DATA}")
+
 #===============================================================================
 # Configuration options - Read from file?
 
@@ -72,6 +76,7 @@ option(buildDocs     "Build the documentation" OFF)
 option(buildCore     "Build the core ISIS modules" ON)
 option(buildMissions "Build the mission specific modules" ON)
 
+# Note: Tests will fail if everything is not built!
 
 # TODO: Get OS version so we can pick some settings.
 
@@ -124,11 +129,16 @@ message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 enable_testing()
 include(CTest)
 
-# Delete any existing plugin files in the install folder
-#  so that we don't get any duplication.
-file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
-if(installedPlugins)
-  file(REMOVE ${installedPlugins})
+## Delete any existing plugin files in the install folder
+##  so that we don't get any duplication.
+#file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
+#if(installedPlugins)
+#  file(REMOVE ${installedPlugins})
+#endif()
+
+# Clear plugin files so they do not get filled with duplicate entries
+if (${buildCore} AND ${buildMissions})
+  execute_process(COMMAND rm "${CMAKE_BINARY_DIR}/src/*.plugin")
 endif()
 
 # Add a config file to the bin directory so that QT can find the plugin libraries.
@@ -154,10 +164,35 @@ if (${buildCore} OR ${buildMissions})
   install_third_party()
 endif()
 
+# TODO: Move the following code to another file!
+
+message("Tweaking build/src directories for unit tests to run.")
+
 # Set up this link so that the unit tests can find the plugin
 # information they need.
-execute_process(COMMAND ln -s "build/src" lib
+execute_process(COMMAND ln -s "${CMAKE_BINARY_DIR}/src" lib
                 WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+# TODO: The GUIs hang, how is this test supposed to work??
+## Generate links to a bunch of xml files where the unit tests look for them.
+#set(unitTestXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
+#execute_process(COMMAND mkdir -p ${unitTestXmlFolder})
+#file(GLOB_RECURSE testXmls "${CMAKE_SOURCE_DIR}/src/unitTest.xml")
+#foreach(xml ${testXmls})
+#  # TODO: May need to correct the name!
+#  get_filename_component(folder ${xml} DIRECTORY)
+#  get_filename_component(name ${folder} NAME)
+#  execute_process(COMMAND ln -s "${xml}" test_isis3_${name}.xml
+#                  WORKING_DIRECTORY ${unitTestXmlFolder})
+#endforeach()
+
+# Create a link from the build/src directory to each folder in 3rdPartyLibs/plugins
+# TIP: Set "export QT_DEBUG_PLUGINS=1" to help debug plugin errors.
+foreach(plugin ${THIRDPARTYPLUGINFOLDERS})
+  get_filename_component(pluginName ${plugin} NAME)
+  execute_process(COMMAND ln -s "${plugin}" ${pluginName}
+                  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src")
+endforeach()
 
 # Set up a few top level files for installation
 install(FILES IsisPreferences DESTINATION ${CMAKE_INSTALL_PREFIX})
