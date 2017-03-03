@@ -5,6 +5,20 @@ def main():
     
     # Hardcoded list of downloadable files needed to run tests
     fileList = '''
+mgs/calibration
+mro/kernels/fk/
+mro/kernels/ik/
+mro/kernels/sclk/
+base/kernels/lsk/
+base/kernels/pck/
+base/kernels/spk/de118.bsp
+base/kernels/spk/de245.bsp
+base/kernels/spk/de405.bsp
+base/kernels/spk/kernels.0001.db
+base/kernels/spk/kernels.0002.db
+base/dems/kernels.0003.db
+base/dems/kernels.0004.db
+base/dems/kernels.0005.db
 mgs/testData/ab102401.cub
 base/templates/labels/CubeFormatTemplate.pft
 mariner10/testData/0027399_clean_equi.cub
@@ -26,10 +40,8 @@ viking2/kernels/iak/vikingAddendum003.ti
 clementine1/testData/lna1391h.cub
 base/testData/ab102401_ideal.cub
 lo/testData/3133_h1.cub
-base/kernels/pck/pck00008.tpc
 mgs/kernels/ik/moc20.ti
 mgs/kernels/iak/mocAddendum004.ti
-base/kernels/lsk/naif0008.tls
 mgs/kernels/sclk/MGS_SCLKSCET.00061.tsc
 viking2/kernels/sclk/vo2_fsc.tsc
 hayabusa/kernels/dsk/hay_a_amica_5_itokawashape_v1_0_512q.bds
@@ -51,7 +63,6 @@ mgs/kernels/spk/mgs_ab1.bsp
 mgs/testData/ab102402.lev2.cub
 odyssey/testData/I02609002RDR.lev2.cub
 mgs/kernels/ck/mgs_sc_ab1.bc
-base/kernels/pck/pck00009.tpc
 viking2/kernels/spk/vo2_rcon.bsp
 apollo15/testData/AS15-M-0533.cropped.cub
 apollo15/testData/TL.cub
@@ -81,7 +92,6 @@ lo/testData/4008_med_res.cropped.cub
 mro/testData/ctx_pmoi_i_00003.top.cub
 base/dems/ldem_128ppd_Mar2011_clon180_radius_pad.cub
 lro/kernels/pck/moon_080317.tf
-base/kernels/pck/lunar_de403_1950-2199_pa.bpc
 viking2/kernels/ck/vo2_sedr_ck2.bc
 base/dems/ldem_128ppd_Mar2011_clon180_radius_pad.cub
 mariner10/kernels/iak/mariner10Addendum002.ti
@@ -89,7 +99,6 @@ base/kernels/fk/lunarMeanEarth001.tf
 viking2/kernels/fk/vo2_v10.tf
 lro/kernels/pck/moon_assoc_me.tf
 mro/kernels/iak/mroctxAddendum004.ti
-base/kernels/lsk/naif0009.tls
 cassini/testData/N1536363784_1.c2i.spice.cub
 apollo16/testData/AS16-M-0533.reduced.cub
 lo/testData/4164H_Full_mirror.cub
@@ -97,7 +106,6 @@ lo/testData/5072_med_res.cropped.cub
 cassini/testData/N1313633704_1.c2i.nospice.cub
 clementine1/kernels/iak/uvvisAddendum003.ti
 apollo15/kernels/iak/apolloPanAddendum001.ti
-mro/kernels/sclk/MRO_SCLKSCET.00038.65536.tsc
 mariner10/kernels/sclk/mariner10.0001.tsc
 hayabusa/testData/st_2530292409_v.cub
 lo/testData/5006_high_res_1.cropped.cub
@@ -121,9 +129,7 @@ cassini/testData/CM_1515945709_1.vis.cub
 cassini/testData/C1465336166_1.ir.cub
 apollo15/testData/TR.cub
 apollo15/testData/BR.cub
-base/kernels/spk/de405.bsp
 mgs/testData/ab102401.cub
-base/kernels/pck/pck00009.tpc
 base/templates/labels/MappingGroupKeywords.pft
 odyssey/testData/I00824006RDR.lev2.cub
 odyssey/testData/I56632006EDR.lev2.cub
@@ -170,19 +176,24 @@ clementine1/kernels/iak/uvvisAddendum003.ti
 base/templates/maps/equirectangular.map
 '''
 
-
-
+    dbList = '''
+mro/kernels/ck/
+mro/kernels/spk/
+mro/kernels/iak/
+'''
 
     fileList = fileList.split()
+    dbList   = dbList.split()
 
     # TODO: Input argument
     installDir = '/home/smcmich1/release_isis/isis3data/'
 
+    cmd    = 'rsync -azv --delete --partial '
+    remote = 'isisdist.astrogeology.usgs.gov::isis3data/data/'
+
     for f in fileList:
 
         # Set up commands
-        cmd    = 'rsync -azv --delete --partial '
-        remote = 'isisdist.astrogeology.usgs.gov::isis3data/data/'
         target = installDir + f
         
         print target
@@ -196,6 +207,14 @@ base/templates/maps/equirectangular.map
         print fullCmd
         os.system('mkdir -p ' + os.path.dirname(target))
         os.system(fullCmd)
+
+    # This is for folders where we want just the small .db files
+    for f in dbList:
+        fullCmd = (cmd + remote + f+' --include="*.db" --exclude="*" ' + installDir+f)
+        print fullCmd
+        os.system('mkdir -p '+ installDir +f)
+        os.system(fullCmd)
+
 
 
 if __name__ == '__main__':
