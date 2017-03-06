@@ -45,6 +45,8 @@ namespace Isis {
   class Project;
   class ProjectItem;
   class ProjectItemModel;
+  class Shape;
+  class ShapeList;
   class TargetBodyList;
 
   /**
@@ -93,12 +95,20 @@ namespace Isis {
    * @endcode
    *
    * @author 2015-10-21 Jeffrey Covington 
-   *  
+   *
    * @internal
-   *   @history 2015-10-21 Jeffrey Covington - Original version.
-   *   @history 2016-06-27 Ian Humphrey - Minor documentation updates. Fixes #4006.
-   *   @history 2016-08-18 Jeannie Backer - Changed raw BundleSettings pointer to BundleSettingsQsp.
-   *   @history 2016-08-25 Adam Paquette - Updated documentation. Fixes #4299.
+   *     @history 2015-10-21 Jeffrey Covington - Original version.
+   *     @history 2016-06-27 Ian Humphrey - Minor documentation updates. Fixes #4006.
+   *     @history 2016-08-18 Jeannie Backer - Changed raw BundleSettings pointer to
+   *                             BundleSettingsQsp.
+   *     @history 2016-07-25 Tracie Sucharksi - Added support for Shapes.
+   *     @history 2016-08-25 Adam Paquette - Updated documentation. Fixes #4299.
+   *     @history 2016-11-10 Tyler Wilson - Changed the alias reference to the 
+   *                               the data management icon from 'data' to 
+   *                               'data-management' in the setProject function.
+   *                               A naming conflict was causing strange warnings 
+   *                               to show up on the command line when cnetsuite is launched, 
+   *                               and this fixed it.  Fixes #3982.
    */
   class ProjectItem : public QStandardItem {
     public:
@@ -114,6 +124,9 @@ namespace Isis {
       ProjectItem(Image *image);
       ProjectItem(ImageList *imageList);
       ProjectItem(QList<ImageList *> images);
+      ProjectItem(Shape *shape);
+      ProjectItem(ShapeList *shapeList);
+      ProjectItem(QList<ShapeList *> shapes);
       ProjectItem(GuiCameraQsp guiCamera);
       ProjectItem(GuiCameraList *guiCameraList);
       ProjectItem(Project *project);
@@ -131,6 +144,8 @@ namespace Isis {
       CorrelationMatrix correlationMatrix() const;
       Image *image() const;
       ImageList *imageList() const;
+      Shape *shape() const;
+      ShapeList *shapeList() const;
       Project *project() const;
       GuiCameraQsp guiCamera() const;
       TargetBodyQsp targetBody() const;
@@ -143,6 +158,8 @@ namespace Isis {
       bool isCorrelationMatrix() const;
       bool isImage() const;
       bool isImageList() const;
+      bool isShape() const;
+      bool isShapeList() const;
       bool isProject() const;
       bool isGuiCamera() const;
       bool isTargetBody() const;
@@ -158,11 +175,13 @@ namespace Isis {
       void setImage(Image *image);
       void setImageList(ImageList *imageList);
       void setImages();
+      void setShape(Shape *shape);
+      void setShapeList(ShapeList *shapeList);
+      void setShapes();
       void setProject(Project *project);
       void setResults();
       void setGuiCamera(GuiCameraQsp guiCamera);
       void setGuiCameraList();
-      void setShapeModels();
       void setSpacecraft();
       void setTargetBody(TargetBodyQsp targetBody);
       void setTargetBodyList();

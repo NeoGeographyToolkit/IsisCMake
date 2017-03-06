@@ -94,6 +94,8 @@ namespace Isis {
  *   @history 2016-10-13 Ian Humphrey - Removed references to setFromPvl(), as
  *                           BundleObservationSolveSettings::setFromPvl() was moved to jigsaw as
  *                           setSettingsFromPvl(). References #4293.
+ *   @history 2016-12-01 Ian Humphrey - Added extra qDebug() stream so the "apply param
+ *                           corrections successful?" string will be in the unitTest output.
  */
 int main(int argc, char *argv[]) {
   Preference::Preferences(true);
@@ -398,7 +400,7 @@ int main(int argc, char *argv[]) {
     qDebug() << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
     qDebug() << "Testing BundleObservation...";
     qDebug() << "Constructing empty BundleObservation object...";
-    #if 0
+    /**
     TEST COVERAGE (SCOPE) FOR THIS SOURCE FILE: ??% (need to re-run SquishCoco)
     NEED:
         1) construct with image containing camera that is not null
@@ -412,7 +414,7 @@ int main(int argc, char *argv[]) {
         5) initParameterWeights - possigma[0] == 0, possigma[1] == 0, possigma[2]  > 0
                                                     pntsigma[1]  > 0, pntsigma[2] == 0
         6) formatBundleOutputString - with instrumentPosition/instrumentRotation not NULL
-    #endif
+    */
     BundleObservation bo;
     BundleTargetBodyQsp bundleTargetBody = BundleTargetBodyQsp(new BundleTargetBody);
     qDebug() << "Constructing BundleObservation object from BundleImage...";
@@ -444,6 +446,7 @@ int main(int argc, char *argv[]) {
     qDebug().noquote() << bo2.formatBundleOutputString(true,true);
     qDebug().noquote() << bo2.formatBundleOutputString(false,true);
     qDebug().noquote() << bo2.formatBundleOutputString(false);
+    qDebug().noquote() << bo2.formatBundleOutputString(true);
     qDebug() << "    Set solve settings using with TWIST=FALSE...";
     bo2.setSolveSettings(bossToFill);
     bossFromBo = *bo2.solveSettings();
@@ -453,6 +456,9 @@ int main(int argc, char *argv[]) {
     qDebug().noquote() << bo2.formatBundleOutputString(true,true);
     qDebug().noquote() << bo2.formatBundleOutputString(false,true);
     qDebug().noquote() << bo2.formatBundleOutputString(false);
+    qDebug().noquote() << bo2.formatBundleOutputString(true);
+
+
 
     
     qDebug() << "    Set solve settings using with CAMSOLVE=ALL and TWIST=TRUE...";
@@ -508,8 +514,8 @@ int main(int argc, char *argv[]) {
     //TODO: We should not have to catch an exception here, we need to use an observation
     //      with a better (i.e. non-null) Camera. See ticket #4249.
     try {
-      qDebug() << "apply param corrections successful?     " 
-               << toString(bo3.applyParameterCorrections(paramCor));
+      qDebug() << "apply param corrections successful?";
+      qDebug() << toString(bo3.applyParameterCorrections(paramCor));
     }
     catch (IException &e) {
       e.print();
@@ -862,7 +868,14 @@ int main(int argc, char *argv[]) {
     qDebug() << "Create copy of FreePoint using copy constructor...";
     BundleControlPoint bcp2(bcp1);
     qDebug().noquote() << bcp2.formatBundleOutputSummaryString(errorProp);
+    //solveForRadius = false by default in formatBundleDetailString
+    qDebug() << "Output for formatBundleOutputDetailString(...) with solveForRadius = false:";
     qDebug().noquote() << bcp2.formatBundleOutputDetailString(errorProp, radiansToMeters);
+
+    //solveForRadius = true
+    qDebug() << "Output for formatBundleOutputDetailString(...) with solveForRadius = true:";
+    qDebug().noquote() << bcp2.formatBundleOutputDetailString(errorProp, radiansToMeters,true);
+
     qDebug() << "";
 
     qDebug() << "Overwrite existing object with FixedPoint information...";
@@ -1728,3 +1741,5 @@ int main(int argc, char *argv[]) {
    qDebug() << "observation index" << toString(m.observationIndex());
    qDebug() << "";  
 }
+
+

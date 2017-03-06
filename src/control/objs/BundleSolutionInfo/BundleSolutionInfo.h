@@ -69,9 +69,31 @@ namespace Isis {
    *                           BundleSettings::solveMethod. References #4162.
    *   @history 2016-08-23 Jesse Mapel - Removed output() method.  Individual output
    *                           file methods must be called.  Fixes #4279.
+   *   @history 2016-09-02 Jesse Mapel - Added camera point and position input parameters to output
+   *                           files when using only one set of solve settings.  Fixes #4316.
    *   @history 2016-10-06  Tyler Wilson - Added methods outputImagesCSV()
    *                           and outputImagesCSVHeader which enables jigsaw users to output
    *                           the bundleout_images.csv file.  Fixes #4314.
+   *   @history 2016-10-17 Jesse Mapel - Removed multiple solve settings output in accordance with
+   *                           USEPVL being removed from jigsaw.  References #4316.
+   *   @history 2016-10-28 Tyler Wilson - Modified outputText() to check and output if the solution
+   *                           is solving for the radius.  References #4317.
+   *   @history 2016-11-14 Ken Edmundson Modified the following...
+   *                           -Changed column headers in images.csv to match row headers in bundleout.txt
+   *                            (instead of at2, bt, c to indicate coefficients, now using t2, t1, t0, etc)
+   *                           -Added output of CKDEGREE, CKSOLVEDEGREE, SPKDEGREE, SPKSOLVEDEGREE to
+   *                            bundleout.txt header when CAMSOLVE=ALL and/or SPSOLVE=ALL
+   *                           -Fixed typo under SPACECRAFT OPTIONS; what should have said
+   *                            "SPSOLVE: All POLYNOMIAL COEFFICIENTS" was
+   *                            "CAMSOLVE: All POLYNOMIAL COEFFICIENTS"
+   *                           -modified output of image EO in bundleout.txt for images solved with
+   *                            observation mode; previously one entry per observation was written,
+   *                            now all images in the observation are written separately. 
+   *   @history 2016-12-01 Ian Humphrey - Modified an sprintf() call in outputImagesCSV() to
+   *                           prevent a -Wformat-security warning from occurring.
+   *   @history 2016-12-08 Ian Humphrey - Modified outputImagesCSVHeader() to treat TWIST the same
+   *                           as the other angles when determining how many headers to create.
+   *                           Fixes #4557.
    */
   class BundleSolutionInfo : public QObject {
     Q_OBJECT
@@ -98,7 +120,7 @@ namespace Isis {
       QString runTime() const;
 
 
-      bool outputImagesCSVHeader(std::ofstream &fpOut);
+      bool outputImagesCSVHeader(std::ofstream &fpOut);     
       bool outputHeader(std::ofstream &fpOut);
       bool outputText();
       bool outputImagesCSV();

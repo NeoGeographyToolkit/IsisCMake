@@ -62,6 +62,23 @@ namespace Isis {
    *                          regular QActions can be used in menus and toolbars. Views can
    *                          now be detached from the main window into their own independent
    *                          window with internalized menus and toolbars.
+   *   @history 2016-10-20 Tracie Sucharski - Clean up included headers that are commented out,
+   *                          updated for Qt5, comment call to saveState for window which caused
+   *                          errors.  TODO:  Determine problem with saveState call.
+   *  @history 2016-11-09  Tyler Wilson - Move a segment of code in the constructor from the beginning
+   *                          to the end.  This code loads a project from the command line instead of the 
+   *                          GUI, and it wasn't outputting warnings/errors to the warnings/error tab
+   *                          when the project was loaded because it was being called before the GUI
+   *                          was created.  Fixes #4488.  References #4526, ##4487.
+   *   @history 2016-11-09 Ian Humphrey - Modified readSettings() and writeSettings() to take in
+   *                           Project pointers to be used to properly read and write settings
+   *                           for the CNetSuiteMainWindow. Note that when running cnetsuite without
+   *                           opening a Project, the config file cnetsuite_Project.config is used.
+   *                           Otherwise, when a project is open, the config file
+   *                           cnetsuite_ProjectName will be used to restore window geom.
+   *                           The m_permToolBar, m_activeToolBar, and m_toolPad now have object
+   *                           names set, so the saveState() call within writeSettings() now works.
+   *                           Fixes #4358.
    */
   class CNetSuiteMainWindow : public QMainWindow {
       Q_OBJECT
@@ -97,7 +114,7 @@ namespace Isis {
 
       void applyMaxThreadCount();
       void createMenus();
-      void writeSettings();
+      void writeSettings(const Project *project) const;
 
       void initializeActions();
 

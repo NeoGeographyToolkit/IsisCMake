@@ -12,7 +12,7 @@
 #include "CubeAttribute.h"
 #include "FileList.h"
 #include "IException.h"
-#include "PixelIfov.h"
+#include "PixelFOV.h"
 #include "ProcessByBrick.h"
 #include "ProcessGroundPolygons.h"
 #include "ProcessRubberSheet.h"
@@ -28,7 +28,6 @@ using namespace Isis;
 
 void PrintMap();
 void rasterizePixel(Isis::Buffer &in);
-std::vector<double> dns;
 
 map <QString, void *> GuiHelpers() {
   map <QString, void *> helper;
@@ -37,16 +36,14 @@ map <QString, void *> GuiHelpers() {
 }
 
 // Global variables
-ProcessGroundPolygons g_pgp;
-UniversalGroundMap *g_groundMap;
-int g_bands;
-Camera *incam;
-PixelIfov *g_pifov;
+ProcessGroundPolygons g_processGroundPolygons;
+Camera *g_incam;
+int g_numIFOVs = 0;
 
 void IsisMain() {
 
-  ProcessRubberSheet p;
-  incam = NULL;
+  ProcessRubberSheet processRubberSheet;
+  g_incam = NULL;
   Cube *icube;
 
   // Get the map projection file provided by the user
@@ -57,15 +54,23 @@ void IsisMain() {
 
   FileList list;
   if (ui.GetString("FROMTYPE") == "FROM") {
-    list.push_back(FileName(ui.GetFileName("FROM")));
+    // GetAsString will capture the entire string, including attributes
+    list.push_back(FileName(ui.GetAsString("FROM")));
   }
   else {
-    list.read(ui.GetFileName("FROMLIST"));
+    try {
+      list.read(ui.GetFileName("FROMLIST"));
+    }
+    catch (IException &e) {
+      throw IException(e);
+    }
   }
-  if (list.size() < 1) {
-    QString msg = "The list file [" + ui.GetFileName("FROMLIST") +
-                  "does not contain any data";
-    throw IException(IException::User, msg, _FILEINFO_);
+
+  if (ui.GetString("FOVRANGE") == "INSTANTANEOUS") {
+    g_numIFOVs = 1;
+  }
+  else {
+    g_numIFOVs = ui.GetInteger("NUMIFOV");
   }
 
   double newminlat, newmaxlat, newminlon, newmaxlon;
@@ -74,26 +79,26 @@ void IsisMain() {
   double minlon = 360.0;
   double maxlon = 0;
   PvlGroup camGrp;
-  PvlGroup bandBinGrp;
   QString lastBandString;
 
   // Get the combined lat/lon range for all input cubes
+  int bands = 1;
   for (int i = 0; i < list.size(); i++) {
     // Open the input cube and get the camera
     CubeAttributeInput atts0(list[i]);
-    icube = p.SetInputCube(list[i].toString(), atts0);
-    g_bands = icube->bandCount();
-    incam = icube->camera();
+    icube = processRubberSheet.SetInputCube(list[i].toString(), atts0);
+    bands = icube->bandCount();
+    g_incam = icube->camera();
 
     // Make sure it is not the sky
-    if (incam->target()->isSky()) {
+    if (g_incam->target()->isSky()) {
       QString msg = "The image [" + list[i].toString() +
                     "] is targeting the sky, use skymap instead.";
       throw IException(IException::User, msg, _FILEINFO_);
     }
 
     // Make sure all the bands for all the files match
-    if (i > 1 && atts0.bandsString() != lastBandString) {
+    if (i >= 1 && atts0.bandsString() != lastBandString) {
       QString msg = "The Band numbers for all the files do not match.";
       throw IException(IException::User, msg, _FILEINFO_);
     }
@@ -101,16 +106,12 @@ void IsisMain() {
       lastBandString = atts0.bandsString();
     }
 
-    // Get the mapping group and the BandBin group
+    // Get the mapping group
     Pvl camMap;
-    incam->BasicMapping(camMap);
+    g_incam->BasicMapping(camMap);
     camGrp = camMap.findGroup("Mapping");
-    if (icube->hasGroup("BandBin")) {
-      bandBinGrp = icube->group("BandBin");
 
-    }
-
-    incam->GroundRange(newminlat, newmaxlat, newminlon, newmaxlon, userMap);
+    g_incam->GroundRange(newminlat, newmaxlat, newminlon, newmaxlon, userMap);
     //set min lat/lon
     if (newminlat < minlat) {
       minlat = newminlat;
@@ -225,13 +226,13 @@ void IsisMain() {
 
   // See if the user want us to handle the longitude seam
   if (ui.GetString("DEFAULTRANGE") == "CAMERA" || ui.GetString("DEFAULTRANGE") == "MINIMIZE") {
-// TODO: the incam below is left over from the for loop above. This must be fixed
-    if (incam->IntersectsLongitudeDomain(userMap)) {
+  // TODO: the g_incam below is left over from the for loop above. This must be fixed
+    if (g_incam->IntersectsLongitudeDomain(userMap)) {
       if (ui.GetString("LONSEAM") == "AUTO") {
         if ((int) userGrp["LongitudeDomain"] == 360) {
           userGrp.addKeyword(PvlKeyword("LongitudeDomain", toString(180)),
                              Pvl::Replace);
-          if (incam->IntersectsLongitudeDomain(userMap)) {
+          if (g_incam->IntersectsLongitudeDomain(userMap)) {
             // Its looks like a global image so switch back to the
             // users preference
             userGrp.addKeyword(PvlKeyword("LongitudeDomain", toString(360)),
@@ -241,7 +242,7 @@ void IsisMain() {
         else {
           userGrp.addKeyword(PvlKeyword("LongitudeDomain", toString(360)),
                              Pvl::Replace);
-          if (incam->IntersectsLongitudeDomain(userMap)) {
+          if (g_incam->IntersectsLongitudeDomain(userMap)) {
             // Its looks like a global image so switch back to the
             // users preference
             userGrp.addKeyword(PvlKeyword("LongitudeDomain", toString(180)),
@@ -250,17 +251,17 @@ void IsisMain() {
         }
         // Make the target info match the new longitude domain
         double minlat, maxlat, minlon, maxlon;
-        incam->GroundRange(minlat, maxlat, minlon, maxlon, userMap);
-        if(!ui.WasEntered("MINLAT")) {
+        g_incam->GroundRange(minlat, maxlat, minlon, maxlon, userMap);
+        if (!ui.WasEntered("MINLAT")) {
           userGrp.addKeyword(PvlKeyword("MinimumLatitude", toString(minlat)), Pvl::Replace);
         }
-        if(!ui.WasEntered("MAXLAT")) {
+        if (!ui.WasEntered("MAXLAT")) {
           userGrp.addKeyword(PvlKeyword("MaximumLatitude", toString(maxlat)), Pvl::Replace);
         }
-        if(!ui.WasEntered("MINLON")) {
+        if (!ui.WasEntered("MINLON")) {
           userGrp.addKeyword(PvlKeyword("MinimumLongitude", toString(minlon)), Pvl::Replace);
         }
-        if(!ui.WasEntered("MAXLON")) {
+        if (!ui.WasEntered("MAXLON")) {
           userGrp.addKeyword(PvlKeyword("MaximumLongitude", toString(maxlon)), Pvl::Replace);
         }
       }
@@ -276,8 +277,26 @@ void IsisMain() {
 
   Pvl pvl;
   pvl.addGroup(userGrp);
-  pvl.addGroup(bandBinGrp);
-  g_pgp.SetStatCubes("TO", pvl, g_bands);
+
+  // If there is only one input cube, we need to attach an AlphaCube to the outputs.
+  if (list.size() == 1) {
+    Cube parent(list[0].toString());
+    if (!parent.hasGroup("AlphaCube")) {
+      PvlGroup alpha("AlphaCube");
+      alpha += PvlKeyword("AlphaSamples", toString(parent.sampleCount()));
+      alpha += PvlKeyword("AlphaLines", toString(parent.lineCount()));
+      alpha += PvlKeyword("AlphaStartingSample", toString(0.5));
+      alpha += PvlKeyword("AlphaStartingLine", toString(0.5));
+      alpha += PvlKeyword("AlphaEndingSample", toString(parent.sampleCount() + 0.5));
+      alpha += PvlKeyword("AlphaEndingLine", toString(parent.lineCount() + 0.5));
+      alpha += PvlKeyword("BetaSamples", toString(parent.sampleCount()));
+      alpha += PvlKeyword("BetaLines", toString(parent.lineCount()));
+      pvl.addGroup(alpha);
+    }
+  }
+
+  g_processGroundPolygons.SetStatCubes("TO", pvl, bands);
+
   bool useCenter = true;
   if (ui.GetString("METHOD") == "CENTER") {
     useCenter = true;
@@ -286,32 +305,46 @@ void IsisMain() {
     useCenter = false;
   }
  
-  g_pgp.SetIntersectAlgorithm(useCenter);
+  g_processGroundPolygons.SetIntersectAlgorithm(useCenter);
 
   for (int f = 0; f < list.size(); f++) {
 
     Cube cube(list[f].toString(), "r");
-    g_groundMap = new UniversalGroundMap(cube);
     // Loop through the input cube and get the all pixels values for all bands
-    ProcessByBrick pbb;
-    pbb.Progress()->SetText("Working on file:  " + list[f].toString());
-    pbb.SetBrickSize(1, 1, g_bands);
-    CubeAttributeInput atts0(list[f].toString());
-    icube = pbb.SetInputCube(list[f].toString(), atts0, 0);
-    incam = icube->camera();
-    g_pifov = new PixelIfov();
+    ProcessByBrick processBrick;
+    processBrick.Progress()->SetText("Working on file:  " + list[f].toString());
+    processBrick.SetBrickSize(1, 1, bands);
+    // Recall list[f] is a FileName, which stores the attributes
+    CubeAttributeInput atts0(list[f]);
+    icube = processBrick.SetInputCube(list[f].toString(), atts0, 0);
+    g_incam = icube->camera();
 
-
-    pbb.StartProcess(rasterizePixel);
-    pbb.EndProcess();
+    processBrick.StartProcess(rasterizePixel);
+    processBrick.EndProcess();
   }
-  g_pgp.EndProcess();
+  
+  // When there is only one input cube, we want to propagate IsisCube labels to output cubes
+  if (list.size() == 1) {
+    // Note that polygons and original labels are not propagated
+    g_processGroundPolygons.PropagateLabels(list[0].toString());
+    // Tell Process which tables we want to propagate
+    QList<QString> tablesToPropagate;
+    tablesToPropagate << "InstrumentPointing" << "InstrumentPosition" << "BodyRotation"
+        << "SunPosition";
+    g_processGroundPolygons.PropagateTables(list[0].toString(), tablesToPropagate);
+  }
+  g_processGroundPolygons.EndProcess();
 
+  // WARNING: rasterizePixel() method alters the current state of the camera.
+  // If any code is added after this point, you must call setImage to return
+  // to original camera state before rasterization.
 
 }
 
 
-// Helper function to print out mapfile to session log
+/**
+  * Helper function to print out mapfile to session log
+  */
 void PrintMap() {
   UserInterface &ui = Application::GetUserInterface();
 
@@ -325,6 +358,12 @@ void PrintMap() {
 }
 
 
+/**
+  * This method uses the ProcessGroundPolygons object to rasterize each 
+  * pixel in the given buffer. 
+  *  
+  * @param in Input ProcessByBrick buffer. 
+  */
 void rasterizePixel(Isis::Buffer &in) {
 
   std::vector<double>lat, lon;
@@ -337,25 +376,26 @@ void rasterizePixel(Isis::Buffer &in) {
   int l = in.Line();
   int s = in.Sample();
 
-// TODO: This needs to be done for each band for band dependant instrumets
-// Note: This can slow this down a lot
+  // TODO: This needs to be done for each band for band dependant instruments
+  // Note: This can slow this down a lot
 
-  incam->SetImage(s, l);
+  // Get the IFOVs in lat/lon space
+  PixelFOV fov;
+  QList< QList< QPointF > > fovVertices = fov.latLonVertices(*g_incam, l, s, g_numIFOVs);
 
-  // Get the IFOV in lat/lon space
-  QList<QPointF> pIfovVertices = g_pifov->latLonVertices(*incam);
-
-  int numVertices = pIfovVertices.size();
-  if (numVertices > 3) {
-    //  Get lat/lon for each vertex of the ifov
-    for (int j = 0; j < numVertices; j++) {
-      lat.push_back(pIfovVertices[j].x());
-      lon.push_back(pIfovVertices[j].y());
+  // loop through each ifov list
+  for (int ifov = 0; ifov < fovVertices.size(); ifov++) {
+    // we need at least 3 vertices for a polygon
+    if (fovVertices[ifov].size() > 3) {
+      //  Get lat/lon for each vertex of the ifov
+      for (int point = 0; point < fovVertices[ifov].size(); point++) {
+        lat.push_back(fovVertices[ifov][point].x());
+        lon.push_back(fovVertices[ifov][point].y());
+      }
+      // rasterize this ifov and clear vectors for next ifov
+      g_processGroundPolygons.Rasterize(lat, lon, dns);
+      lat.clear();
+      lon.clear();
     }
-
-    g_pgp.Rasterize(lat, lon, dns);
-
-    lat.clear();
-    lon.clear();
   }
 }

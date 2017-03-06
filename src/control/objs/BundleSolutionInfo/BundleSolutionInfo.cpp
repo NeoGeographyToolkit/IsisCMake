@@ -3,6 +3,7 @@
 #include <QDataStream>
 #include <QDebug>
 #include <QList>
+#include <QStringList>
 #include <QUuid>
 #include <QXmlStreamWriter>
 
@@ -523,10 +524,16 @@ namespace Isis {
 
 
 
+
   /**
    * @brief Outputs the header for the bundleout_images.csv file
    * @param fpOut The output file stream.
    * @return True if the write is successful, False otherwise.
+   *
+   * @internal
+   *   @history 2016-12-08 Ian Humphrey - Removed conditions that handle TWIST headers differently
+   *                           than the other headers. The number of TWIST headers will be the same
+   *                           as each of the other angle headers. Fixes #4557.
    */
   bool BundleSolutionInfo::outputImagesCSVHeader(std::ofstream &fpOut) {
 
@@ -544,150 +551,79 @@ namespace Isis {
     outputColumns.push_back("rms,");
     outputColumns.push_back("rms,");
 
-
     BundleObservationSolveSettings obsSettings = m_settings->observationSolveSettings(0);
 
     int numberCamPosCoefSolved = obsSettings.numberCameraPositionCoefficientsSolved();
     int numberCamAngleCoefSolved  = obsSettings.numberCameraAngleCoefficientsSolved();
-    bool solveTwist = obsSettings.solveTwist();
 
-    char strCoeff = 'a' + numberCamPosCoefSolved -1;
-    std::ostringstream oStr;
     int nCoeff = 1;
     if (numberCamPosCoefSolved > 0)
       nCoeff = numberCamPosCoefSolved;
 
     for (int i = 0; i < nCoeff; i++) {
-      if (i == 0)
-        oStr << strCoeff;
-      else if (i == 1)
-        oStr << strCoeff << "t";
-      else
-        oStr << strCoeff << "t" << i;
       for (int j = 0; j < 5; j++) {
         if (nCoeff == 1)
           outputColumns.push_back("X,");
         else {
-          QString str = "X(";
-          str += oStr.str().c_str();
-          str += "),";
+          QString str = "X(t" + toString(i) + "),";
           outputColumns.push_back(str);
         }
       }
-      oStr.str("");
-      strCoeff--;
     }
-    strCoeff = 'a' + numberCamPosCoefSolved - 1;
     for (int i = 0; i < nCoeff; i++) {
-      if (i == 0)
-        oStr << strCoeff;
-      else if (i == 1)
-        oStr << strCoeff << "t";
-      else
-        oStr << strCoeff << "t" << i;
       for (int j = 0; j < 5; j++) {
         if (nCoeff == 1)
           outputColumns.push_back("Y,");
         else {
-          QString str = "Y(";
-          str += oStr.str().c_str();
-          str += "),";
+          QString str = "Y(t" + toString(i) + "),";
           outputColumns.push_back(str);
         }
       }
-      oStr.str("");
-      strCoeff--;
     }
-    strCoeff = 'a' + numberCamPosCoefSolved - 1;
     for (int i = 0; i < nCoeff; i++) {
-      if (i == 0)
-        oStr << strCoeff;
-      else if (i == 1)
-        oStr << strCoeff << "t";
-      else
-        oStr << strCoeff << "t" << i;
       for (int j = 0; j < 5; j++) {
         if (nCoeff == 1) {
           outputColumns.push_back("Z,");
         }
         else {
-          QString str = "Z(";
-          str += oStr.str().c_str();
-          str += "),";
+          QString str = "Z(t" + toString(i) + "),";
           outputColumns.push_back(str);
         }
       }
-      oStr.str("");
-      strCoeff--;
       if (!i)
         break;
     }
 
-    strCoeff = 'a' + numberCamAngleCoefSolved - 1;
     for (int i = 0; i < numberCamAngleCoefSolved; i++) {
-      if(i == 0)
-        oStr << strCoeff;
-      else if (i == 1)
-        oStr << strCoeff << "t";
-      else
-        oStr << strCoeff << "t" << i;
       for (int j = 0; j < 5; j++) {
         if (numberCamAngleCoefSolved == 1)
           outputColumns.push_back("RA,");
         else {
-          QString str = "RA(";
-          str += oStr.str().c_str();
-          str += "),";
+          QString str = "RA(t" + toString(i) + "),";
           outputColumns.push_back(str);
         }
       }
-      oStr.str("");
-      strCoeff--;
     }
-    strCoeff = 'a' + numberCamAngleCoefSolved - 1;
     for (int i = 0; i < numberCamAngleCoefSolved; i++) {
-      if (i == 0)
-        oStr << strCoeff;
-      else if (i == 1)
-        oStr << strCoeff << "t";
-      else
-        oStr << strCoeff << "t" << i;
       for (int j = 0; j < 5; j++) {
         if (numberCamAngleCoefSolved == 1)
           outputColumns.push_back("DEC,");
         else {
-          QString str = "DEC(";
-          str += oStr.str().c_str();
-          str += "),";
+          QString str = "DEC(t" + toString(i) + "),";
           outputColumns.push_back(str);
         }
       }
-      oStr.str("");
-      strCoeff--;
     }
-    strCoeff = 'a' + numberCamAngleCoefSolved - 1;
     for (int i = 0; i < numberCamAngleCoefSolved; i++) {
-      if (i == 0)
-        oStr << strCoeff;
-      else if (i == 1)
-        oStr << strCoeff << "t";
-      else
-        oStr << strCoeff << "t" << i;
       for (int j = 0; j < 5; j++) {
-        if (numberCamAngleCoefSolved == 1 || !solveTwist) {
+        if (numberCamAngleCoefSolved == 1) {
           outputColumns.push_back("TWIST,");
         }
         else {
-          QString str = "TWIST(";
-          str += oStr.str().c_str();
-          str += "),";
+          QString str = "TWIST(t" + toString(i) + "),";
           outputColumns.push_back(str);
         }
       }
-      oStr.str("");
-      strCoeff--;
-      if (!solveTwist)
-        break;
     }
 
     // print first column header to buffer and output to file
@@ -707,14 +643,16 @@ namespace Isis {
     outputColumns.push_back("line res,");
     outputColumns.push_back("total res,");
 
+    // Initially account for X,Y,Z (3)
     int nparams = 3;
+    // See how many position coeffients we solved for to make more headers (t0, t1, ...)
     if (numberCamPosCoefSolved)
       nparams = 3 * numberCamPosCoefSolved;
 
-    int numCameraAnglesSolved = 2;
-    if (solveTwist) numCameraAnglesSolved++;
+    // Initially account for RA,DEC,TWIST (3)
+    int numCameraAnglesSolved = 3;
+    // See how many angle coefficients we solved for to make more headers (t0, t1, ...)
     nparams += numCameraAnglesSolved*numberCamAngleCoefSolved;
-    if (!solveTwist) nparams += 1; // Report on twist only
     for (int i = 0; i < nparams; i++) {
       outputColumns.push_back("Initial,");
       outputColumns.push_back("Correction,");
@@ -747,6 +685,8 @@ namespace Isis {
    * 
    * @throws IException::Io "Failed to output residual percentiles for bundleout"
    * @throws IException::Io "Failed to output residual box plot for bundleout"
+   * 
+   * @todo Determine how multiple sensor solve settings should be output.
    */
   bool BundleSolutionInfo::outputHeader(std::ofstream &fpOut) {
 
@@ -873,7 +813,133 @@ namespace Isis {
     sprintf(buf, "\n             MAXIMUM ITERATIONS: %d",
                   m_settings->convergenceCriteriaMaximumIterations());
     fpOut << buf;
+
+    //TODO Should it be checked that positionSigmas.size() == positionSolveDegree and
+    //     pointingSigmas.size() == pointingSolveDegree somewhere? JAM
+
+    //TODO How do we output this information when using multiple solve settings? JAM
+
+    BundleObservationSolveSettings globalSettings = m_settings->observationSolveSettings(0);
+    int pointingSolveDegree = globalSettings.numberCameraAngleCoefficientsSolved();
+    QList<double> pointingSigmas = globalSettings.aprioriPointingSigmas();
+    int positionSolveDegree = globalSettings.numberCameraPositionCoefficientsSolved();
+    QList<double> positionSigmas = globalSettings.aprioriPositionSigmas();
+
     sprintf(buf, "\n\nINPUT: CAMERA POINTING OPTIONS\n==============================\n");
+    fpOut << buf;
+    switch (pointingSolveDegree) {
+      case 0:
+        sprintf(buf,"\n                          CAMSOLVE: NONE");
+        break;
+      case 1:
+        sprintf(buf,"\n                          CAMSOLVE: ANGLES");
+        break;
+      case 2:
+        sprintf(buf,"\n                          CAMSOLVE: ANGLES, VELOCITIES");
+        break;
+      case 3:
+        sprintf(buf,"\n                          CAMSOLVE: ANGLES, VELOCITIES, ACCELERATIONS");
+        break;
+      default:
+        sprintf(buf,"\n                          CAMSOLVE: ALL POLYNOMIAL COEFFICIENTS (%d)"
+                    "\n                          CKDEGREE: %d"
+                    "\n                     CKSOLVEDEGREE: %d",
+                pointingSolveDegree,
+                globalSettings.ckDegree(),
+                globalSettings.ckSolveDegree());
+        break;
+    }
+    fpOut << buf;
+    globalSettings.solveTwist() ?
+        sprintf(buf, "\n                             TWIST: ON"):
+        sprintf(buf, "\n                             TWIST: OFF");
+    fpOut << buf;
+    globalSettings.solvePolyOverPointing() ?
+        sprintf(buf, "\n POLYNOMIAL OVER EXISTING POINTING: ON"):
+        sprintf(buf, "\nPOLYNOMIAL OVER EXISTING POINTING : OFF");
+    fpOut << buf;
+
+    sprintf(buf, "\n\nINPUT: SPACECRAFT OPTIONS\n=========================\n");
+    fpOut << buf;
+    switch (positionSolveDegree) {
+      case 0:
+        sprintf(buf,"\n                        SPSOLVE: NONE");
+        break;
+      case 1:
+        sprintf(buf,"\n                        SPSOLVE: POSITION");
+        break;
+      case 2:
+        sprintf(buf,"\n                        SPSOLVE: POSITION, VELOCITIES");
+        break;
+      case 3:
+        sprintf(buf,"\n                        SPSOLVE: POSITION, VELOCITIES, ACCELERATIONS");
+        break;
+      default:
+        sprintf(buf,"\n                        SPSOLVE: ALL POLYNOMIAL COEFFICIENTS (%d)"
+                    "\n                      SPKDEGREE: %d"
+                    "\n                 SPKSOLVEDEGREE: %d",
+                positionSolveDegree,
+                globalSettings.spkDegree(),
+                globalSettings.spkSolveDegree());
+        break;
+    }
+    fpOut << buf;
+    globalSettings.solvePositionOverHermite() ?
+        sprintf(buf, "\n POLYNOMIAL OVER HERMITE SPLINE: ON"):
+        sprintf(buf, "\nPOLYNOMIAL OVER HERMITE SPLINE : OFF");
+    fpOut << buf;
+
+    sprintf(buf, "\n\nINPUT: GLOBAL IMAGE PARAMETER UNCERTAINTIES\n===========================================\n");
+    fpOut << buf;
+    (m_settings->globalLatitudeAprioriSigma() == Isis::Null) ?
+        sprintf(buf,"\n               POINT LATITUDE SIGMA: N/A"):
+        sprintf(buf,"\n               POINT LATITUDE SIGMA: %lf (meters)",
+                m_settings->globalLatitudeAprioriSigma());
+    fpOut << buf;
+    (m_settings->globalLongitudeAprioriSigma() == Isis::Null) ?
+        sprintf(buf,"\n              POINT LONGITUDE SIGMA: N/A"):
+        sprintf(buf,"\n              POINT LONGITUDE SIGMA: %lf (meters)",
+                m_settings->globalLongitudeAprioriSigma());
+    fpOut << buf;
+    (m_settings->globalRadiusAprioriSigma() == Isis::Null) ?
+        sprintf(buf,"\n                 POINT RADIUS SIGMA: N/A"):
+        sprintf(buf,"\n                 POINT RADIUS SIGMA: %lf (meters)",
+                m_settings->globalRadiusAprioriSigma());
+    fpOut << buf;
+    (positionSolveDegree < 1 || positionSigmas[0] == Isis::Null) ?
+        sprintf(buf,"\n          SPACECRAFT POSITION SIGMA: N/A"):
+        sprintf(buf,"\n          SPACECRAFT POSITION SIGMA: %lf (meters)",
+                positionSigmas[0]);
+    fpOut << buf;
+
+    (positionSolveDegree < 2 || positionSigmas[1] == Isis::Null) ?
+        sprintf(buf,"\n          SPACECRAFT VELOCITY SIGMA: N/A"):
+        sprintf(buf,"\n          SPACECRAFT VELOCITY SIGMA: %lf (m/s)",
+                positionSigmas[1]);
+    fpOut << buf;
+
+    (positionSolveDegree < 3 || positionSigmas[2] == Isis::Null) ?
+        sprintf(buf,"\n      SPACECRAFT ACCELERATION SIGMA: N/A"):
+        sprintf(buf,"\n      SPACECRAFT ACCELERATION SIGMA: %lf (m/s/s)",
+                positionSigmas[2]);
+    fpOut << buf;
+
+    (pointingSolveDegree < 1 || pointingSigmas[0] == Isis::Null) ?
+        sprintf(buf,"\n                CAMERA ANGLES SIGMA: N/A"):
+        sprintf(buf,"\n                CAMERA ANGLES SIGMA: %lf (dd)",
+                pointingSigmas[0]);
+    fpOut << buf;
+
+    (pointingSolveDegree < 2 || pointingSigmas[1] == Isis::Null) ?
+        sprintf(buf,"\n      CAMERA ANGULAR VELOCITY SIGMA: N/A"):
+        sprintf(buf,"\n      CAMERA ANGULAR VELOCITY SIGMA: %lf (dd/s)",
+                pointingSigmas[1]);
+    fpOut << buf;
+
+    (pointingSolveDegree < 3 || pointingSigmas[2] == Isis::Null) ?
+        sprintf(buf,"\n  CAMERA ANGULAR ACCELERATION SIGMA: N/A"):
+        sprintf(buf,"\n  CAMERA ANGULAR ACCELERATION SIGMA: %lf (dd/s/s)",
+                pointingSigmas[2]);
     fpOut << buf;
 
     if (m_settings->solveTargetBody()) {
@@ -912,11 +978,11 @@ namespace Isis {
 
       if (m_settings->solveTriaxialRadii() || m_settings->solveMeanRadius()) {
         if (m_settings->solveMeanRadius()) {
-          sprintf(buf,"\n                          RADII: MEAN");
+          sprintf(buf,"\n                            RADII: MEAN");
           fpOut << buf;
         }
         else if (m_settings->solveTriaxialRadii()) {
-          sprintf(buf,"\n                          RADII: TRIAXIAL");
+          sprintf(buf,"\n                            RADII: TRIAXIAL");
           fpOut << buf;
         }
       }
@@ -1123,6 +1189,12 @@ namespace Isis {
    * @brief Outputs the bundleout_images.csv file which contains Jigsaw data about the images
    * within each observation.
    * @return True upon success, False if something went wrong.
+   *
+   * @internal
+   *   @history 2016-12-01 Ian Humphrey - Added %s as second argument to sprintf() call to prevent
+   *                           -Wformat-security warning. Since image->fileName().toLatin1().data()
+   *                           returns a char* at runtime, the compiler does not know if it will
+   *                           contain format specifiers and produces the mentioned warning.
    */
   bool BundleSolutionInfo::outputImagesCSV() {
 
@@ -1166,22 +1238,32 @@ namespace Isis {
 
         BundleImageQsp image = observation->at(j);
 
-        sprintf(buf,image->fileName().toLatin1().data());
+
+        sprintf(buf, "%s", image->fileName().toLatin1().data());
         fpOut << buf;
         sprintf(buf,",");
         fpOut << buf;
 
-        sprintf(buf,"%0.8f,",rmsImageSampleResiduals[imgIndex].Rms());
+        fpOut << toString(rmsImageSampleResiduals[imgIndex].Rms()).toLatin1().data();
+        sprintf(buf,",");
         fpOut << buf;
 
-        sprintf(buf,"%0.8f,",rmsImageLineResiduals[imgIndex].Rms());
+        fpOut << toString(rmsImageLineResiduals[imgIndex].Rms()).toLatin1().data();
+        sprintf(buf,",");
         fpOut << buf;
 
-        sprintf(buf,"%0.8f,",rmsImageResiduals[imgIndex].Rms());
+        fpOut << toString(rmsImageResiduals[imgIndex].Rms()).toLatin1().data();
+        sprintf(buf,",");
         fpOut << buf;
+
 
         QString observationString =
             observation->formatBundleOutputString(errorProp,true);
+
+        //Removes trailing commas
+        if (observationString.right(1)==",") {
+            observationString.truncate(observationString.length()-1);
+        }
 
         fpOut << (const char*) observationString.toLatin1().data();
         sprintf(buf,"\n");
@@ -1264,21 +1346,21 @@ namespace Isis {
         fpOut << buf;
         sprintf(buf, "\nImage Serial Number: %s\n", image->serialNumber().toLatin1().data());
         fpOut << buf;
-      }
 
-      sprintf(buf, "\n    Image         Initial              Total               "
-                   "Final             Initial           Final\n"
-                   "Parameter         Value              Correction            "
-                   "Value             Accuracy          Accuracy\n");
-      fpOut << buf;
+        sprintf(buf, "\n    Image         Initial              Total               "
+                     "Final             Initial           Final\n"
+                     "Parameter         Value              Correction            "
+                     "Value             Accuracy          Accuracy\n");
+        fpOut << buf;
 
-      QString observationString =
-          observation->formatBundleOutputString(berrorProp);
-      fpOut << (const char*)observationString.toLatin1().data();
+        QString observationString =
+            observation->formatBundleOutputString(berrorProp);
+        fpOut << (const char*)observationString.toLatin1().data();
 
-      // Build list of images and parameters for correlation matrix.
-      foreach ( QString image, observation->imageNames() ) {
-        imagesAndParameters.insert( image, observation->parameterList() );
+        // Build list of images and parameters for correlation matrix.
+        foreach ( QString image, observation->imageNames() ) {
+          imagesAndParameters.insert( image, observation->parameterList() );
+        }
       }
     }
         
@@ -1358,12 +1440,15 @@ namespace Isis {
     sprintf(buf, "\n\nPOINTS DETAIL\n=============\n\n");
     fpOut << buf;
 
+    bool solveRadius = m_settings->solveRadius();
+
     for (int i = 0; i < nPoints; i++) {
       BundleControlPointQsp bundleControlPoint = m_statisticsResults->bundleControlPoints().at(i);
 
       QString pointDetailString =
           bundleControlPoint->formatBundleOutputDetailString(berrorProp,
-                                                           m_statisticsResults->radiansToMeters());
+                                                           m_statisticsResults->radiansToMeters(),
+                                                           solveRadius);
       fpOut << (const char*)pointDetailString.toLatin1().data();
     }
 

@@ -104,6 +104,11 @@ ControlNetValidMeasure *validator;
 
 // Main program
 void IsisMain() {
+  // 2016-12-08 Ian Humphrey - Set the QHash seed, otherwise output is ALWAYS slightly
+  //                different. Note that in Qt4, the seed was constant, but in Qt5, the seed is
+  //                created differently for each process. Fixes #4206.
+  qSetGlobalQHashSeed(1031);
+
   // Reset the counts of points and measures deleted
   numPointsDeleted = 0;
   numMeasuresDeleted = 0;
@@ -126,6 +131,13 @@ void IsisMain() {
   editLockedPoints = NULL;
   editLockedMeasures = NULL;
 
+  // Test if file exists, throw exception if it does not, continue otherwise.
+  FileName cnetInput(ui.GetFileName("CNET"));
+  if (!cnetInput.fileExists()) {
+    QString msg = "The control network [" + cnetInput.expanded() + "] entered for CNET does not exist.";
+    throw IException(IException::User, msg, _FILEINFO_);
+  }
+  
   // If the user wants to keep a log, go ahead and populate it with all the
   // existing ignored points and measures
   ControlNet cnet(ui.GetFileName("CNET"));

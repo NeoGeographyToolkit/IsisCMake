@@ -190,7 +190,7 @@ namespace Isis {
         m_maximumLikelihood(other.m_maximumLikelihood),
         m_solveTargetBody(other.m_solveTargetBody),
         m_bundleTargetBody(other.m_bundleTargetBody),
-        m_outputFilePrefix(other.m_outputFilePrefix) {
+        m_outputFilePrefix(other.m_outputFilePrefix){
   }
 
 

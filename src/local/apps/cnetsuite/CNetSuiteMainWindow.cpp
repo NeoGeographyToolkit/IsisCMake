@@ -22,6 +22,7 @@
  */
 #include "CNetSuiteMainWindow.h"
 
+#include <QObject>
 #include <QtWidgets>
 #include <QSettings>
 #include <QTreeView>
@@ -36,7 +37,6 @@
 #include "Project.h"
 #include "ProjectItemModel.h"
 #include "ProjectItemTreeView.h"
-//#include "ProjectTreeWidget.h"
 #include "SensorInfoWidget.h"
 #include "TargetInfoWidget.h"
 
@@ -45,6 +45,15 @@ namespace Isis {
    * Construct the main window. This will create a Directory, the menus, and the dock areas.
    *
    * @param parent The Qt-relationship parent widget (usually NULL in this case)
+   *
+   * @internal
+   *   @history 2016-11-09 Tyler Wilson - Moved the if-block which loads a project from the
+   *                             command line from the start of the constructor to the end
+   *                             because if there were warnings and errors, they were not
+   *                             being output to the Warnings widget since the project is loaded
+   *                             before the GUI is constructed.  Fixes #4488
+   *   @history 2016-11-09 Ian Humphrey - Added default readSettings() call to load initial
+   *                           default project window state. References #4358.
    */
   CNetSuiteMainWindow::CNetSuiteMainWindow(QWidget *parent) :
       QMainWindow(parent) {
@@ -74,14 +83,12 @@ namespace Isis {
     }
 
     QStringList args = QCoreApplication::arguments();
-
-    if (args.count() == 2) {
-//    connect(this, SIGNAL(openProjectFromCommandLine(QString)),
-//            project, SLOT(open(QString)), Qt::QueuedConnection);
-//    emit openProjectFromCommandLine(args.last());
+/**
+    if (args.count() == 2) {    
+      qDebug() << args.last();
       m_directory->project()->open(args.last());
     }
-
+*/
     m_projectDock = new QDockWidget("Project", this, Qt::SubWindow);
     m_projectDock->setObjectName("projectDock");
     m_projectDock->setFeatures(QDockWidget::DockWidgetMovable |
@@ -130,10 +137,9 @@ namespace Isis {
 
     warningsDock->raise();
 
+    // Read settings from the default project, "Project"
+    readSettings(m_directory->project());
 
-//  readSettings();
-
-    resize(800, 600);
     setTabPosition(Qt::TopDockWidgetArea, QTabWidget::North);
     setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
@@ -155,6 +161,10 @@ namespace Isis {
     m_activeToolBar = new QToolBar(this);
     m_toolPad = new QToolBar(this);
 
+    m_permToolBar->setObjectName("PermanentToolBar");
+    m_activeToolBar->setObjectName("ActiveToolBar");
+    m_toolPad->setObjectName("ToolPad");
+
     addToolBar(m_permToolBar);
     addToolBar(m_activeToolBar);
     addToolBar(m_toolPad);
@@ -167,6 +177,10 @@ namespace Isis {
     // ken testing
     setActiveView(projectTreeView);
     // ken testing
+
+    if (args.count() == 2) {
+      m_directory->project()->open(args.last());
+    }
   }
 
 
@@ -469,7 +483,7 @@ namespace Isis {
         QPixmap(FileName("$base/icons/contexthelp.png").expanded()));
     activateWhatsThisAct->setToolTip("Activate What's This and click on parts "
         "this program to see more information about them");
-    connect(activateWhatsThisAct, SIGNAL(activated()), this, SLOT(enterWhatsThisMode()));
+    connect(activateWhatsThisAct, SIGNAL(triggered()), this, SLOT(enterWhatsThisMode()));
 
     m_helpMenuActions.append(activateWhatsThisAct);
   }
@@ -503,13 +517,29 @@ namespace Isis {
    * Write the window positioning and state information out to a
    * config file. This allows us to restore the settings when we
    * create another main window (the next time this program is run).
+   * 
+   * The state will be saved according to the currently loaded project and its name.
    *
-   * The config file used is $HOME/.Isis/$APPNAME/$APPNAME.config
+   * When no project is loaded (i.e. the default "Project" is open), the config file used is
+   * $HOME/.Isis/$APPNAME/$APPNAME_Project.config.
+   * When a project, ProjectName, is loaded, the config file used is
+   * $HOME/.Isis/$APPNAME/$APPNAME_ProjectName.config.
+   * 
+   * @param[in] project Pointer to the project that is currently loaded (default is "Project")
+   *
+   * @internal
+   *   @history 2016-11-09 Ian Humphrey - Settings are now written according to the loaded project.
+   *                           References #4358.
    */
-  void CNetSuiteMainWindow::writeSettings() {
+  void CNetSuiteMainWindow::writeSettings(const Project *project) const {
+    // Ensure that we are not using a NULL pointer   
+    if (!project) { 
+      QString msg = "Cannot write settings with a NULL Project pointer.";
+      throw IException(IException::Programmer, msg, _FILEINFO_);
+    }
     QString appName = QApplication::applicationName();
     QSettings settings(
-        FileName("$HOME/.Isis/" + appName + "/" + appName + ".config")
+        FileName("$HOME/.Isis/" + appName + "/" + appName + "_" + project->name() + ".config")
           .expanded(),
         QSettings::NativeFormat);
 
@@ -525,15 +555,31 @@ namespace Isis {
   /**
    * Read the window positioning and state information from the config file.
    *
-   * The config file read is $HOME/.Isis/$APPNAME/$APPNAME.config
+   * When running cnetsuite without opening a project, the config file read is
+   * $HOME/.Isis/$APPNAME/$APPNAME_Project.config
+   * Otherwise, when running cnetsuite and opening a project (ProjectName), the config file read is
+   * $HOME/.Isis/$APPNAME/$APPNAME_ProjectName.config
    *
    * @param[in] project (Project *) The project that was loaded.
+   *
+   * @internal
+   *   @history Ian Humphrey - Settings are now read on a project name basis. References #4358.
    */
   void CNetSuiteMainWindow::readSettings(Project *project) {
-    setWindowTitle( project->name() );
+    // Ensure that the Project pointer is not NULL
+    if (!project) {
+      QString msg = "Cannot read settings with a NULL Project pointer.";
+      throw IException(IException::Programmer, msg, _FILEINFO_);
+    }
+    if (project->name() == "Project") {
+      setWindowTitle("cnetsuite");
+    }
+    else {
+      setWindowTitle( project->name() );
+    }
     QString appName = QApplication::applicationName();
     QSettings settings(
-        FileName("$HOME/.Isis/" + appName + "/" + appName + ".config")
+        FileName("$HOME/.Isis/" + appName + "/" + appName + "_" + project->name() + ".config")
           .expanded(),
         QSettings::NativeFormat);
 
@@ -557,7 +603,7 @@ namespace Isis {
    * state information before forwarding the event to the QMainWindow.
    */
   void CNetSuiteMainWindow::closeEvent(QCloseEvent *event) {
-    writeSettings();
+    writeSettings(m_directory->project());
     QMainWindow::closeEvent(event);
   }
 

@@ -1,6 +1,7 @@
 #include "WorkOrderFactory.h"
 
 #include "CnetEditorViewWorkOrder.h"
+#include "CubeDnViewWorkOrder.h"
 #include "ExportControlNetWorkOrder.h"
 #include "ExportImagesWorkOrder.h"
 #include "Footprint2DViewWorkOrder.h"
@@ -9,6 +10,7 @@
 #include "ImageListActionWorkOrder.h"
 #include "ImportControlNetWorkOrder.h"
 #include "ImportImagesWorkOrder.h"
+#include "ImportShapesWorkOrder.h"
 #include "IString.h"
 #include "JigsawWorkOrder.h"
 #include "MatrixViewWorkOrder.h"
@@ -17,10 +19,13 @@
 #include "MoveToTopSceneWorkOrder.h"
 #include "MoveUpOneSceneWorkOrder.h"
 #include "OpenProjectWorkOrder.h"
+#include "RemoveImagesWorkOrder.h"
 #include "RenameProjectWorkOrder.h"
 #include "SaveProjectAsWorkOrder.h"
 #include "SaveProjectWorkOrder.h"
 #include "SensorGetInfoWorkOrder.h"
+#include "SetActiveControlWorkOrder.h"
+#include "SetActiveImageListWorkOrder.h"
 #include "TargetGetInfoWorkOrder.h"
 
 namespace Isis {
@@ -41,6 +46,7 @@ namespace Isis {
     WorkOrder *result = NULL;
 
     tryType<CnetEditorViewWorkOrder>(type, project, result);
+    tryType<CubeDnViewWorkOrder>(type, project, result);
     tryType<ExportImagesWorkOrder>(type, project, result);
     tryType<ExportControlNetWorkOrder>(type, project, result);
     tryType<Footprint2DViewWorkOrder>(type, project, result);
@@ -48,6 +54,7 @@ namespace Isis {
     tryType<ImageListActionWorkOrder>(type, project, result);
     tryType<ImportControlNetWorkOrder>(type, project, result);
     tryType<ImportImagesWorkOrder>(type, project, result);
+    tryType<ImportShapesWorkOrder>(type, project, result);
     tryType<JigsawWorkOrder>(type, project, result);
     tryType<MatrixViewWorkOrder>(type, project, result);
     tryType<MoveDownOneSceneWorkOrder>(type, project, result);
@@ -55,10 +62,13 @@ namespace Isis {
     tryType<MoveToTopSceneWorkOrder>(type, project, result);
     tryType<MoveUpOneSceneWorkOrder>(type, project, result);
     tryType<OpenProjectWorkOrder>(type, project, result);
+    tryType<RemoveImagesWorkOrder>(type, project, result);
     tryType<RenameProjectWorkOrder>(type, project, result);
     tryType<SaveProjectAsWorkOrder>(type, project, result);
     tryType<SaveProjectWorkOrder>(type, project, result);
     tryType<SensorGetInfoWorkOrder>(type, project, result);
+    tryType<SetActiveControlWorkOrder>(type, project, result);
+    tryType<SetActiveImageListWorkOrder>(type, project, result);
     tryType<TargetGetInfoWorkOrder>(type, project, result);
 
     if (!result) {

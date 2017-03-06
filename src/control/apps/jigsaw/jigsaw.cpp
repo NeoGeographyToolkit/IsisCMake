@@ -1,5 +1,7 @@
 #include "Isis.h"
 
+#include <iostream>
+
 #include <QDir>
 #include <QList>
 #include <QObject>
@@ -72,16 +74,16 @@ void IsisMain() {
 
     QObject::connect( bundleAdjustment, SIGNAL( statusUpdate(QString) ),
                       bundleAdjustment, SLOT( outputBundleStatus(QString) ) );
-    QObject::connect( bundleAdjustment, SIGNAL( bundleException(QString) ),
-                      bundleAdjustment, SLOT( outputBundleStatus(QString) ) );
     BundleSolutionInfo bundleSolution = bundleAdjustment->solveCholeskyBR();
     
+    cout << "\nGenerating report files\n" << endl;
+
     // write output files
     if (ui.GetBoolean("BUNDLEOUT_TXT")) {
       bundleSolution.outputText();
     }
 
-    if (ui.GetBoolean("IMAGES_CSV")) {
+    if (ui.GetBoolean("IMAGESCSV")) {
       bundleSolution.outputImagesCSV();
     }
 
@@ -92,10 +94,8 @@ void IsisMain() {
       bundleSolution.outputResiduals();
     }
     
-    // write updated control net if bundle has converged
-    if (bundleAdjustment->isConverged()) {
-      bundleAdjustment->controlNet()->Write(ui.GetFileName("ONET"));
-    }
+    // write updated control net
+    bundleAdjustment->controlNet()->Write(ui.GetFileName("ONET"));
 
     PvlGroup gp("JigsawResults");
     
@@ -218,8 +218,8 @@ BundleSettingsQsp bundleSettings(UserInterface &ui) {
   // target body options
   if (ui.GetBoolean("SOLVETARGETBODY") == true) {
     PvlObject obj;
-    ui.GetFileName("TB_PARAMETERS");
-    Pvl tbParPvl(FileName(ui.GetFileName("TB_PARAMETERS")).expanded());
+    ui.GetFileName("TBPARAMETERS");
+    Pvl tbParPvl(FileName(ui.GetFileName("TBPARAMETERS")).expanded());
     if (!tbParPvl.hasObject("Target")) {
       QString msg = "Input Target parameters file missing main Target object";
       throw IException(IException::User, msg, _FILEINFO_);

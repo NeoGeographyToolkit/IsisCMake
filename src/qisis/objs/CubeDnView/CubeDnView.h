@@ -28,37 +28,55 @@
 #include <QWidgetAction>
 
 #include "AbstractProjectItemView.h"
+#include "FileName.h"
+#include "XmlStackedHandler.h"
 
 class QAction;
+class QDataStream;
 class QMenu;
 class QModelIndex;
 class QToolBar;
+class QXmlStreamWriter;
 
 namespace Isis {
-
+  
+  class ControlPoint;
   class Cube;
+  class Directory;
   class Image;
+  class ImageList;
   class MdiCubeViewport;
+  class Project;
   class ToolPad;
   class Workspace;
+  class XmlStackedHandlerReader;
   
   /**
    * View that displays cubes in a QView-like way. 
    *
    * @author 2016-01-13 Jeffrey Covington
-   * 
-   * @internal
+   *  
+   * @internal 
    *   @history 2016-01-13 Jeffrey Covington - Original version.
    *   @history 2016-06-27 Ian Humphrey - Minor updates to documentation and coding standards.
    *                           Fixes #4004.
    *   @history 2016-08-25 Adam Paquette - Updated documentation. Fixes #4299.
+   *   @history 2016-09-14 Tracie Sucharski - Replaced QnetTool with IpceTool.Added signals for
+   *                           mouse clicks for modifying, deleting and creating control points.
+   *                           These are passed on to Directory slots.
+   *   @history 2016-10-18 Tracie Sucharski - Added the status bar back in in order to display cube
+   *                           positional information (sample, line, latitude, longitude).
+   *   @history 2016-10-18 Tracie Sucharski - Add method to return whether the viewport contains a
+   *                           Shape.
+   *   @history 2016-11-10 Tracie Sucharski - Added functionality to save/restore CubeDnViews when
+   *                           opening projects.
    */
   class CubeDnView : public AbstractProjectItemView {
 
     Q_OBJECT
 
     public:
-      CubeDnView(QWidget *parent=0);
+      CubeDnView(Directory *directory, QWidget *parent=0);
       ~CubeDnView();
 
       virtual QList<QAction *> fileMenuActions();
@@ -74,6 +92,19 @@ namespace Isis {
 
       QSize sizeHint() const;
 
+      bool viewportContainsShape(MdiCubeViewport *viewport);
+
+      void load(XmlStackedHandlerReader *xmlReader, Project *project);
+      void save(QXmlStreamWriter &stream, Project *project, FileName newProjectRoot) const;
+
+    signals:
+      void modifyControlPoint(ControlPoint *controlPoint);
+      void deleteControlPoint(ControlPoint *controlPoint);
+      void createControlPoint(double latitude, double longitude, Cube *cube,
+                              bool isGroundSource = false);
+
+      void controlPointAdded(QString newPointId);
+
     public slots:
       void addItem(ProjectItem *item);
     
@@ -88,6 +119,31 @@ namespace Isis {
       Cube *workspaceActiveCube();
       void setWorkspaceActiveCube(Image *image);
 
+    private:
+      /**
+       * @author 2012-09-?? Steven Lambright
+       *
+       * @internal 
+       *   @history 2016-11-07 Tracie Sucharski - Implemented for CubeDnView 
+       */
+      class XmlHandler : public XmlStackedHandler {
+        public:
+          XmlHandler(CubeDnView *cubeDnView, Project *project);
+          ~XmlHandler();
+
+          virtual bool startElement(const QString &namespaceURI, const QString &localName,
+                                    const QString &qName, const QXmlAttributes &atts);
+          virtual bool endElement(const QString &namespaceURI, const QString &localName,
+                                  const QString &qName);
+
+        private:
+          Q_DISABLE_COPY(XmlHandler);
+
+          Project *m_project;       //!< The current project
+          CubeDnView *m_cubeDnView; //!< The view we are working with
+      };
+
+    private:
       QMap<Cube *, ProjectItem *> m_cubeItemMap; //!< Maps cubes to their items
       Workspace *m_workspace; //!< The workspace
 
@@ -107,7 +163,6 @@ namespace Isis {
       QWidgetAction *m_activeToolBarAction; //!< Widget of the active tool
       QList<QAction *> m_toolPadActions; //!< The tool pad actions
   };
-
 }
 
 #endif

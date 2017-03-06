@@ -2,8 +2,8 @@
 #define Camera_h
 /**
  * @file
- * $Revision: 7140 $
- * $Date: 2016-09-27 15:40:47 -0700 (Tue, 27 Sep 2016) $
+ * $Revision: 7234 $
+ * $Date: 2016-11-12 14:04:38 -0700 (Sat, 12 Nov 2016) $
  *
  *   Unless noted otherwise, the portions of Isis written by the USGS are
  *   public domain. See individual third-party library and package descriptions
@@ -222,13 +222,19 @@ namespace Isis {
    *                           which give greatly improved approximations compared to their
    *                           non-oblique counterpart functions when the Look vector is pointing
    *                           off nadir and near the limb.  Fixes #476.  References #4100.
-   *   @history 2015-10-16 Ian Humphrey - Added protected members for spacecraft and instrument
-   *                           names as well as public member getters. Updated unit test.
-   *                           References #2335.
-   *   @history 2016-06-27 Kelvin Rodriguez - Added member function to compute celestial north
-   *                           clock angle. References #2365
-   *   @history 2016-08-01 Curtis Rose - Changed return values of resolutions from -1 to Isis::Null.
-   *                           Fixes #2065.
+   *   @history 2016-10-16 Jesse Mapel - Added exposureDuration methods to access pixel exposure
+   *                           durations.  References #4476.
+   *   @history 2016-10-18 Kristin Berry - Added a new virtual SetImage which includes a time
+   *                           offset. Refactored SetImage to minimize repeated code by creating
+   *                           helper functions SetImageSkyMapProjection() and
+   *                           SetImageMapProjection(). Updated unitTest. References #4476.
+   *   @history 2016-10-21 Jesse Mapel - Modified exposureDuration(sample, line, band) to default
+   *                           to using the band the camera is set to. References #4476.
+   *   @history 2016-10-21 Jeannie Backer - Reorder method signatures and member variable
+   *                           declarations to fit ISIS coding standards. References #4476.
+   *   @history 2016-12-02 Victor Silva - Made changes to GetLocalNormal to calculate local normal
+   *                           accurately for LRO by changing 4 corner surrounding points from adding
+   *                           0.5 to adding 0.5 - DBL_MIN. Fixes #4560.
    */
 
   class Camera : public Sensor {
@@ -242,6 +248,8 @@ namespace Isis {
 
       // Methods
       bool SetImage(const double sample, const double line);
+      virtual bool SetImage(const double sample, const double line, const double deltaT); 
+
       bool SetUniversalGround(const double latitude, const double longitude);
       bool SetUniversalGround(const double latitude, const double longitude,
                               const double radius);
@@ -291,6 +299,10 @@ namespace Isis {
 
       double FocalLength() const;
       double PixelPitch() const;
+      virtual double exposureDuration() const;
+      virtual double exposureDuration(const double sample,
+                                      const double line,
+                                      const int band = -1) const;
       virtual QList<QPointF> PixelIfovOffsets();
 
       int Samples() const;
@@ -303,7 +315,6 @@ namespace Isis {
 
       bool RaDecRange(double &minra, double &maxra,
                       double &mindec, double &maxdec);
-
       double RaDecResolution();
 
       CameraDistortionMap *DistortionMap();
@@ -465,11 +476,6 @@ namespace Isis {
 
     protected:
 
-      QString m_instrumentNameLong; //!< Full instrument name
-      QString m_instrumentNameShort; //!< Shortened instrument name
-      QString m_spacecraftNameLong; //!< Full spacecraft name
-      QString m_spacecraftNameShort; //!< Shortened spacecraft name
-
       void SetFocalLength(double v);
       void SetPixelPitch(double v);
 
@@ -485,13 +491,26 @@ namespace Isis {
       friend class RadarGroundMap;
       friend class RadarSlantRangeMap;
 
+      QString m_instrumentNameLong;  //!< Full instrument name
+      QString m_instrumentNameShort; //!< Shortened instrument name
+      QString m_spacecraftNameLong;  //!< Full spacecraft name
+      QString m_spacecraftNameShort; //!< Shortened spacecraft name
+
 
     private:
+      void GroundRangeResolution();
+      void ringRangeResolution();
+      double ComputeAzimuth(const double lat, const double lon);
+      bool RawFocalPlanetoImage();
+      // SetImage helper functions: 
+      // bool SetImageNoProjection(const double sample, const double line); 
+      bool SetImageMapProjection(const double sample, const double line, ShapeModel *shape);
+      bool SetImageSkyMapProjection(const double sample, const double line, ShapeModel *shape); 
+
+
       double p_focalLength;                  //!< The focal length, in units of millimeters
       double p_pixelPitch;                   //!< The pixel pitch, in millimeters per pixel
 
-      void GroundRangeResolution();
-      void ringRangeResolution();
       double p_minlat;                       //!< The minimum latitude
       double p_maxlat;                       //!< The maximum latitude
       double p_minlon;                       //!< The minimum longitude
@@ -534,7 +553,7 @@ namespace Isis {
       bool p_ringRangeComputed;              /**!< Flag showing if ring range
                                                   was computed successfully.*/
 
-      AlphaCube *p_alphaCube;          //!< A pointer to the AlphaCube
+      AlphaCube *p_alphaCube;                //!< A pointer to the AlphaCube
       double p_childSample;                  //!< Sample value for child
       double p_childLine;                    //!< Line value for child
       int p_childBand;                       //!< Band value for child
@@ -544,14 +563,11 @@ namespace Isis {
       CameraGroundMap *p_groundMap;          //!< A pointer to the GroundMap
       CameraSkyMap *p_skyMap;                //!< A pointer to the SkyMap
 
-      double ComputeAzimuth(const double lat, const double lon);
-
-      bool RawFocalPlanetoImage();
-
       int p_geometricTilingStartSize; /**< The ideal geometric tile size to start with when
                                            projecting*/
       int p_geometricTilingEndSize;   /**< The ideal geometric tile size to end with when
                                            projecting*/
+
   };
 };
 
