@@ -60,11 +60,6 @@ set(PACKAGE_URL        "https://isis.astrogeology.usgs.gov/")
 get_os_version(osVersionString)
 message("Detected OS: ${osVersionString}")
 
-
-# TODO: Make this an input option!!
-set(ENV{ISIS3DATA} "/home/smcmich1/release_isis/isis3data/")
-message("Using ISIS3DATA = $ENV{ISIS3DATA}")
-
 #===============================================================================
 # Configuration options - Read from file?
 
@@ -76,11 +71,11 @@ option(buildDocs     "Build the documentation" OFF)
 option(buildCore     "Build the core ISIS modules" ON)
 option(buildMissions "Build the mission specific modules" ON)
 
-# Note: Tests will fail if everything is not built!
+# TODO: Make this an input option?
+set(ENV{ISIS3DATA} "/home/smcmich1/release_isis/isis3data/")
+message("Using ISIS3DATA = $ENV{ISIS3DATA}")
 
-# TODO: Get OS version so we can pick some settings.
 
-# TODO: Additional requirements!
 
 # - For building, need
 # export LD_LIBRARY_PATH=/home/smcmich1/code/3rdParty/lib/
@@ -174,17 +169,17 @@ execute_process(COMMAND ln -s "${CMAKE_BINARY_DIR}/src" lib
                 WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 
 # TODO: The GUIs hang, how is this test supposed to work??
-## Generate links to a bunch of xml files where the unit tests look for them.
-#set(unitTestXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
-#execute_process(COMMAND mkdir -p ${unitTestXmlFolder})
-#file(GLOB_RECURSE testXmls "${CMAKE_SOURCE_DIR}/src/unitTest.xml")
-#foreach(xml ${testXmls})
-#  # TODO: May need to correct the name!
-#  get_filename_component(folder ${xml} DIRECTORY)
-#  get_filename_component(name ${folder} NAME)
-#  execute_process(COMMAND ln -s "${xml}" test_isis3_${name}.xml
-#                  WORKING_DIRECTORY ${unitTestXmlFolder})
-#endforeach()
+# Generate links to a bunch of xml files where the unit tests look for them.
+set(unitTestXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
+execute_process(COMMAND mkdir -p ${unitTestXmlFolder})
+file(GLOB_RECURSE testXmls "${CMAKE_SOURCE_DIR}/src/unitTest.xml")
+foreach(xml ${testXmls})
+  # TODO: May need to correct the name!
+  get_filename_component(folder ${xml} DIRECTORY)
+  get_filename_component(name ${folder} NAME)
+  execute_process(COMMAND ln -s "${xml}" test_isis3_${name}.xml
+                  WORKING_DIRECTORY ${unitTestXmlFolder})
+endforeach()
 
 # Create a link from the build/src directory to each folder in 3rdPartyLibs/plugins
 # TIP: Set "export QT_DEBUG_PLUGINS=1" to help debug plugin errors.
@@ -200,9 +195,9 @@ install(FILES license.txt     DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES version         DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Set up format version numbers for the main shared library on install
-install(CODE "EXECUTE_PROCESS(COMMAND mv ${CMAKE_INSTALL_PREFIX}/lib/libisis3.s0 ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0.s0)")
-install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0.s0 ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.s0)")
-install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.s0 ${CMAKE_INSTALL_PREFIX}/lib/libisis3.s0)")
+install(CODE "EXECUTE_PROCESS(COMMAND mv ${CMAKE_INSTALL_PREFIX}/lib/libisis3.so ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0.so)")
+install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0.so ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.so)")
+install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.so ${CMAKE_INSTALL_PREFIX}/lib/libisis3.so)")
 
 
 

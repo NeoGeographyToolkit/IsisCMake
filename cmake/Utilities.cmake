@@ -84,9 +84,36 @@ endfunction()
 
 # Determine the text string used to describe this OS version
 function(get_os_version text)
-  message("TODO: Properly query the OS version!")
-  # TODO: Query this from the command line!
-  set(${text} "Linux_x86_64_Ubuntu14_04" PARENT_SCOPE)
+  
+  # TODO: Verify this works on all supported OS's.
+  
+  # Fetch OS information
+  execute_process(COMMAND cat "/etc/os-release"
+                  OUTPUT_VARIABLE result
+                  ERROR_VARIABLE result)
+  #message("result = ${result}")
+  
+  # Extract OS name and version
+  string(REGEX MATCH "NAME=[A-Za-z\"]+" name "${result}")
+  string(REGEX MATCH "VERSION_ID=[0-9\\.\"]+" version "${result}")
+  string(SUBSTRING ${name} 6 -1 name)
+  string(SUBSTRING ${version} 12 -1 version)
+  string(REPLACE "\"" "" name ${name})
+  string(REPLACE "\"" "" version ${version})
+  string(REPLACE "." "_" version ${version})
+  #message("name = ${name}")
+  #message("version = ${version}")
+  
+  # Build the final output string
+  if(APPLE)
+    set(prefix "Darwin_")
+  elseif(UNIX)
+    set(prefix "Linux_x86_64_")
+  else()
+    message( FATAL_ERROR "Did not recognize a supported operating system!" )
+  endif()
+  
+  set(${text} ${prefix}${name}${version} PARENT_SCOPE)
 endfunction()
 
 #------------------------------------------------------------
@@ -113,10 +140,13 @@ function(add_library_wrapper name sourceFiles libDependencies)
     add_library("${staticName}" STATIC ${sourceFiles})
     set_target_properties(${staticName} PROPERTIES LINKER_LANGUAGE CXX) 
     target_link_libraries(${staticName} ${libDependencies})
-    # Use this command instead of an install command to end up with the desired name.
+    # Use a copy -> install combo to get the file to the correct place.
     add_custom_command(TARGET ${staticName} POST_BUILD 
-                       COMMAND cp ${CMAKE_BINARY_DIR}/src/lib${staticName}.a
-                                  ${CMAKE_INSTALL_PREFIX}/lib/lib${name}.a)
+                       COMMAND mv ${CMAKE_BINARY_DIR}/src/lib${staticName}.a
+                                  ${CMAKE_BINARY_DIR}/src/lib${name}.a)
+                                  #${CMAKE_INSTALL_PREFIX}/lib/lib${name}.a)
+    install(CODE "EXECUTE_PROCESS(COMMAND cp ${CMAKE_BINARY_DIR}/src/lib${name}.a 
+                                             ${CMAKE_INSTALL_PREFIX}/lib/lib${name}.a)")
   endif()
 
 

@@ -96,6 +96,7 @@ mro/testData/G02_019106_1390_XN_41S257W.cub
 apollo17/testData/AS17-M-0543.reduced.cub
 cassini/kernels/iak/vimsAddendum03.ti
 base/dems/ulcn2005_lpo_0004.cub
+base/dems/molaMarsPlanetaryRadius0001.cub
 apollo15/testData/M.cub
 mro/apps/hiequal/tsts/default/input/RED0.cub
 cassini/kernels/sclk/cas00130.tsc
@@ -113,7 +114,34 @@ base/kernels/pck/pck00009.tpc
 base/templates/labels/MappingGroupKeywords.pft
 odyssey/testData/I00824006RDR.lev2.cub
 odyssey/testData/I56632006EDR.lev2.cub
-odyssey/testData/I00824006RDR.lev2.cub
+odyssey/testData/I02609002RDR.lev2.cub
+odyssey/testData/I01523019RDR.lev2.cub
+viking2/reseaus/vik2bMasterReseaus.pvl
+mgs/testData/m0402852.cub
+mariner10/reseaus/mar10aMasterReseaus.pvl
+base/translations/MissionName2DataDir.trn
+base/translations/Instruments.trn
+base/translations/SerialNumber0001.trn
+base/translations/SerialNumber0002.trn
+lo/testData/3133_h1.cub
+lo/translations/loSerialNumber0001.trn
+lo/translations/loSerialNumber0002.trn
+lo/translations/loSerialNumber0003.trn
+lo/translations/loSerialNumber0004.trn
+mgs/translations/mocSerialNumber0001.trn
+mgs/translations/mocSerialNumber0002.trn
+mgs/translations/mocSerialNumber0003.trn
+mgs/translations/mocSerialNumber0004.trn
+odyssey/translations/themisSerialNumber0001.trn
+odyssey/translations/themisSerialNumber0002.trn
+odyssey/translations/themisSerialNumber0003.trn
+odyssey/translations/themisSerialNumber0004.trn
+base/translations/NaifErrors.trn
+base/testData/blobTruth.cub
+base/testData/isisTruthNoSpacecraftName.cub
+base/testData/isisTruthNoInstrumentId.cub
+lo/testData/5106_h1.cropped.cub
+lo/testData/5106_h2.cropped.cub
 '''
 
     fileList = fileList.split()

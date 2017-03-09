@@ -20,7 +20,7 @@ set(outputFile "${TEST_PROG}.output")
 message("outputFile = ${outputFile}")
 file(REMOVE ${outputFile}) # Make sure no old file exists
 
-message("CMD = ${TEST_PROG} > ${tempFile} 2>&1")
+message("CMD = ${TEST_PROG} 1>${outputFile} 2>&1 || exit 4")
 
 # The test programs need to be run from their source folders
 #  so that they can find input data files.
