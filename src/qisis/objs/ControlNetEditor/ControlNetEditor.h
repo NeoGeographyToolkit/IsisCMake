@@ -207,8 +207,8 @@ namespace Isis {
       ControlNet *controlNet();
       const ControlNet *controlNet() const;
 
-      SerialNumberList *serialNumberList();
-      const SerialNumberList *serialNumberList() const;
+      SerialNumberList *serialNumberList() {return m_serialNumberList;}
+      const SerialNumberList *serialNumberList() const {return m_serialNumberList;}
 
       
     signals:

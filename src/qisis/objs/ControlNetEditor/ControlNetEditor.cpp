@@ -280,9 +280,11 @@ namespace Isis {
       }
     }
 
-    NewControlPointDialog *newPointDialog = new NewControlPointDialog(m_lastUsedPointId);
+// TODO: CHECK WITH NEW CODE, BUG OR MISHANDLE?
+    ControlNet* temp = &(*m_controlNet);
+    NewControlPointDialog *newPointDialog = new NewControlPointDialog(temp, serialNumberList(), m_lastUsedPointId);
     
-    newPointDialog->setFiles(pointFiles, m_serialNumberList);
+    newPointDialog->setFiles(pointFiles/*, m_serialNumberList*/);
     if ( newPointDialog->exec() ) {
     m_lastUsedPointId = newPointDialog->pointId();  
 
