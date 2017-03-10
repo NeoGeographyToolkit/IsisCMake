@@ -185,7 +185,7 @@ function( generate_ui_files UI_GEN_OUT folder)
   # Set where generated files go to and add that directory to the include path
   get_code_gen_dir(${folder} UI_GEN_DIR)
 
-  # For each input protobuf file
+  # For each input ui file
   foreach(UI_FILE ${UI_INPUT})
     # Get the name of the file without extension
     get_filename_component(UI_NAME ${UI_FILE} NAME_WE)
@@ -241,12 +241,12 @@ function( generate_moc_files MOC_GEN_OUT folder)
   get_code_gen_dir(${folder} MOC_GEN_DIR)
   #message("MOC_GEN_DIR = ${MOC_GEN_DIR}")
 
-  # For each input protobuf file
+  # For each input moc file
   foreach(MOC_FILE ${MOC_INPUT})
     # Get the name of the file without extension
     get_filename_component(MOC_NAME ${MOC_FILE} NAME_WE)
     
-    # Add the generated file to UI_GEN variable
+    # Add the generated file to MOC_GEN variable
     set(OUT_MOC_FILE "${MOC_GEN_DIR}/moc_${MOC_NAME}.cpp")
     set(MOC_GEN       ${MOC_GEN} ${OUT_MOC_FILE})
     #message("OUT_MOC_FILE = ${OUT_MOC_FILE}")

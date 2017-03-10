@@ -33,6 +33,19 @@ base/kernels/lsk/naif0008.tls
 mgs/kernels/sclk/MGS_SCLKSCET.00061.tsc
 viking2/kernels/sclk/vo2_fsc.tsc
 hayabusa/kernels/dsk/hay_a_amica_5_itokawashape_v1_0_512q.bds
+base/kernels/lsk/naif0009.tls
+base/kernels/pck/pck00009.tpc
+hayabusa/kernels/pck/itokawa_gaskell_n3.tpc
+hayabusa/kernels/tspk/de403s.bsp
+hayabusa/kernels/tspk/sb_25143_140.bsp
+hayabusa/kernels/spk/hay_jaxa_050916_051119_v1n.bsp
+hayabusa/kernels/spk/hay_osbj_050911_051118_v1n.bsp
+hayabusa/kernels/ck/hayabusa_itokawarendezvous_v02n.bc
+hayabusa/kernels/fk/hayabusa_hp.tf
+hayabusa/kernels/fk/itokawa_fixed.tf
+hayabusa/kernels/ik/amica31.ti
+hayabusa/kernels/iak/amicaAddendum001.ti
+hayabusa/kernels/sclk/hayabusa.tsc
 base/kernels/spk/de405.bsp
 mgs/kernels/spk/mgs_ab1.bsp
 mgs/testData/ab102402.lev2.cub
@@ -142,7 +155,23 @@ base/testData/isisTruthNoSpacecraftName.cub
 base/testData/isisTruthNoInstrumentId.cub
 lo/testData/5106_h1.cropped.cub
 lo/testData/5106_h2.cropped.cub
+mgs/calibration/MGSC_1246_wago.tab
+mgs/calibration/MGSC_1290_wago.tab
+mgs/calibration/MGSC_1428_wago.tab
+mgs/calibration/MGSC_1546_wago.tab
+mgs/calibration/MGSC_1578_wago.tab
+base/kernels/lsk/naif0009.tls
+base/kernels/spk/de405.bsp
+clementine1/kernels/ck/clem_ulcn2005_type2_1sc.bc
+clementine1/kernels/fk/clem_v11.tf
+clementine1/kernels/sclk/dspse002.tsc
+clementine1/kernels/spk/SPKMERGE_940219_940504_CLEMV001b.bsp
+clementine1/kernels/iak/uvvisAddendum003.ti
+base/templates/maps/equirectangular.map
 '''
+
+
+
 
     fileList = fileList.split()
 

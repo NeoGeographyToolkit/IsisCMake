@@ -123,7 +123,7 @@ function(add_isis_obj folder reqLibs)
   file(GLOB truths  "${folder}/*.truth")
   file(GLOB plugins "${folder}/*.plugin")
 
-  # Generate protobuf and ui files if needed.
+  # Generate protobuf, ui, and moc files if needed.
   generate_protobuf_files(protoFiles ${folder})
   generate_ui_files(uiFiles ${folder})
   generate_moc_files(mocFiles ${folder})
