@@ -55,7 +55,7 @@ function(cat IN_FILE OUT_FILE)
 
   # If the output file does not exist, init with an empty file.
   if(NOT EXISTS "${OUT_FILE}")
-    file(WRITE OUT_FILE "")
+    file(WRITE ${OUT_FILE} "")
   endif()
 
   # Perform the file concatenation.
@@ -123,7 +123,8 @@ function(add_library_wrapper name sourceFiles libDependencies)
   #get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
   #message("inc_dirs = ${inc_dirs}")
 
-  # The only optional argument is
+  # The only optional argument is "alsoStatic", which indicates that
+  #  the library should be build both shared and static.
   set(alsoStatic ${ARGN})
 
   # Add library, set dependencies, and add to installation list.
@@ -136,7 +137,7 @@ function(add_library_wrapper name sourceFiles libDependencies)
     # The static version needs a different name, but in the end the file
     # needs to have the same name as the shared lib.
     set(staticName "${name}_static") 
-    message("$$ ADDING STATIC LIBRARY ${staticName}")
+    message("Adding static library ${staticName}")
     add_library("${staticName}" STATIC ${sourceFiles})
     set_target_properties(${staticName} PROPERTIES LINKER_LANGUAGE CXX) 
     target_link_libraries(${staticName} ${libDependencies})

@@ -14,7 +14,6 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(AddIsisModule)
 include(Utilities)
 include(TestSetup)
-#include(BuildDocs)
 include(InstallThirdParty)
 
 
@@ -133,27 +132,18 @@ include(CTest)
 
 # Clear plugin files so they do not get filled with duplicate entries
 if (${buildCore} AND ${buildMissions})
-  execute_process(COMMAND rm "${CMAKE_BINARY_DIR}/src/*.plugin")
+  execute_process(COMMAND rm -f ${CMAKE_BINARY_DIR}/src/*.plugin)
 endif()
 
 # Add a config file to the bin directory so that QT can find the plugin libraries.
-file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
+file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
+install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 ## TODO: Is this required????!?!?!?!
 ## Copy the template folder to the install folder.
 #file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/templates/gui")
 #file(GLOB templates "templates/gui/*")
 #copy_files_to_folder(${templates} "${CMAKE_INSTALL_PREFIX}/templates/gui")
-
-# Build the documentation
-#if (${buildDocs})
-#  build_docs()
-#endif()
-#install(SCRIPT BuildDocs.cmake COMPONENT )
-#-DLATEX=${LATEX}
-add_custom_target(docs COMMAND ${CMAKE_COMMAND}   -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}  -DDOXYGEN=${DOXYGEN}  -DXALAN=${XALAN} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -P ${CMAKE_MODULE_PATH}/BuildDocs.cmake)
-#message( FATAL_ERROR "STOP." )
-
 
 # All of the source code is in here.
 add_subdirectory(src)
@@ -169,8 +159,10 @@ message("Tweaking build/src directories for unit tests to run.")
 
 # Set up this link so that the unit tests can find the plugin
 # information they need.
-execute_process(COMMAND ln -s "${CMAKE_BINARY_DIR}/src" lib
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib)
+  execute_process(COMMAND ln -s "${CMAKE_BINARY_DIR}/src" lib
+                  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+endif()
 
 # TODO: The GUIs hang, how is this test supposed to work??
 # Generate links to a bunch of xml files where the unit tests look for them.
@@ -196,6 +188,18 @@ foreach(plugin ${THIRDPARTYPLUGINFOLDERS})
                     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src")
   endif()
 endforeach()
+
+
+# Set up documentation build
+# - This script will be called when "make docs" is run.
+# - All desired variables must be passed to the script.
+add_custom_target(docs COMMAND ${CMAKE_COMMAND}   -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}  -DDOXYGEN=${DOXYGEN}  -DXALAN=${XALAN} -DLATEX=${LATEX} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -P ${CMAKE_MODULE_PATH}/BuildDocs.cmake)
+
+
+# Custom build target to clean out everything that gets added to the source
+#  directory during the build process.
+# - Only a few things are added in order to make the tests work properly.
+add_custom_target(clean_source COMMAND rm -rf ${CMAKE_SOURCE_DIR}/bin; rm -rf ${CMAKE_SOURCE_DIR}/lib)
 
 # Set up a few top level files for installation
 install(FILES IsisPreferences DESTINATION ${CMAKE_INSTALL_PREFIX})

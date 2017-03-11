@@ -20,7 +20,10 @@ function(add_isis_app folder libDependencies)
   file(GLOB xmlFiles "${folder}/*.xml")
   
   # All the XML files need to be copied to the install directory
-  copy_files_to_folder(${xmlFiles} "${CMAKE_INSTALL_PREFIX}/bin/xml")
+  #foreach(xmlFile ${xmlFiles})
+  #copy_files_to_folder(${xmlFiles} "${CMAKE_INSTALL_PREFIX}/bin/xml")
+  #endforeach()
+  install(FILES ${xmlFiles} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/xml")
 
   # Generate required QT files
   generate_moc_files(mocFiles ${folder})

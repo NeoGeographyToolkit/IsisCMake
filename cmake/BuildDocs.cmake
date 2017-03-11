@@ -462,10 +462,7 @@ function(build_docs)
 
   message("XALAN = ${XALAN}")
   message("DOXYGEN = ${DOXYGEN}")
-  message("CMAKE_BINARY_DIR = ${CMAKE_BINARY_DIR}")
-  message("PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}")
-  message("CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
-  message("PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}")
+  message("LATEX = ${LATEX}")
 
   # Copy everything from src/docsys to docBuildFolder
   execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/src/docsys ${docBuildFolder})
