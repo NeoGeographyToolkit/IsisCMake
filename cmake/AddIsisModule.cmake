@@ -193,7 +193,7 @@ function(add_isis_obj folder reqLibs)
     # Folder with a plugin means that this is a separate library!
     # Add it here and then we are done with the source files.
 
-    message("Found plugins: ${plugins}")
+    #message("Found plugins: ${plugins}")
 
     if(NOT (${numPlugins} EQUAL 1))
       message( FATAL_ERROR "Error: Multiple plugins found in folder!" )
@@ -252,7 +252,7 @@ function(add_isis_module name)
   set(tstFolders)
   foreach(f ${topFolders})
 
-    message("Processing TOP FOLDER ${f}")
+    #message("Processing TOP FOLDER ${f}")
 
     # Folders: apps, lib, tests
     set(objsDir "${CMAKE_CURRENT_LIST_DIR}/${f}/objs")
@@ -297,7 +297,7 @@ function(add_isis_module name)
     set(truthFiles    ${truthFiles}    ${newTruthFiles})
     set(pluginLibs    ${pluginLibs}    ${newPluginLib})
   endforeach(f)
-  message("Plugin libs: ${pluginLibs}")
+  #message("Plugin libs: ${pluginLibs}")
 
   #message("Found app folders: ${APP_FOLDERS}")
   #message("Found obj folders: ${OBJ_FOLDERS}")
@@ -315,13 +315,13 @@ function(add_isis_module name)
 
     # For everything beyond the module library, require the module library.
     set(reqLibs "${reqLibs};${name}")
-    message("reqLibs = ${reqLibs}")
+    #message("reqLibs = ${reqLibs}")
     #message( FATAL_ERROR "STOP." )
 
     # Now that the library is added, add all the unit tests for it.
     list(LENGTH unitTestFiles temp)
     math(EXPR numTests "${temp} - 1")
-    message("NUM_TESTS = ${numTests}")
+    #message("NUM_TESTS = ${numTests}")
     foreach(val RANGE ${numTests})
       list(GET unitTestFiles ${val} testFile )
       list(GET truthFiles    ${val} truthFile)

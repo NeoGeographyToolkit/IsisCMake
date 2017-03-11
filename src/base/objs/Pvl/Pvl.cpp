@@ -78,6 +78,8 @@ namespace Isis {
     Isis::FileName temp(file);
     m_filename = temp.expanded();
 
+    cout << "Reading PVL: " << m_filename << endl;
+
     // Open the file
     ifstream istm;
     istm.open(m_filename.toLatin1().data(), std::ios::in);

@@ -4,7 +4,7 @@
 #===============================================================================
 # CMake init
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 # Point cmake to folder containing our additional scripts
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -14,7 +14,7 @@ list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(AddIsisModule)
 include(Utilities)
 include(TestSetup)
-include(BuildDocs)
+#include(BuildDocs)
 include(InstallThirdParty)
 
 
@@ -67,7 +67,7 @@ set(BUILD_SHARED_LIBS ON)
 
 set(ISISCPPFLAGS -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 
-option(buildDocs     "Build the documentation" OFF)
+#option(buildDocs     "Build the documentation" OFF)
 option(buildCore     "Build the core ISIS modules" ON)
 option(buildMissions "Build the mission specific modules" ON)
 
@@ -146,9 +146,13 @@ file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plu
 #copy_files_to_folder(${templates} "${CMAKE_INSTALL_PREFIX}/templates/gui")
 
 # Build the documentation
-if (${buildDocs})
-  build_docs()
-endif()
+#if (${buildDocs})
+#  build_docs()
+#endif()
+#install(SCRIPT BuildDocs.cmake COMPONENT )
+#-DLATEX=${LATEX}
+add_custom_target(docs COMMAND ${CMAKE_COMMAND}   -DPROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}  -DDOXYGEN=${DOXYGEN}  -DXALAN=${XALAN} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -P ${CMAKE_MODULE_PATH}/BuildDocs.cmake)
+#message( FATAL_ERROR "STOP." )
 
 
 # All of the source code is in here.
@@ -174,19 +178,23 @@ set(unitTestXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
 execute_process(COMMAND mkdir -p ${unitTestXmlFolder})
 file(GLOB_RECURSE testXmls "${CMAKE_SOURCE_DIR}/src/unitTest.xml")
 foreach(xml ${testXmls})
-  # TODO: May need to correct the name!
   get_filename_component(folder ${xml} DIRECTORY)
   get_filename_component(name ${folder} NAME)
-  execute_process(COMMAND ln -s "${xml}" test_isis3_${name}.xml
-                  WORKING_DIRECTORY ${unitTestXmlFolder})
+  set(linkName test_isis3_${name}.xml)
+  if(NOT EXISTS ${unitTestXmlFolder}/${linkName})
+    execute_process(COMMAND ln -s "${xml}" "${linkName}"
+                    WORKING_DIRECTORY ${unitTestXmlFolder})
+  endif()
 endforeach()
 
 # Create a link from the build/src directory to each folder in 3rdPartyLibs/plugins
 # TIP: Set "export QT_DEBUG_PLUGINS=1" to help debug plugin errors.
 foreach(plugin ${THIRDPARTYPLUGINFOLDERS})
   get_filename_component(pluginName ${plugin} NAME)
-  execute_process(COMMAND ln -s "${plugin}" ${pluginName}
-                  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src")
+  if(NOT EXISTS ${CMAKE_BINARY_DIR}/src/${pluginName})
+    execute_process(COMMAND ln -s "${plugin}" ${pluginName}
+                    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/src")
+  endif()
 endforeach()
 
 # Set up a few top level files for installation

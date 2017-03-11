@@ -1,4 +1,9 @@
 
+cmake_minimum_required(VERSION 3.1)
+
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/cmake")
+include(Utilities)
 
 # Set up Xalan's command-line option names.
 set(XALAN_VALIDATE_OPTION "-v")
@@ -51,6 +56,7 @@ endfunction()
 # Build the top level of the documents directory
 function(build_upper_level)
 
+  # TODO: Why not there??
   # Copy existing folders to the install directory
   copy_folder(${docBuildFolder}/assets ${docInstallFolder})
   copy_folder(${docBuildFolder}/w3c    ${docInstallFolder})
@@ -404,7 +410,7 @@ function(build_object_docs)
 
   set(objConfDir  ${docBuildFolder}/src/docsys/Object/build)
   #set(objBuildDir ${docBuildFolder}/Object/build)
-
+  
   message("Copying assets...")
   file(MAKE_DIRECTORY "${docInstallFolder}/Object")
   execute_process(COMMAND cp -r ${docBuildFolder}/Object/assets ${docInstallFolder}/Object/)
@@ -454,6 +460,13 @@ function(build_docs)
   execute_process(COMMAND rm -rf ${docBuildFolder})
   execute_process(COMMAND rm -rf ${docInstallFolder})
 
+  message("XALAN = ${XALAN}")
+  message("DOXYGEN = ${DOXYGEN}")
+  message("CMAKE_BINARY_DIR = ${CMAKE_BINARY_DIR}")
+  message("PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}")
+  message("CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
+  message("PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}")
+
   # Copy everything from src/docsys to docBuildFolder
   execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/src/docsys ${docBuildFolder})
 
@@ -476,6 +489,14 @@ function(build_docs)
   add_extra_tocs()
 
   message("Building object documentation")
+  message("TODO until LATEX binary added!")
   #build_object_docs()
 
+  message("Finished building object documentation!")
+
 endfunction()
+
+# This file gets called as a script, so call this function to run
+#  all the code in the file.
+build_docs()
+
