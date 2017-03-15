@@ -34,8 +34,6 @@ endfunction()
 #  install(CODE "EXECUTE_PROCESS(COMMAND cmake -E create_symlink ${link} ${target})")
 #endfunction()
 
-
-
 # This macro returns a list of all the subdirectories in the given directory
 MACRO(SUBDIRLIST curdir result)
   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
@@ -85,30 +83,43 @@ endfunction()
 # Determine the text string used to describe this OS version
 function(get_os_version text)
   
-  # TODO: Verify this works on all supported OS's.
+  if(UNIX AND NOT APPLE)
   
-  # Fetch OS information
-  execute_process(COMMAND cat "/etc/os-release"
-                  OUTPUT_VARIABLE result
-                  ERROR_VARIABLE result)
-  #message("result = ${result}")
+    # Fetch OS information
+    execute_process(COMMAND cat "/etc/os-release"
+                    OUTPUT_VARIABLE result
+                    ERROR_VARIABLE result)
+    #message("result = ${result}")
   
-  # Extract OS name and version
-  string(REGEX MATCH "NAME=[A-Za-z\"]+" name "${result}")
-  string(REGEX MATCH "VERSION_ID=[0-9\\.\"]+" version "${result}")
-  string(SUBSTRING ${name} 6 -1 name)
-  string(SUBSTRING ${version} 12 -1 version)
-  string(REPLACE "\"" "" name ${name})
-  string(REPLACE "\"" "" version ${version})
-  string(REPLACE "." "_" version ${version})
-  #message("name = ${name}")
-  #message("version = ${version}")
+    # Extract OS name and version
+    string(REGEX MATCH "NAME=[A-Za-z\"]+" name "${result}")
+    string(REGEX MATCH "VERSION_ID=[0-9\\.\"]+" version "${result}")
+    string(SUBSTRING ${name} 6 -1 name)
+    string(SUBSTRING ${version} 12 -1 version)
+    string(REPLACE "\"" "" name ${name})
+    string(REPLACE "\"" "" version ${version})
+    string(REPLACE "." "_" version ${version})
+    #message("name = ${name}")
+    #message("version = ${version}")
+
+    set(prefix "Linux_x86_64_")
   
   # Build the final output string
-  if(APPLE)
+  elseif(APPLE)
+
+    # Fetch OS information
+    execute_process(COMMAND sw_vers
+                    OUTPUT_VARIABLE result
+                    ERROR_VARIABLE result)
+
+
+    string(REGEX MATCH "[0-9]+.[0-9]+.[0-9]+" version "${result}")
+    string(REGEX MATCH "^[0-9]+.[0-9]+" version "${version}")
+    string(REPLACE "." "_" version ${version})
+    
+    set(name   "MacOSX")
     set(prefix "Darwin_")
-  elseif(UNIX)
-    set(prefix "Linux_x86_64_")
+
   else()
     message( FATAL_ERROR "Did not recognize a supported operating system!" )
   endif()

@@ -22,9 +22,9 @@ set(XALAN   "${BIN_DIR}/Xalan")
 set(DOXYGEN "/home/smcmich1/doxygen-1.8.8/bin/doxygen")
 # Also need the DOT tool for doxygen.
 
-verify_file_exists(${XALAN})
+#verify_file_exists(${XALAN})
 #verify_file_exists(${LATEX})
-verify_file_exists(${XALAN})
+#verify_file_exists(${DOXYGEN})
 
 # Other packages that had to be installed:
 # libmng-dev
@@ -60,17 +60,99 @@ set(qtIncludes  Qt
                 QtWidgets
                 QtXml
                 QtXmlPatterns)
+
 set(QTINCDIR ${qtDir})
 foreach(f ${qtIncludes})
   set(QTINCDIR ${QTINCDIR} ${qtDir}/${f}) 
 endforeach()
-#message("QTINCDIR = ${QTINCDIR}")
 
-set(QTLIBDIR ${LIB_DIR})
-set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
+# TODO: Why two lib sets?
 
-set(QT_DYNAMIC_LIBS)
-set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
+if(APPLE)
+
+  # TODO: Clean up by using this!
+  set(QTLIBDIR ${LIB_DIR}/qt5)
+
+  # Use dedicated cmake code to find the QT frameworks
+
+  set(QTLIB)
+  set(qtLibNames QtXmlPatterns QtXml QtNetwork
+                 QtSql QtGui QtCore QtSvg 
+                 QtTest QtWebKit QtOpenGL 
+                 QtConcurrent QtDBus 
+                 QtMultimedia QtMultimediaWidgets 
+                 QtNfc QtPositioning QtPrintSupport 
+                 QtQml QtQuick QtQuickParticles 
+                 QtQuickTest QtQuickWidgets QtScript 
+                 QtScriptTools QtSensors QtSerialPort 
+                 QtWebKitWidgets QtWebSockets QtWidgets 
+                 QtTest QtWebChannel QtWebEngine QtWebEngineCore QtWebEngineWidgets)
+  foreach(qtName ${qtLibNames})
+    set(temp "${qtName}-NOTFOUND") # Work around CMake bug!
+    find_library(temp ${qtName} PATHS ${QTLIBDIR})
+    set(QTLIB ${QTLIB} ${temp})
+  endforeach()
+
+  message("QTLIB = ${QTLIB}")
+
+  set(QT_DYNAMIC_LIBS  ${LIB_DIR}/qt5/QtConcurrent.framework/QtConcurrent
+                   ${LIB_DIR}/qt5/QtCore.framework/QtCore
+                   ${LIB_DIR}/qt5/QtDBus.framework/QtDBus
+                   ${LIB_DIR}/qt5/QtGui.framework/QtGui
+                   ${LIB_DIR}/qt5/QtMultimedia.framework/QtMultimedia
+                   ${LIB_DIR}/qt5/QtMultimediaWidgets.framework/QtMultimediaWidgets
+                   ${LIB_DIR}/qt5/QtNetwork.framework/QtNetwork
+                   ${LIB_DIR}/qt5/QtOpenGL.framework/QtOpenGL
+                   ${LIB_DIR}/qt5/QtPositioning.framework/QtPositioning
+                   ${LIB_DIR}/qt5/QtPrintSupport.framework/QtPrintSupport
+                   ${LIB_DIR}/qt5/QtQml.framework/QtQml
+                   ${LIB_DIR}/qt5/QtQuick.framework/QtQuick
+                   ${LIB_DIR}/qt5/QtSensors.framework/QtSensors
+                   ${LIB_DIR}/qt5/QtSql.framework/QtSql
+                   ${LIB_DIR}/qt5/QtSvg.framework/QtSvg
+                   ${LIB_DIR}/qt5/QtTest.framework/QtTest
+                   ${LIB_DIR}/qt5/QtWebChannel.framework/QtWebChannel
+                   ${LIB_DIR}/qt5/QtWebEngineCore.framework/QtWebEngineCore
+                   ${LIB_DIR}/qt5/QtWebEngine.framework/QtWebEngine
+                   ${LIB_DIR}/qt5/QtWebEngineWidgets.framework/QtWebEngineWidgets
+                   ${LIB_DIR}/qt5/QtWidgets.framework/QtWidgets
+#                   ${LIB_DIR}/qt5/QtXcbQpa.framework/QtQcbQpa
+                   ${LIB_DIR}/qt5/QtXml.framework/QtXml
+                   ${LIB_DIR}/qt5/QtXmlPatterns.framework/QtXmlPatterns)
+
+  set(QTLIBDIR ${LIB_DIR}/qt5  ${LIB_DIR}/qt5/QtConcurrent.framework/
+                   ${LIB_DIR}/qt5/QtCore.framework/
+                   ${LIB_DIR}/qt5/QtDBus.framework/
+                   ${LIB_DIR}/qt5/QtGui.framework/
+                   ${LIB_DIR}/qt5/QtMultimedia.framework/
+                   ${LIB_DIR}/qt5/QtMultimediaWidgets.framework/
+                   ${LIB_DIR}/qt5/QtNetwork.framework/
+                   ${LIB_DIR}/qt5/QtOpenGL.framework/
+                   ${LIB_DIR}/qt5/QtPositioning.framework/
+                   ${LIB_DIR}/qt5/QtPrintSupport.framework/
+                   ${LIB_DIR}/qt5/QtQml.framework/
+                   ${LIB_DIR}/qt5/QtQuick.framework/
+                   ${LIB_DIR}/qt5/QtSensors.framework/
+                   ${LIB_DIR}/qt5/QtSql.framework/
+                   ${LIB_DIR}/qt5/QtSvg.framework/
+                   ${LIB_DIR}/qt5/QtTest.framework/
+                   ${LIB_DIR}/qt5/QtWebChannel.framework/
+                   ${LIB_DIR}/qt5/QtWebEngineCore.framework/
+                   ${LIB_DIR}/qt5/QtWebEngine.framework/
+                   ${LIB_DIR}/qt5/QtWebEngineWidgets.framework/
+                   ${LIB_DIR}/qt5/QtWidgets.framework/
+#                   ${LIB_DIR}/qt5/QtXcbQpa.framework/
+                   ${LIB_DIR}/qt5/QtXml.framework/
+                   ${LIB_DIR}/qt5/QtXmlPatterns.framework/)
+
+else() # Linux
+
+  set(QTLIBDIR ${LIB_DIR})
+
+  set(QTLIB    -lQtCore -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
+
+  set(QT_DYNAMIC_LIBS)
+  set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
                    ${LIB_DIR}/libQt5Core.so
                    ${LIB_DIR}/libQt5DBus.so
                    ${LIB_DIR}/libQt5Gui.so
@@ -94,12 +176,13 @@ set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
                    ${LIB_DIR}/libQt5XcbQpa.so
                    ${LIB_DIR}/libQt5Xml.so
                    ${LIB_DIR}/libQt5XmlPatterns.so)
-foreach(f ${QT_DYNAMIC_IN})
-  set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6.0)
-endforeach()
-# TODO: Check on this
+  foreach(f ${QT_DYNAMIC_IN})
+    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6.0)
+  endforeach()
+endif()
 #message("QT_DYNAMIC_LIBS = ${QT_DYNAMIC_LIBS}")
-
+#message("QTLIBDIR = ${QTLIBDIR}")
+#message("QTLIB = ${QTLIB}")
 
 # Binary paths
 set(UIC "${BIN_DIR}/uic")
@@ -121,13 +204,25 @@ verify_file_exists(${RCC})
 # Set up for Qwt
 #---------------------------------------------------------------------------
 set(QWTINCDIR "${INCLUDE_DIR}/qwt")
-set(QWTLIBDIR "${LIB_DIR}")
-set(QWTLIB    "-lqwt")
+
+if(APPLE)
+
+  set(QWTLIBDIR ${LIB_DIR}/qwt)
+
+  # Use dedicated cmake code to find the QT frameworks
+  find_library(frameQwt Qwt PATHS ${QWTLIBDIR})
+  set(QWTLIB ${frameQwt})
+else()
+  
+  set(QWTLIBDIR "${LIB_DIR}")
+  set(QWTLIB    "-lqwt")
+endif()
+
 
 #---------------------------------------------------------------------------
 # Set up for Xerces 
 #---------------------------------------------------------------------------
-set(XERCESINCDIR "${INCLUDE_DIR}/xercesc/xercesc-3.1.2")
+set(XERCESINCDIR ${INCLUDE_DIR}/xercesc ${INCLUDE_DIR}/xercesc/xercesc-3.1.2)
 set(XERCESLIBDIR "${LIB_DIR}")
 set(XERCESLIB    "-lxerces-c")
 
@@ -150,26 +245,30 @@ set(TIFFLIB    "-ltiff")
 #---------------------------------------------------------------------------
 set(NAIFINCDIR "${INCLUDE_DIR}/naif")
 set(NAIFLIBDIR "${LIB_DIR}")
-set(NAIFLIB    "-ldsk -lcspice")
+if(APPLE)
+  set(NAIFLIB    "-ldsklib -lcspice")
+else()
+  set(NAIFLIB    "-ldsk -lcspice")
+endif()
 
 #---------------------------------------------------------------------------
 # Set up for TNT
 #---------------------------------------------------------------------------
-set(TNTINCDIR ${INCLUDE_DIR}/tnt/tnt126 ${INCLUDE_DIR}/tnt/tnt126/tnt)
+set(TNTINCDIR ${INCLUDE_DIR}/tnt  ${INCLUDE_DIR}/tnt/tnt126 ${INCLUDE_DIR}/tnt/tnt126/tnt)
 set(TNTLIBDIR)
 set(TNTLIB)
 
 #---------------------------------------------------------------------------
 # Set up for JAMA
 #---------------------------------------------------------------------------
-set(JAMAINCDIR "${INCLUDE_DIR}/jama/jama125")
+set(JAMAINCDIR ${INCLUDE_DIR}/jama ${INCLUDE_DIR}/jama/jama125)
 set(JAMALIBDIR)
 set(JAMA)
 
 #---------------------------------------------------------------------------
 # Set up for GEOS
 #---------------------------------------------------------------------------
-set(GEOSINCDIR "${INCLUDE_DIR}/geos/geos3.5.0")
+set(GEOSINCDIR ${INCLUDE_DIR}/geos ${INCLUDE_DIR}/geos/geos3.5.0)
 set(GEOSLIBDIR "${LIB_DIR}")
 set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
 
@@ -201,7 +300,7 @@ endif()
 #---------------------------------------------------------------------------
 # Set up for GMM
 #---------------------------------------------------------------------------
-set(GMMINCDIR ${INCLUDE_DIR}/gmm/gmm-5.0  ${INCLUDE_DIR}/gmm/gmm-5.0/gmm)
+set(GMMINCDIR ${INCLUDE_DIR}/gmm  ${INCLUDE_DIR}/gmm/gmm-5.0  ${INCLUDE_DIR}/gmm/gmm-5.0/gmm)
 set(GMMLIBDIR)
 set(GMMLIB)
 
@@ -210,14 +309,18 @@ set(ISISCPPFLAGS ${ISISCPPFLAGS} -DGMM_USES_SUPERLU)
 #---------------------------------------------------------------------------
 # Set up for SuperLU
 #---------------------------------------------------------------------------
-set(SUPERLUINCDIR "${INCLUDE_DIR}/superlu/superlu4.3")
+set(SUPERLUINCDIR ${INCLUDE_DIR}/superlu  ${INCLUDE_DIR}/superlu/superlu4.3)
 set(SUPERLULIBDIR "${LIB_DIR}")
-set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
+if(APPLE)
+  set(SUPERLULIB    -lsuperlu_4.3) # TODO: blas is missing, do we need gfortran?
+else()
+  set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
+endif()
 
 #---------------------------------------------------------------------------
 # Set up for Google Protocol Buffers (ProtoBuf)
 #---------------------------------------------------------------------------
-set(PROTOBUFINCDIR "${INCLUDE_DIR}/google-protobuf/protobuf2.6.1")
+set(PROTOBUFINCDIR ${INCLUDE_DIR}/google/  ${INCLUDE_DIR}/google-protobuf/protobuf2.6.1)
 set(PROTOBUFLIBDIR "${LIB_DIR}")
 set(PROTOBUFLIB    "-lprotobuf")
 set(PROTOC         "${BIN_DIR}/protoc")
@@ -256,7 +359,7 @@ set(ISISCPPFLAGS ${ISISCPPFLAGS} "-DENABLEJP2K=${JP2KFLAG}")
 #---------------------------------------------------------------------------
 # Set up for BOOST
 #---------------------------------------------------------------------------
-set(BOOSTINCDIR "${INCLUDE_DIR}/boost/boost1.59.0")
+set(BOOSTINCDIR ${INCLUDE_DIR}/boost  ${INCLUDE_DIR}/boost/boost1.59.0)
 #set(BOOSTLIBDIR ${LIB_DIR})
 set(BOOSTLIB    "")
 #BOOSTLIB    = 
@@ -270,7 +373,7 @@ set(BOOSTLIB    "")
 #---------------------------------------------------------------------------
 # Set up for Cholmod libraries 
 #---------------------------------------------------------------------------
-set(CHOLMODINCDIR "${INCLUDE_DIR}/SuiteSparse/SuiteSparse4.4.5/SuiteSparse")
+set(CHOLMODINCDIR "${INCLUDE_DIR}/SuiteSparse;${INCLUDE_DIR}/SuiteSparse/SuiteSparse4.4.5/SuiteSparse")
 set(CHOLMODLIBDIR "${LIB_DIR}")
 set(CHOLMODLIB    -lcholmod -lamd -lcamd -lccolamd -lcolamd -llapack -lsuitesparseconfig)
 
@@ -289,11 +392,15 @@ set(HDF5LIB    -lhdf5 -lhdf5_hl -lhdf5_cpp -lhdf5_hl_cpp)
 #---------------------------------------------------------------------------
 set(OPENCVINCDIR "${INCLUDE_DIR}")
 set(OPENCVLIBDIR "${LIB_DIR}")
-set(OPENCVLIB     -lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_features2d
-                  -lopencv_flann -lopencv_gpu -lopencv_highgui -lopencv_imgproc
-                  -lopencv_legacy -lopencv_ml -lopencv_nonfree -lopencv_objdetect
-                  -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_ts
-                  -lopencv_video -lopencv_videostab)
+#set(OPENCVLIB     -lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_features2d
+#                  -lopencv_flann -lopencv_gpu -lopencv_highgui -lopencv_imgproc
+#                  -lopencv_legacy -lopencv_ml -lopencv_nonfree -lopencv_objdetect
+#                  -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_ts
+#                  -lopencv_video -lopencv_videostab)
+set(OPENCVLIB     -lopencv_calib3d -lopencv_core -lopencv_features2d -lopencv_xfeatures2d
+                  -lopencv_flann -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs 
+                  -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching 
+                  -lopencv_superres  -lopencv_video -lopencv_videostab)
 
 # Missing the following required OpenCV libraries:
 #    libavcodec.so.54, libavformat.so.54, libavutil.so.52, libswscale.so.2

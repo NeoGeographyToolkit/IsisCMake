@@ -305,6 +305,7 @@ function(add_isis_module name)
   #message("Found app folders: ${APP_FOLDERS}")
   #message("Found obj folders: ${OBJ_FOLDERS}")
   #message("Found test folders: ${TST_FOLDERS}")
+  #message("Found source files: ${sourceFiles}")
 
   # Some modules don't generate a library
   list(LENGTH sourceFiles temp)
