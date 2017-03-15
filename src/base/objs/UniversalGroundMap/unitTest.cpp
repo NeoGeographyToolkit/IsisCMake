@@ -24,7 +24,6 @@ int main(int argc, char *argv[]) {
     cout << "UnitTest for Universal Ground Map" << endl;
 
     cout << "  Testing Camera Model..." << endl;
-    cout << "$viking2/testData/f348b26.cub" << endl; 
     Cube c("$viking2/testData/f348b26.cub", "r");
     UniversalGroundMap ugm(c);
     cout << setprecision(9);
