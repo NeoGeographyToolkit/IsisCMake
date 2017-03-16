@@ -21,8 +21,14 @@ function(install_third_party_libs)
     
     execute_process(COMMAND readlink ${library} OUTPUT_VARIABLE link)    
     if ("${link}" STREQUAL "")
-      # Copy original files
-      INSTALL(FILES ${library} DESTINATION ${installLibFolder})
+      # Copy original files and framework folders
+      message("Install lib file ${library}")
+      string(FIND ${library} "framework" position)
+      if(NOT ${position} EQUAL -1)
+        INSTALL(DIRECTORY ${library} DESTINATION ${installLibFolder})
+      else()
+        INSTALL(FILES ${library} DESTINATION ${installLibFolder})
+      endif()
     else()
       # Recreate symlinks
       string(REGEX REPLACE "\n$" "" link "${link}") # Strip trailing newline

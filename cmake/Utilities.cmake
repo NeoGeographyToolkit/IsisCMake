@@ -144,7 +144,8 @@ function(add_library_wrapper name sourceFiles libDependencies)
   target_link_libraries(${name} ${libDependencies})
   install(TARGETS ${name} DESTINATION lib)
     
-  if(alsoStatic)
+  #if(alsoStatic)
+  if(False)
     # The static version needs a different name, but in the end the file
     # needs to have the same name as the shared lib.
     set(staticName "${name}_static") 

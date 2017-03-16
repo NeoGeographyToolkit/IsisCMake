@@ -66,16 +66,18 @@ foreach(f ${qtIncludes})
   set(QTINCDIR ${QTINCDIR} ${qtDir}/${f}) 
 endforeach()
 
-# TODO: Why two lib sets?
+# TODO: Update include paths for mac?
+
+# One set of libs is for link statements, the other is for installation.
 
 if(APPLE)
 
   # TODO: Clean up by using this!
   set(QTLIBDIR ${LIB_DIR}/qt5)
 
-  # Use dedicated cmake code to find the QT frameworks
-
+  # Use find_library cmake function to find the QT frameworks
   set(QTLIB)
+  set(QT_DYNAMIC_LIBS)
   set(qtLibNames QtXmlPatterns QtXml QtNetwork
                  QtSql QtGui QtCore QtSvg 
                  QtTest QtWebKit QtOpenGL 
@@ -90,60 +92,14 @@ if(APPLE)
   foreach(qtName ${qtLibNames})
     set(temp "${qtName}-NOTFOUND") # Work around CMake bug!
     find_library(temp ${qtName} PATHS ${QTLIBDIR})
+    # Update link and lib list in the loop
     set(QTLIB ${QTLIB} ${temp})
+    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${QTLIBDIR}/${qtName}.framework)
   endforeach()
+  
+  set(QTLIBDIR ${QT_DYNAMIC_LIBS}) # The same in this case since frameworks are folders
 
-  #message("QTLIB = ${QTLIB}")
-
-  set(QT_DYNAMIC_LIBS  ${LIB_DIR}/qt5/QtConcurrent.framework/QtConcurrent
-                   ${LIB_DIR}/qt5/QtCore.framework/QtCore
-                   ${LIB_DIR}/qt5/QtDBus.framework/QtDBus
-                   ${LIB_DIR}/qt5/QtGui.framework/QtGui
-                   ${LIB_DIR}/qt5/QtMultimedia.framework/QtMultimedia
-                   ${LIB_DIR}/qt5/QtMultimediaWidgets.framework/QtMultimediaWidgets
-                   ${LIB_DIR}/qt5/QtNetwork.framework/QtNetwork
-                   ${LIB_DIR}/qt5/QtOpenGL.framework/QtOpenGL
-                   ${LIB_DIR}/qt5/QtPositioning.framework/QtPositioning
-                   ${LIB_DIR}/qt5/QtPrintSupport.framework/QtPrintSupport
-                   ${LIB_DIR}/qt5/QtQml.framework/QtQml
-                   ${LIB_DIR}/qt5/QtQuick.framework/QtQuick
-                   ${LIB_DIR}/qt5/QtSensors.framework/QtSensors
-                   ${LIB_DIR}/qt5/QtSql.framework/QtSql
-                   ${LIB_DIR}/qt5/QtSvg.framework/QtSvg
-                   ${LIB_DIR}/qt5/QtTest.framework/QtTest
-                   ${LIB_DIR}/qt5/QtWebChannel.framework/QtWebChannel
-                   ${LIB_DIR}/qt5/QtWebEngineCore.framework/QtWebEngineCore
-                   ${LIB_DIR}/qt5/QtWebEngine.framework/QtWebEngine
-                   ${LIB_DIR}/qt5/QtWebEngineWidgets.framework/QtWebEngineWidgets
-                   ${LIB_DIR}/qt5/QtWidgets.framework/QtWidgets
-#                   ${LIB_DIR}/qt5/QtXcbQpa.framework/QtQcbQpa
-                   ${LIB_DIR}/qt5/QtXml.framework/QtXml
-                   ${LIB_DIR}/qt5/QtXmlPatterns.framework/QtXmlPatterns)
-
-  set(QTLIBDIR ${LIB_DIR}/qt5  ${LIB_DIR}/qt5/QtConcurrent.framework/
-                   ${LIB_DIR}/qt5/QtCore.framework/
-                   ${LIB_DIR}/qt5/QtDBus.framework/
-                   ${LIB_DIR}/qt5/QtGui.framework/
-                   ${LIB_DIR}/qt5/QtMultimedia.framework/
-                   ${LIB_DIR}/qt5/QtMultimediaWidgets.framework/
-                   ${LIB_DIR}/qt5/QtNetwork.framework/
-                   ${LIB_DIR}/qt5/QtOpenGL.framework/
-                   ${LIB_DIR}/qt5/QtPositioning.framework/
-                   ${LIB_DIR}/qt5/QtPrintSupport.framework/
-                   ${LIB_DIR}/qt5/QtQml.framework/
-                   ${LIB_DIR}/qt5/QtQuick.framework/
-                   ${LIB_DIR}/qt5/QtSensors.framework/
-                   ${LIB_DIR}/qt5/QtSql.framework/
-                   ${LIB_DIR}/qt5/QtSvg.framework/
-                   ${LIB_DIR}/qt5/QtTest.framework/
-                   ${LIB_DIR}/qt5/QtWebChannel.framework/
-                   ${LIB_DIR}/qt5/QtWebEngineCore.framework/
-                   ${LIB_DIR}/qt5/QtWebEngine.framework/
-                   ${LIB_DIR}/qt5/QtWebEngineWidgets.framework/
-                   ${LIB_DIR}/qt5/QtWidgets.framework/
-#                   ${LIB_DIR}/qt5/QtXcbQpa.framework/
-                   ${LIB_DIR}/qt5/QtXml.framework/
-                   ${LIB_DIR}/qt5/QtXmlPatterns.framework/)
+  message("QTLIB = ${QTLIB}")
 
 else() # Linux
 
@@ -441,7 +397,7 @@ endforeach()
 
 # Wildcard library list
 
-set(wildcardLibraries libqwt${SO}* libprotobuf${SO}* libgeos-*${SO} libgeos_c${SO}* libdsk${SO}* libcspice${SO}* libsuperlu*${SO} libxerces-c*${SO}* libgeotiff*${SO}* libtiff*${SO}* libgsl*${SO}* libkdu_a63R${SO}* libhdf5${SO}* libhdf5_hl${SO}* libhdf5_cpp${SO}* libhdf5_hl_cpp${SO}* libopencv_*${SO}* libtbb${SO}*)
+set(wildcardLibraries libqwt${SO}* libprotobuf${SO}* libprotobuf.*${SO}  libgeos-*${SO} libgeos_c${SO}* libdsk${SO}* libcspice${SO}* libsuperlu*${SO} libxerces-c*${SO}* libgeotiff*${SO}* libtiff*${SO}* libgsl*${SO}* libkdu_a63R${SO}* libhdf5${SO}* libhdf5_hl${SO}* libhdf5_cpp${SO}* libhdf5_hl_cpp${SO}* libopencv_*${SO}* libtbb${SO}*)
 #set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libcwd_r${SO}*)
 
 # For each item in this list, expand the wildcard to get the actual library list.

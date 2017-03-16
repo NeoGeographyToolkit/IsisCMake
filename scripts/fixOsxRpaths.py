@@ -6,10 +6,26 @@ import os, sys, subprocess
 # Constants
 
 
-libFolders = ['/Users/smcmich1/isis_cmake/opt/usgs/v006/ports/lib']
-individualLibs = ['/Users/smcmich1/isis_cmake//opt/usgs/v006/ports/libexec/qt5/lib/QtCore.framework/Versions/5/QtCore']
+libFolders = ['/Users/smcmich1/isis_cmake/opt/usgs/v006/3rdParty/lib', 
+              '/Users/smcmich1/isis_cmake/opt/usgs/v006/ports/lib',
+              '/Users/smcmich1/isis_cmake/opt/usgs/v006/ports/libexec']
+#individualLibs = ['/Users/smcmich1/isis_cmake//opt/usgs/v006/ports/libexec/qt5/lib/QtCore.framework/Versions/5/QtCore']
 
-usgFolder = '/opt/usgs/v006/ports/lib'
+qtLibs = ('QtXmlPatterns QtXml QtNetwork '+
+                 'QtSql QtGui QtCore QtSvg '+
+                 'QtTest QtWebKit QtOpenGL '+
+                 'QtConcurrent QtDBus '+
+                 'QtMultimedia QtMultimediaWidgets '+
+                 'QtNfc QtPositioning QtPrintSupport '+
+                 'QtQml QtQuick QtQuickParticles '+
+                 'QtQuickTest QtQuickWidgets QtScript '+
+                 'QtScriptTools QtSensors QtSerialPort '+
+                 'QtWebKitWidgets QtWebSockets QtWidgets'+
+                 'QtTest QtWebChannel QtWebEngine QtWebEngineCore QtWebEngineWidgets').split()
+individualLibs = ['/Users/smcmich1/isis_cmake//opt/usgs/v006/ports/libexec/qt5/lib/'+x+'.framework/Versions/5/'+x for x in qtLibs]
+print individualLibs
+
+usgFolder = '/opt/usgs/v006/'
 
 rpathFolder = '/Users/smcmich1/isis_cmake/'
 ignoreFolder = '/Users/smcmich1/isis_cmake/'

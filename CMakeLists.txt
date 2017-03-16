@@ -211,11 +211,8 @@ install(FILES IsisPreferences DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES license.txt     DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES version         DESTINATION ${CMAKE_INSTALL_PREFIX})
 
-# Set up format version numbers for the main shared library on install
-install(CODE "EXECUTE_PROCESS(COMMAND mv ${CMAKE_INSTALL_PREFIX}/lib/libisis3${SO} ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0${SO})")
-install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0${SO} ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5${SO})")
-install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5${SO} ${CMAKE_INSTALL_PREFIX}/lib/libisis3${SO})")
-
-
-
+# Trigger all post-install behavior
+# - The only way to make this run post-install in CMake is to add a subdirectory at
+#   the end of this file containing all the post-install commands in CMakeLists.txt
+add_subdirectory(cmake)
 

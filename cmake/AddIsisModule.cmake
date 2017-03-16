@@ -211,7 +211,7 @@ function(add_isis_obj folder reqLibs)
 
     get_filename_component(libName    ${folder}  NAME)
     get_filename_component(pluginName ${plugins} NAME)
-    message("Adding special library: ${libName}")
+    #message("Adding special library: ${libName}")
     #message("SOURCE FILES: ${thisSourceFiles}")
 
     add_library_wrapper(${libName} "${thisSourceFiles}" "${reqLibs}")
@@ -337,7 +337,7 @@ function(add_isis_module name)
     foreach(val RANGE ${numTests})
       list(GET unitTestFiles ${val} testFile )
       list(GET truthFiles    ${val} truthFile)
-      make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
+      #make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
     endforeach()
 
   endif()
@@ -345,12 +345,12 @@ function(add_isis_module name)
   # Process the apps
   foreach(f ${appFolders})
     # Apps always require the core library
-    add_isis_app(${f} "${reqLibs}")
+    #add_isis_app(${f} "${reqLibs}")
   endforeach()
   
   # Process the tests
   foreach(f ${tstFolders})
-    add_isis_module_test(${f})
+    #add_isis_module_test(${f})
   endforeach()  
   
 endfunction(add_isis_module)
