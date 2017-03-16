@@ -186,7 +186,8 @@ mro/kernels/iak/
     dbList   = dbList.split()
 
     # TODO: Input argument
-    installDir = '/home/smcmich1/release_isis/isis3data/'
+    #installDir = '/home/smcmich1/release_isis/isis3data/'
+    installDir = '/Users/smcmich1/isis3data/'
 
     cmd    = 'rsync -azv --delete --partial '
     remote = 'isisdist.astrogeology.usgs.gov::isis3data/data/'

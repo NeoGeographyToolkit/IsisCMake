@@ -11,7 +11,10 @@ function(add_isis_app folder libDependencies)
 
   # Folders: assets, tsts
 
+  # The internal build name will be different than the output name
+  # - This deals with problems compiling same-named targets on case-insensitive machines.
   get_filename_component(appName ${folder}  NAME)
+  set(internalAppName ${appName}_app)
   #message("Proccesing APP folder: ${folder}")
 
   # Find the source and header files
@@ -29,8 +32,9 @@ function(add_isis_app folder libDependencies)
   generate_moc_files(mocFiles ${folder})
 
   # Set up the executable 
-  add_executable(${appName} ${headers} ${sources} ${mocFiles})
-  set_target_properties(${appName} PROPERTIES LINKER_LANGUAGE CXX)
+  message("Adding executable ${internalAppName}")
+  add_executable(${internalAppName} ${headers} ${sources} ${mocFiles})
+  set_target_properties(${internalAppName} PROPERTIES LINKER_LANGUAGE CXX)
 
   # Handle individual apps that have additional library requirements
   set(finalLibDeps ${libDependencies})
@@ -41,8 +45,11 @@ function(add_isis_app folder libDependencies)
   endif()
   #message("finalLibDeps = ${finalLibDeps}")
 
-  target_link_libraries(${appName} ${finalLibDeps})
-  install(TARGETS ${appName} DESTINATION bin)
+  target_link_libraries(${internalAppName} ${finalLibDeps})
+  # Have the app install with the real name, not the internal name.
+  set_target_properties(${internalAppName} PROPERTIES OUTPUT_NAME ${appName})
+  install(TARGETS ${internalAppName} DESTINATION bin)
+
 
  
   # Set up the app tests
@@ -87,7 +94,7 @@ macro(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
 
   #message("testfile = ${testFile}")
   #message("truthfile = ${truthFile}")
-  #message("executableName = ${executableName}")
+  message("Adding executable = ${executableName}")
 
   # Create the executable and link it to the module library
   #message("link to ${moduleName}")
@@ -204,7 +211,7 @@ function(add_isis_obj folder reqLibs)
 
     get_filename_component(libName    ${folder}  NAME)
     get_filename_component(pluginName ${plugins} NAME)
-    #message("Adding special library: ${libName}")
+    message("Adding special library: ${libName}")
     #message("SOURCE FILES: ${thisSourceFiles}")
 
     add_library_wrapper(${libName} "${thisSourceFiles}" "${reqLibs}")
@@ -310,6 +317,7 @@ function(add_isis_module name)
   # Some modules don't generate a library
   list(LENGTH sourceFiles temp)
   if (NOT ${temp} EQUAL 0)
+    message("Adding library: ${name}")
     add_library_wrapper(${name} "${sourceFiles}" "${reqLibs}" ${alsoStatic})
 
     # Have the plugin libraries depend on the module library

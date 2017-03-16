@@ -74,7 +74,12 @@ option(buildMissions "Build the mission specific modules" ON)
 set(ENV{ISIS3DATA} "/home/smcmich1/release_isis/isis3data/")
 message("Using ISIS3DATA = $ENV{ISIS3DATA}")
 
-
+# Set the default library extension based on the platform
+if(APPLE)
+  set(SO ".dylib")
+else()
+  set(SO ".so")
+endif()
 
 # - For building, need
 # export LD_LIBRARY_PATH=/home/smcmich1/code/3rdParty/lib/
@@ -98,7 +103,7 @@ include_directories(${ALLINCDIRS})
 link_directories(${ALLLIBDIRS})
 
 # Allow linking to output dir
-link_directories(${CMAKE_INSTALL_PREFIX}/lib)
+#link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
 set(CORE_LIB_NAME isis3)
 
@@ -207,9 +212,9 @@ install(FILES license.txt     DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(FILES version         DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Set up format version numbers for the main shared library on install
-install(CODE "EXECUTE_PROCESS(COMMAND mv ${CMAKE_INSTALL_PREFIX}/lib/libisis3.so ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0.so)")
-install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0.so ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.so)")
-install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.so ${CMAKE_INSTALL_PREFIX}/lib/libisis3.so)")
+install(CODE "EXECUTE_PROCESS(COMMAND mv ${CMAKE_INSTALL_PREFIX}/lib/libisis3${SO} ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0${SO})")
+install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0${SO} ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5${SO})")
+install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5${SO} ${CMAKE_INSTALL_PREFIX}/lib/libisis3${SO})")
 
 
 
