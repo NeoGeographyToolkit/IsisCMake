@@ -99,7 +99,7 @@ if(APPLE)
   
   set(QTLIBDIR ${QT_DYNAMIC_LIBS}) # The same in this case since frameworks are folders
 
-  message("QTLIB = ${QTLIB}")
+  #message("QTLIB = ${QTLIB}")
 
 else() # Linux
 

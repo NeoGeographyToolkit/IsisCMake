@@ -70,8 +70,12 @@ set(ISISCPPFLAGS -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 option(buildCore     "Build the core ISIS modules" ON)
 option(buildMissions "Build the mission specific modules" ON)
 
-# TODO: Make this an input option?
-set(ENV{ISIS3DATA} "/home/smcmich1/release_isis/isis3data/")
+# TODO: Make this an input option!
+if(APPLE)
+  set(ENV{ISIS3DATA} "/Users/smcmich1/release_isis/isis3data/")
+else()
+  set(ENV{ISIS3DATA} "/Home/smcmich1/release_isis/isis3data/")
+endif()
 message("Using ISIS3DATA = $ENV{ISIS3DATA}")
 
 # Set the default library extension based on the platform
@@ -128,12 +132,12 @@ message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 enable_testing()
 include(CTest)
 
-## Delete any existing plugin files in the install folder
-##  so that we don't get any duplication.
-#file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
-#if(installedPlugins)
-#  file(REMOVE ${installedPlugins})
-#endif()
+# Delete any existing plugin files in the install folder
+#  so that we don't get any duplication.
+file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
+if(installedPlugins)
+  file(REMOVE ${installedPlugins})
+endif()
 
 # Clear plugin files so they do not get filled with duplicate entries
 if (${buildCore} AND ${buildMissions})
@@ -178,10 +182,10 @@ foreach(xml ${testXmls})
   get_filename_component(folder ${xml} DIRECTORY)
   get_filename_component(name ${folder} NAME)
   set(linkName test_isis3_${name}.xml)
-  if(NOT EXISTS ${unitTestXmlFolder}/${linkName})
-    execute_process(COMMAND ln -s "${xml}" "${linkName}"
-                    WORKING_DIRECTORY ${unitTestXmlFolder})
-  endif()
+#  if(NOT EXISTS ${unitTestXmlFolder}/${linkName})
+#    execute_process(COMMAND ln -s "${xml}" "${linkName}"
+#                    WORKING_DIRECTORY ${unitTestXmlFolder})
+#  endif()
 endforeach()
 
 # Create a link from the build/src directory to each folder in 3rdPartyLibs/plugins

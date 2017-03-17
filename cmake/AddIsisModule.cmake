@@ -32,7 +32,7 @@ function(add_isis_app folder libDependencies)
   generate_moc_files(mocFiles ${folder})
 
   # Set up the executable 
-  message("Adding executable ${internalAppName}")
+  #message("Adding executable ${internalAppName}")
   add_executable(${internalAppName} ${headers} ${sources} ${mocFiles})
   set_target_properties(${internalAppName} PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -94,7 +94,7 @@ macro(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
 
   #message("testfile = ${testFile}")
   #message("truthfile = ${truthFile}")
-  message("Adding executable = ${executableName}")
+  #message("Adding executable = ${executableName}")
 
   # Create the executable and link it to the module library
   #message("link to ${moduleName}")
@@ -337,7 +337,7 @@ function(add_isis_module name)
     foreach(val RANGE ${numTests})
       list(GET unitTestFiles ${val} testFile )
       list(GET truthFiles    ${val} truthFile)
-      #make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
+      make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
     endforeach()
 
   endif()
@@ -345,12 +345,12 @@ function(add_isis_module name)
   # Process the apps
   foreach(f ${appFolders})
     # Apps always require the core library
-    #add_isis_app(${f} "${reqLibs}")
+    add_isis_app(${f} "${reqLibs}")
   endforeach()
   
   # Process the tests
   foreach(f ${tstFolders})
-    #add_isis_module_test(${f})
+    add_isis_module_test(${f})
   endforeach()  
   
 endfunction(add_isis_module)

@@ -14,8 +14,22 @@ base/kernels/pck/
 base/kernels/spk/de118.bsp
 base/kernels/spk/de245.bsp
 base/kernels/spk/de405.bsp
+base/testData/kernels/de405.bsp
 base/kernels/spk/kernels.0001.db
 base/kernels/spk/kernels.0002.db
+base/testData/kernels/moc.bsp
+base/testData/kernels/naif0007.tls
+base/testData/kernels/moc.bc
+base/testData/kernels/pck00006.tpc
+base/testData/kernels/mocSpiceUnitTest.ti
+base/testData/kernels/mocAddendum.ti
+base/testData/kernels/MGS_SCLKSCET.00045.tsc
+base/testData/kernels/moc13.ti
+base/kernels/pck/pck00009.tpc
+base/kernels/lsk/naif0009.tls
+base/kernels/spk/de405.bsp
+base/kernels/lsk/naif0009.tls
+base/kernels/pck/pck00009.tpc
 base/dems/kernels.0003.db
 base/dems/kernels.0004.db
 base/dems/kernels.0005.db
@@ -26,6 +40,9 @@ mgs/testData/ab102401.lev2.cub
 odyssey/testData/I00824006RDR.lev2.cub
 base/testData/blobTruth.cub
 base/testData/isisTruth.cub
+base/testData/isisTruth2.cub
+base/testData/xmlTestLabel.xml
+base/testData/f319b18_ideal.cub
 messenger/testData/EW0211286081G.lev1.cub
 messenger/testData/EW0131770376G.equi.cub
 base/translations/NaifErrors.trn
@@ -45,8 +62,6 @@ mgs/kernels/iak/mocAddendum004.ti
 mgs/kernels/sclk/MGS_SCLKSCET.00061.tsc
 viking2/kernels/sclk/vo2_fsc.tsc
 hayabusa/kernels/dsk/hay_a_amica_5_itokawashape_v1_0_512q.bds
-base/kernels/lsk/naif0009.tls
-base/kernels/pck/pck00009.tpc
 hayabusa/kernels/pck/itokawa_gaskell_n3.tpc
 hayabusa/kernels/tspk/de403s.bsp
 hayabusa/kernels/tspk/sb_25143_140.bsp
@@ -80,6 +95,8 @@ mro/testData/frt0001cfd8_07_if124s_trr3_b24.cub
 mro/testData/ctx_pmoi_i_00003.bottom.cub
 mro/testData/PSP_001446_1790_BG12_0.cub
 mro/testData/P12_005911_3396_MA_00N009W.cropped.cub
+mro/kernels/ck/mro_crm_psp_080101_080131.bc
+mro/kernels/ck/mro_sc_psp_080108_080114.bc
 cassini/testData/N1355543510_1.c2i.nospice.cub
 base/dems/ldem_128ppd_Mar2011_clon180_radius_pad.cub
 cassini/testData/CM_1515951157_1.ir.cub
@@ -166,8 +183,6 @@ mgs/calibration/MGSC_1290_wago.tab
 mgs/calibration/MGSC_1428_wago.tab
 mgs/calibration/MGSC_1546_wago.tab
 mgs/calibration/MGSC_1578_wago.tab
-base/kernels/lsk/naif0009.tls
-base/kernels/spk/de405.bsp
 clementine1/kernels/ck/clem_ulcn2005_type2_1sc.bc
 clementine1/kernels/fk/clem_v11.tf
 clementine1/kernels/sclk/dspse002.tsc
@@ -187,7 +202,7 @@ mro/kernels/iak/
 
     # TODO: Input argument
     #installDir = '/home/smcmich1/release_isis/isis3data/'
-    installDir = '/Users/smcmich1/isis3data/'
+    installDir = '/Users/smcmich1/release_isis/isis3data/'
 
     cmd    = 'rsync -azv --delete --partial '
     remote = 'isisdist.astrogeology.usgs.gov::isis3data/data/'

@@ -20,7 +20,7 @@ qtLibs = ('QtXmlPatterns QtXml QtNetwork '+
                  'QtQml QtQuick QtQuickParticles '+
                  'QtQuickTest QtQuickWidgets QtScript '+
                  'QtScriptTools QtSensors QtSerialPort '+
-                 'QtWebKitWidgets QtWebSockets QtWidgets'+
+                 'QtWebKitWidgets QtWebSockets QtWidgets '+
                  'QtTest QtWebChannel QtWebEngine QtWebEngineCore QtWebEngineWidgets').split()
 individualLibs = ['/Users/smcmich1/isis_cmake//opt/usgs/v006/ports/libexec/qt5/lib/'+x+'.framework/Versions/5/'+x for x in qtLibs]
 print individualLibs
