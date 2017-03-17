@@ -10,9 +10,26 @@ add_custom_target(run_unit_tests)
 add_custom_target(run_app_tests)
 add_custom_target(run_category_tests)
 
-# Set up macros for adding individual tests to the test commands
-# TODO: Check this! 
+# Set up a unit test
 macro(add_unit_test_target testFile truthFile)
+  
+  set(thisFolder "${PROJECT_SOURCE_DIR}/cmake")
+  set(fullTestPath "${CMAKE_BINARY_DIR}/src/${testFile}") # The binary that the script will execute
+
+  # Redirect the test and truth file through a CMake script to run the
+  #  test and check the outputs
+  set(testName ${testFile})
+  add_test(NAME ${testName} 
+           COMMAND ${CMAKE_COMMAND}
+           -DTEST_PROG=${fullTestPath}
+           -DTRUTH_FILE=${truthFile}
+           -DDATA_ROOT=$ENV{ISIS3DATA}
+           -P ${thisFolder}/RunUnitTest.cmake)
+endmacro()
+
+
+# Set up an app test
+macro(add_app_test_target testName makeFile inputDir outputDir truthDir)
   #add_custom_target(${test_target}_runtest
   #                  COMMAND ${test_target} #cmake 2.6 required
   #                  DEPENDS ${test_target}
@@ -20,24 +37,19 @@ macro(add_unit_test_target testFile truthFile)
   #add_dependencies(run_unit_tests ${test_target}_runtest)
   
   set(thisFolder "${PROJECT_SOURCE_DIR}/cmake")
-  #set(testInstallFolder ${CMAKE_INSTALL_PREFIX}/tests) # TODO: Change dir?
-  #set(fullTestPath "${testInstallFolder}/${testFile}")
-  set(fullTestPath "${CMAKE_BINARY_DIR}/src/${testFile}")
 
-  # Redirect the test and truth file through a CMake script to run the
-  #  test and check the outputs
-  set(testName ${testFile}) # TODO: Make a new name?
+  # TODO: Set things up so the tests are run by separate commands!!!!
+
+  # Set up a cmake script which will execute the command in the makefile
+  #  and then check the results against the truth folder.
   add_test(NAME ${testName} 
            COMMAND ${CMAKE_COMMAND}
-           -DTEST_PROG=${fullTestPath}
-           -DTRUTH_FILE=${truthFile}
-           -DDATA_ROOT=$ENV{ISIS3DATA}
-           -P ${thisFolder}/RunUnitTest.cmake)
-
-  #set_property(TEST ${testName} PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/src")
-
+           -DMAKEFILE=${makefile}
+           -DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
+           -DCMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+           -DINPUT_DIR=${inputDir}
+           -DOUTPUT_DIR=${outputDir}
+           -DTRUTH_DIR=${truthDir}
+           -P ${thisFolder}/RunMakeFileTest.cmake)
 
 endmacro()
-
-
-# TODO: Macros for the other two test types

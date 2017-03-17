@@ -5,7 +5,6 @@
 
 # TODO: Split into multiple files
 
-
 #----------------------------------------------------
 function(add_isis_app folder libDependencies)
 
@@ -15,7 +14,7 @@ function(add_isis_app folder libDependencies)
   # - This deals with problems compiling same-named targets on case-insensitive machines.
   get_filename_component(appName ${folder}  NAME)
   set(internalAppName ${appName}_app)
-  #message("Proccesing APP folder: ${folder}")
+  message("Proccesing APP folder: ${folder}")
 
   # Find the source and header files
   file(GLOB headers "${folder}/*.h" "${folder}/*.hpp")
@@ -23,9 +22,6 @@ function(add_isis_app folder libDependencies)
   file(GLOB xmlFiles "${folder}/*.xml")
   
   # All the XML files need to be copied to the install directory
-  #foreach(xmlFile ${xmlFiles})
-  #copy_files_to_folder(${xmlFiles} "${CMAKE_INSTALL_PREFIX}/bin/xml")
-  #endforeach()
   install(FILES ${xmlFiles} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/xml")
 
   # Generate required QT files
@@ -51,28 +47,48 @@ function(add_isis_app folder libDependencies)
   install(TARGETS ${internalAppName} DESTINATION bin)
 
 
- 
   # Set up the app tests
+  # - There may be multiple test folders in the /tsts directory, each
+  #   with its own Makefile describing the test.
 
-  # TODO: Where are the input and truth files?
-  # TODO: Need to read in the make file contents!
-  #       -> May need to write a python script to parse the makefiles!
+  set(testFolder ${folder}/tsts)
+  file(GLOB tests "${testFolder}/*")
+  foreach(f ${tests})
+  
+    message("f = ${f}")
+    
+    set(makeFile = ${f}/MakeFile) # CHECK!
+    
+    # Figure out the input, output, and truth paths
+    file(RELATIVE_PATH relPath ${CMAKE_SOURCE_DIR} ${f})
+    set(dataDir   ${ISIS3TESTDATA}/${relPath})
+    set(inputDir  ${dataDir}/input)
+    set(outputDir ${dataDir}/output) # TODO: Where to put this?
+    set(truthDir  ${dataDir}/truth)
+    set(testName ${f}_test)
+    message("dataDir = ${dataDir}")
+    message("makeFile = ${makeFile}")
+    message("testName = ${testName}")
+    
+    #message( FATAL_ERROR "STOP." )
+    add_app_test_target(${testName} ${makeFile} ${inputDir} ${outputDir} ${truthDir})
+    
+  endforeach()
 
 endfunction(add_isis_app)
 
 #----------------------------------------------------
+
+# TODO: Use this for category tests too?
+
 # These are under [module]/apps/[app]/tsts
-function(add_isis_app_test)
+# - These tests are described by a make file
 
-# Just contains a makefile
-
-endfunction(add_isis_app_test)
-
+# -> In TestSetup.cmake
 
 
 #----------------------------------------------------
 # Set up the lone unit test in an obj folder
-# - Is there ever more than one file?
 macro(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
 
   # Get the object name (last folder part)
@@ -337,7 +353,7 @@ function(add_isis_module name)
     foreach(val RANGE ${numTests})
       list(GET unitTestFiles ${val} testFile )
       list(GET truthFiles    ${val} truthFile)
-      make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
+      #make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
     endforeach()
 
   endif()
@@ -345,7 +361,7 @@ function(add_isis_module name)
   # Process the apps
   foreach(f ${appFolders})
     # Apps always require the core library
-    add_isis_app(${f} "${reqLibs}")
+    #add_isis_app(${f} "${reqLibs}")
   endforeach()
   
   # Process the tests

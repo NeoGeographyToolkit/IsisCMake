@@ -78,6 +78,15 @@ else()
 endif()
 message("Using ISIS3DATA = $ENV{ISIS3DATA}")
 
+# TODO: Make this an input option!
+if(APPLE)
+  set(ENV{ISIS3TESTDATA} "/Users/smcmich1/release_isis/testdata/")
+else()
+  set(ENV{ISIS3TESTDATA} "/Home/smcmich1/release_isis/testdata/")
+endif()
+message("Using ISIS3TESTDATA = $ENV{ISIS3TESTDATA}")
+set(ISIS3TESTDATA $ENV{ISIS3TESTDATA})
+
 # Set the default library extension based on the platform
 if(APPLE)
   set(SO ".dylib")

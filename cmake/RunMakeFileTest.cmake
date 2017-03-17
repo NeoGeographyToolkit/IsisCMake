@@ -20,9 +20,12 @@
 #	$(RM) $(OUTPUT)/$(FILE).cub;
 
 
+# TODO: Move some code out of this file?
+
+
 # Parse an app folder Makefile to generate and run a 
 # command line string for a test.
-function(run_app_makefile_test makefile)
+function(run_app_makefile_test makefile inputFolder outputFolder truthFolder)
 
   # Read in the MakeFile
   if(NOT EXISTS ${makefile})
@@ -50,8 +53,7 @@ function(run_app_makefile_test makefile)
   message("parsedDefinitions: ${parsedDefinitions}")
   
   # Add name assignments not specified in the file
-  # TODO: Set these properly!
-  list(APPEND parsedDefinitions "INPUT=input" "OUTPUT=output" "RM=rm")
+  list(APPEND parsedDefinitions "INPUT=${inputFolder}" "OUTPUT=${outputFolder}" "RM=rm")
   
   # TODO: Look out for weird tolerance variables.
   #TSTARGS = -preference=${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences
@@ -85,11 +87,31 @@ function(run_app_makefile_test makefile)
  
   message("modCommand = ${modCommand}")
 
-  # TODO: Execute the command, then handle the results!
+  # Run the command we generated 
+  set(logFile ${outputFolder}/log.txt)
+  execute_process(COMMAND mkdir ${outputFolder}
+  execute_process(COMMAND ${modCommand}
+                  WORKING_DIRECTORY ${outputFolder}
+                  OUTPUT_FILE ${logFile}
+                  ERROR_FILE ${logFile}
+                  OUTPUT_VARIABLE result
+                  RESULT_VARIABLE code)
+  if(result)
+      message("App test failed: ${result}, ${code}")
+  endif()
   
   # TODO: Handle TOLERANCE lines!
   
-  message(FATAL_ERROR "STOP EARLY")
+  message("Starting folder comparison...")
+  compare_folders(${truthFolder} ${outputFolder})
+  
+  
+  #message(FATAL_ERROR "STOP EARLY")
+
+
+
+# Compare the files
+
 
 endfunction()
 
@@ -106,7 +128,7 @@ endfunction()
 # Compare a .TXT file from a test result with the truth file
 function(compare_test_result_txt testResult truthFile result)
 
-  set(cmd "/usr/bin/diff ${truthFile} ${testResult} > /dev/null")
+  set(cmd "diff ${truthFile} ${testResult} > /dev/null")
   execute_process(COMMAND ${cmd})
 
   set(result ON PARENT_SCOPE)
@@ -186,11 +208,30 @@ function(compare_folders truthFolder outputFolder)
   file(GLOB truthFiles truthFolder "*")
   # Compare the contents of each truth file to the associated output file
   foreach(fileName ${truthFiles})
-    message("fileName = ${fileName}")
+    message("comparing truth fileName = ${fileName}")
     compare_test_result_file(${outputFolder}/${fileName} ${truthFolder}/${fileName})
   endforeach() 
 
 endfunction()
 
-# TODO: Higher level test function
+
+#===================================================================================
+# This is the main script that gets run during the test.
+# - Just redirect to the main function call.
+run_app_makefile_test(${MAKEFILE} ${INPUT_DIR} ${OUTPUT_DIR} ${TRUTH_DIR})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
