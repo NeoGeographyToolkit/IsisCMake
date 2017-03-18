@@ -91,49 +91,39 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   message("modCommand = ${modCommand}")
   #message("binFolder = ${binFolder}")
 
+  # TODO: How much is needed?
   # Do some string cleanup
   string(STRIP "${modCommand}" modCommand)                      # Clear leading whitespace
   string(REPLACE "\\" " "  modCommand "${modCommand}")          # Remove line continuation marks.
   string(REPLACE "\n" ""  modCommand "${modCommand}")           # Remove end-of-line characters.
-  string(REPLACE " > /dev/null" ""  modCommand "${modCommand}") # Remove output target.
-  string(REGEX REPLACE "[ \t]+" " " modCommand "${modCommand}") # Replace whitespace with " ".
+  #string(REPLACE " > /dev/null" ""  modCommand "${modCommand}") # Remove output target.
+  #string(REGEX REPLACE "[ \t]+" " " modCommand "${modCommand}") # Replace whitespace with " ".
   message("modCommand = ${modCommand}")
 
-  # Break up the string into separate command lines
-  string(REGEX MATCHALL [^;]+ lines "${modCommand}")
-  message("lines = ${lines}")
+  # TODO: Make path unique!
 
-  # Set up for running commands
+  # Copy the finished command string to a shell file for execution
+  set(scriptPath "${binFolder}/tempScript.sh")
+  message("path = ${scriptPath}")
+  file(WRITE ${scriptPath}  "export PATH=${binFolder}:$PATH\n") # Append the binary location to PATH
+  file(APPEND ${scriptPath} "${modCommand}") 
+
+  # Execute the scrip we just generated
   set(code "")
   set(logFile ${outputFolder}/log.txt)
   execute_process(COMMAND mkdir -p ${outputFolder})
+  execute_process(COMMAND chmod +x ${scriptPath})
+  execute_process(COMMAND ${scriptPath}
+                  WORKING_DIRECTORY ${outputFolder} 
+                  OUTPUT_FILE ${logFile}
+                  ERROR_FILE ${logFile}
+                  OUTPUT_VARIABLE result
+                  RESULT_VARIABLE code)
 
-  # Run the command lines one at a time
-  foreach(line ${lines})
-    message("LINE == ${line}")
+  if(result)
+    message("App test failed: ${result}, ${code}")
+  endif()
 
-    # Split up tool and args part of the string (CMake needs this)
-    string(STRIP ${line} line)
-    string(FIND "${line}" " " pos)
-    string(SUBSTRING "${line}" 0 ${pos} toolPart)
-    string(SUBSTRING "${line}" ${pos} -1 argsPart)
-    string(STRIP ${toolPart} toolPart) # Clear leading/trailing whitespace
-    string(STRIP "${argsPart}" argsPart)
-    string(REGEX REPLACE " " ";" argsPart "${argsPart}")
-    message("toolPart = ${toolPart}")
-    message("argsPart = ${argsPart}")
-
-    # Actually run the command line
-    execute_process(COMMAND ${binFolder}/${toolPart} ${argsPart}
-#                    WORKING_DIRECTORY ${binFolder}
-                    OUTPUT_FILE ${logFile}
-                    ERROR_FILE ${logFile}
-                    OUTPUT_VARIABLE result
-                    RESULT_VARIABLE code)
-    if(result)
-      message("App test failed: ${result}, ${code}")
-    endif()
-  endforeach()
   
   # TODO: Handle TOLERANCE lines!
   
@@ -209,9 +199,11 @@ function(compare_test_result_file testResult truthFile result)
   message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
   set(TSTARGS "-preference=${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences")
 
-  # Redirect to the type specific  comparison
-  get_filename_component(ext ${truthFile} EXT)
-  
+  # Redirect to the type specific comparison via the extension
+  string(FIND ${truthFile} "." pos REVERSE)
+  string(SUBSTRING ${truthFile} ${pos} -1 ext)
+  message("Read extension: ${ext}")  
+
   if (${ext} STREQUAL ".cub")
     compare_test_result_cub(${testResult} ${truthFile} result)
   elseif (${ext} STREQUAL ".txt")

@@ -97,6 +97,9 @@ mro/testData/PSP_001446_1790_BG12_0.cub
 mro/testData/P12_005911_3396_MA_00N009W.cropped.cub
 mro/kernels/ck/mro_crm_psp_080101_080131.bc
 mro/kernels/ck/mro_sc_psp_080108_080114.bc
+mro/kernels/spk/mro_psp6.bsp
+mro/kernels/ck/mro_sc_psp_080304_080310.bc
+mro/kernels/iak/hiriseAddendum006.ti
 cassini/testData/N1355543510_1.c2i.nospice.cub
 base/dems/ldem_128ppd_Mar2011_clon180_radius_pad.cub
 cassini/testData/CM_1515951157_1.ir.cub
