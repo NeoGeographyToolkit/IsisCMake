@@ -22,7 +22,9 @@ function(add_isis_app folder libDependencies)
   file(GLOB xmlFiles "${folder}/*.xml")
   
   # All the XML files need to be copied to the install directory
+  # - They also need be put in the source folder for the app tests
   install(FILES ${xmlFiles} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/xml")
+  file(COPY ${xmlFiles} DESTINATION ${CMAKE_SOURCE_DIR}/bin/xml)
 
   # Generate required QT files
   generate_moc_files(mocFiles ${folder})
@@ -55,9 +57,12 @@ function(add_isis_app folder libDependencies)
   file(GLOB tests "${testFolder}/*")
   foreach(f ${tests})
   
-    message("f = ${f}")
+    get_filename_component(subName ${f} NAME)
+    if("${subName}" STREQUAL "Makefile")
+      continue()
+    endif()
     
-    set(makeFile = ${f}/MakeFile) # CHECK!
+    set(makeFile ${f}/Makefile) # CHECK!
     
     # Figure out the input, output, and truth paths
     file(RELATIVE_PATH relPath ${CMAKE_SOURCE_DIR} ${f})
@@ -65,11 +70,19 @@ function(add_isis_app folder libDependencies)
     set(inputDir  ${dataDir}/input)
     set(outputDir ${dataDir}/output) # TODO: Where to put this?
     set(truthDir  ${dataDir}/truth)
-    set(testName ${f}_test)
+    set(testName ${appName}_test_${subName})
     message("dataDir = ${dataDir}")
     message("makeFile = ${makeFile}")
     message("testName = ${testName}")
-    
+ 
+    # Some tests don't need an input folder but the others must exist   
+    if(NOT EXISTS ${makeFile})
+      message(FATAL_ERROR "Required file does not exist: ${makeFile}")
+    endif()
+    if(NOT EXISTS ${truthDir})
+      message(FATAL_ERROR "Required data folder does not exist: ${truthDir}")
+    endif()
+
     #message( FATAL_ERROR "STOP." )
     add_app_test_target(${testName} ${makeFile} ${inputDir} ${outputDir} ${truthDir})
     
@@ -361,13 +374,13 @@ function(add_isis_module name)
   # Process the apps
   foreach(f ${appFolders})
     # Apps always require the core library
-    #add_isis_app(${f} "${reqLibs}")
+    add_isis_app(${f} "${reqLibs}")
   endforeach()
   
-  # Process the tests
-  foreach(f ${tstFolders})
-    add_isis_module_test(${f})
-  endforeach()  
+  ## Process the tests
+  #foreach(f ${tstFolders})
+  #  add_isis_module_test(${f})
+  #endforeach()  
   
 endfunction(add_isis_module)
 

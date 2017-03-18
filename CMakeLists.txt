@@ -157,6 +157,10 @@ endif()
 file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
 install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
+# Create an xml folder in the source directory that we will need later
+set(sourceXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
+execute_process(COMMAND mkdir -p ${sourceXmlFolder})
+
 ## TODO: Is this required????!?!?!?!
 ## Copy the template folder to the install folder.
 #file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/templates/gui")
@@ -184,16 +188,15 @@ endif()
 
 # TODO: The GUIs hang, how is this test supposed to work??
 # Generate links to a bunch of xml files where the unit tests look for them.
-set(unitTestXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
-execute_process(COMMAND mkdir -p ${unitTestXmlFolder})
+# TODO: Make copies instead?
 file(GLOB_RECURSE testXmls "${CMAKE_SOURCE_DIR}/src/unitTest.xml")
 foreach(xml ${testXmls})
   get_filename_component(folder ${xml} DIRECTORY)
   get_filename_component(name ${folder} NAME)
   set(linkName test_isis3_${name}.xml)
-#  if(NOT EXISTS ${unitTestXmlFolder}/${linkName})
+#  if(NOT EXISTS ${sourceXmlFolder}/${linkName})
 #    execute_process(COMMAND ln -s "${xml}" "${linkName}"
-#                    WORKING_DIRECTORY ${unitTestXmlFolder})
+#                    WORKING_DIRECTORY ${sourceXmlFolder})
 #  endif()
 endforeach()
 

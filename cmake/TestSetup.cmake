@@ -44,12 +44,14 @@ macro(add_app_test_target testName makeFile inputDir outputDir truthDir)
   #  and then check the results against the truth folder.
   add_test(NAME ${testName} 
            COMMAND ${CMAKE_COMMAND}
-           -DMAKEFILE=${makefile}
+           -DMAKEFILE=${makeFile}
            -DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
            -DCMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+           -DDATA_ROOT=$ENV{ISIS3DATA}
            -DINPUT_DIR=${inputDir}
            -DOUTPUT_DIR=${outputDir}
            -DTRUTH_DIR=${truthDir}
+           -DBIN_DIR=${CMAKE_BINARY_DIR}/src
            -P ${thisFolder}/RunMakeFileTest.cmake)
 
 endmacro()
