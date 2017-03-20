@@ -56,7 +56,7 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   message("parsedDefinitions: ${parsedDefinitions}")
   
   # Add name assignments not specified in the file
-  list(APPEND parsedDefinitions "INPUT=${inputFolder}" "OUTPUT=${outputFolder}" "RM=rm" "CP=cp" "LS=ls" "MV=mv")
+  list(APPEND parsedDefinitions "INPUT=${inputFolder}" "OUTPUT=${outputFolder}" "RM=rm" "CP=cp" "LS=ls" "MV=mv" "SED=sed")
   
   # TODO: Look out for weird tolerance variables.
   #TSTARGS = -preference=${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences
@@ -96,7 +96,8 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   string(STRIP "${modCommand}" modCommand)                      # Clear leading whitespace
   string(REPLACE "\\" " "  modCommand "${modCommand}")          # Remove line continuation marks.
   string(REPLACE "\n" ""  modCommand "${modCommand}")           # Remove end-of-line characters.
-  #string(REPLACE " > /dev/null" ""  modCommand "${modCommand}") # Remove output target.
+  string(REPLACE ">& /dev/null" ""  modCommand "${modCommand}") # Allow output to the log file.
+  string(REPLACE "> /dev/null" ""  modCommand "${modCommand}") 
   #string(REGEX REPLACE "[ \t]+" " " modCommand "${modCommand}") # Replace whitespace with " ".
   message("modCommand = ${modCommand}")
 
@@ -105,12 +106,15 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   # Copy the finished command string to a shell file for execution
   set(scriptPath "${binFolder}/tempScript.sh")
   message("path = ${scriptPath}")
-  file(WRITE ${scriptPath}  "export PATH=${binFolder}:$PATH\n") # Append the binary location to PATH
+  execute_process(COMMAND rm -rf ${scriptPath})
+  file(WRITE ${scriptPath}  "export PATH=${binFolder}:$PATH;\n") # Append the binary location to PATH
+  file(APPEND ${scriptPath} "export ISISROOT=$ENV{ISISROOT};\n")
   file(APPEND ${scriptPath} "${modCommand}") 
 
   # Execute the scrip we just generated
   set(code "")
   set(logFile ${outputFolder}/log.txt)
+  execute_process(COMMAND rm -rf ${outputFolder})
   execute_process(COMMAND mkdir -p ${outputFolder})
   execute_process(COMMAND chmod +x ${scriptPath})
   execute_process(COMMAND ${scriptPath}

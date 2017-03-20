@@ -157,6 +157,12 @@ endif()
 file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
 install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
+# The app tests need to see the build executables in the root/bin location!
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/bin)
+  execute_process(COMMAND ln -s "${CMAKE_BINARY_DIR}/src" bin
+                  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+endif()
+
 # Create an xml folder in the source directory that we will need later
 set(sourceXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
 execute_process(COMMAND mkdir -p ${sourceXmlFolder})

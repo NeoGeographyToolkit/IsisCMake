@@ -43,6 +43,8 @@ base/testData/isisTruth.cub
 base/testData/isisTruth2.cub
 base/testData/xmlTestLabel.xml
 base/testData/f319b18_ideal.cub
+base/translations/MissionName2DataDir.trn
+base/translations/MissionName2DataDir.trn
 messenger/testData/EW0211286081G.lev1.cub
 messenger/testData/EW0131770376G.equi.cub
 base/translations/NaifErrors.trn
@@ -158,23 +160,7 @@ odyssey/testData/I01523019RDR.lev2.cub
 viking2/reseaus/vik2bMasterReseaus.pvl
 mgs/testData/m0402852.cub
 mariner10/reseaus/mar10aMasterReseaus.pvl
-base/translations/MissionName2DataDir.trn
-base/translations/Instruments.trn
-base/translations/SerialNumber0001.trn
-base/translations/SerialNumber0002.trn
 lo/testData/3133_h1.cub
-lo/translations/loSerialNumber0001.trn
-lo/translations/loSerialNumber0002.trn
-lo/translations/loSerialNumber0003.trn
-lo/translations/loSerialNumber0004.trn
-mgs/translations/mocSerialNumber0001.trn
-mgs/translations/mocSerialNumber0002.trn
-mgs/translations/mocSerialNumber0003.trn
-mgs/translations/mocSerialNumber0004.trn
-odyssey/translations/themisSerialNumber0001.trn
-odyssey/translations/themisSerialNumber0002.trn
-odyssey/translations/themisSerialNumber0003.trn
-odyssey/translations/themisSerialNumber0004.trn
 base/translations/NaifErrors.trn
 base/testData/blobTruth.cub
 base/testData/isisTruthNoSpacecraftName.cub
@@ -198,6 +184,18 @@ base/templates/maps/equirectangular.map
 mro/kernels/ck/
 mro/kernels/spk/
 mro/kernels/iak/
+apollo15/kernels/ck/
+apollo15/kernels/spk/
+apollo15/kernels/iak/
+apollo15/kernels/fk/
+apollo15/kernels/ik/
+apollo15/kernels/sclk/
+apollo15/translations/
+base/translations/
+lo/translations/
+mgs/translations/
+odyssey/translations/
+mro/translations/
 '''
 
     fileList = fileList.split()
@@ -227,9 +225,9 @@ mro/kernels/iak/
         os.system('mkdir -p ' + os.path.dirname(target))
         os.system(fullCmd)
 
-    # This is for folders where we want just the small .db files
+    # This is for folders where we want just the small files
     for f in dbList:
-        fullCmd = (cmd + remote + f+' --include="*.db" --exclude="*" ' + installDir+f)
+        fullCmd = (cmd + remote + f+' --include="*.trn" --include="*.ti" --include="*.tf" --include="*.db" --exclude="*" ' + installDir+f)
         print fullCmd
         os.system('mkdir -p '+ installDir +f)
         os.system(fullCmd)
