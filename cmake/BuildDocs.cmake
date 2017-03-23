@@ -103,6 +103,12 @@ function(build_documents_folder)
   endforeach()
   cat(${docBuildFolder}/build/doctoc_footer.xml ${doctocPath})
 
+  # Write out a modified .xsl file with the correct location of the Xalan executable.
+  set(modDocBuildXslFile ${docBuildFolder}/build/IsisInlineDocumentBuild_mod.xsl)
+  file(READ ${PROJECT_SOURCE_DIR}/scripts/IsisInlineDocumentBuild_mod.xsl xslContents)
+  string(REPLACE XALAN_BIN_LOCATION ${XALAN} xslContents "${xslContents}")
+  file(WRITE ${modDocBuildXslFile} "${xslContents}")
+
   # Build individual documents folders
   message("    Building individual documents...")
   file(MAKE_DIRECTORY ${docInstallFolder}/documents)
@@ -115,40 +121,29 @@ function(build_documents_folder)
     set(thisOutputFolder ${docInstallFolder}/documents/${docName})
     file(MAKE_DIRECTORY ${thisOutputFolder})
 
-    # Make Xalan call to generate the .html output file from the .xml input file
-    # - The original makefiles used an intermediate temporary makefile in this step.
-    # - The file_contains() checks below replace some of that functionality
-
-    # The .xsl file used here depends on if the file contains a primary=true tag
-    set(xslFile "IsisSubPageBuild.xsl")
-    file_contains("${f}/${docName}.xml" "<file primary=\"true\">" primary)
-    if(${primary})
-      set(xslFile "IsisPrimaryPageBuild.xsl")
-    endif()
-    
-    # A few folders get an index.html file instead of an ${docName}.html file.
-    set(outFile ${docName}.html)
-    file_contains("${f}/${docName}.xml" "<filename>index.html</filename>" indexName)
-    if(${indexName})
-      set(outFile index.html)
-    endif()
-
-    set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "'../../'" ${XALAN_PARAM_OPTION} filenameParam "'${outFile}'" ${XALAN_OUTFILE_OPTION} ${thisOutputFolder}/${outFile} ${XALAN_INFILE_OPTION} ${docName}.xml  ${XALAN_XSL_OPTION} ../../build/${xslFile})
+    # Use Xalan to generate an intermediate makefile, then execute that makefile
+    #  to generate the output documentation files.
+           
+    set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "../../" ${XALAN_PARAM_OPTION} dirParam "'${docName}'" ${XALAN_OUTFILE_OPTION} ${f}/Makefile_temp ${XALAN_INFILE_OPTION} ${docName}.xml  ${XALAN_XSL_OPTION} ${modDocBuildXslFile})
     #message("command = ${xalanCommand}")
     execute_process(COMMAND ${xalanCommand} WORKING_DIRECTORY ${f})
+    
+    #message( FATAL_ERROR "STOP." )
+    execute_process(COMMAND make -f Makefile_temp docs WORKING_DIRECTORY ${f})
+    execute_process(COMMAND rm -f ${f}/Makefile_temp)
 
-    # Copy any assets to the install folder
+    # Copy all generated html files and any assets to the install folder
+    file(GLOB htmlFiles ${f}/*.html)
+    #message("Copying: ${htmlFiles}")
+    file(COPY ${htmlFiles} DESTINATION ${thisOutputFolder})
     if(EXISTS "${f}/assets")
       copy_folder(${f}/assets ${thisOutputFolder}/assets)
     endif()
     if(EXISTS "${f}/images")
       copy_folder(${f}/images ${thisOutputFolder}/images)
     endif()
-    #message( FATAL_ERROR "STOP." )
 
   endforeach()
-
-  #message( FATAL_ERROR "STOP." )
 
   message("    Building table of contents files...")
   # These go in top level folders in /doc/
@@ -170,6 +165,8 @@ function(build_documents_folder)
 
   # USER DOCS TOC
   execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/UserDocs/index.html    ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/UserDocs.xsl)
+
+  #message( FATAL_ERROR "STOP." )
 
 endfunction()
 
@@ -222,9 +219,9 @@ function(build_application_docs)
         copy_folder(${f}/assets ${tbAppFolder}/assets)
       endif()
 
-      execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../../../../'\" ${XALAN_OUTFILE_OPTION} ${pfAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${printerStyleFolder}/IsisApplicationDocStyle.xsl)
+      execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../../../../\" ${XALAN_OUTFILE_OPTION} ${pfAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${printerStyleFolder}/IsisApplicationDocStyle.xsl)
 
-      execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../../../../'\" ${XALAN_OUTFILE_OPTION} ${tbAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${tabbedStyleFolder}/IsisApplicationDocStyle.xsl)
+      execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../../../../\" ${XALAN_OUTFILE_OPTION} ${tbAppFolder}/${appName}.html ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${tabbedStyleFolder}/IsisApplicationDocStyle.xsl)
 
     endforeach() # End loop through app folders
 
@@ -273,13 +270,13 @@ function(add_extra_tocs)
   set(tocXml      "${CMAKE_INSTALL_PREFIX}/bin/xml/applicationTOC.xml")
 
   # Build alpha.html
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/alpha.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_alpha.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/alpha.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_alpha.xsl)
 
   # Build index.html
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/index.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_category.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/index.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_category.xsl)
 
   # Build oldvnew.html
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/oldvnew.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_oldvnew.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${TOCDIR}/oldvnew.html ${XALAN_INFILE_OPTION} ${tocXml} ${XALAN_XSL_OPTION} ${buildFolder}/TOCindex_oldvnew.xsl)
 
   # Build applicationCategories.xml
   execute_process(COMMAND ${XALAN} ${XALAN_OUTFILE_OPTION} ${CMAKE_INSTALL_PREFIX}/bin/xml/applicationCategories.xml ${XALAN_INFILE_OPTION} ${docBuildFolder}/Schemas/Application/application.xsd ${XALAN_XSL_OPTION} ${buildFolder}/IsisApplicationCategoriesbuild.xsl)
@@ -431,21 +428,23 @@ function(build_object_docs)
   #copy_file(${objBuildDir}/isisDoxyDefs.doxydef ${docInstallFolder}/documents/DocStyle/assets/isisDoxyDefs.doxydef)
 
 #message( FATAL_ERROR "STOP." )
-  message("Building apps documentation")
+  message("Building Apps documentation..")
   execute_process(COMMAND ${DOXYGEN} "${objConfDir}/apps_tag_temp.conf"
                   WORKING_DIRECTORY ${docBuildFolder}/src/docsys/Object/)
   execute_process(COMMAND ${XALAN} ${XALAN_OUTFILE_OPTION} ${objConfDir}/apps/apps_fix.tag ${XALAN_INFILE_OPTION} ${objConfDir}/apps/apps.tag ${XALAN_XSL_OPTION} ${objConfDir}/IsisApplicationTagFix.xsl)
   copy_file(${objConfDir}/apps/apps_fix.tag ${docInstallFolder}/Object/apps/apps_fix.tag)
+  message("Finished building Apps documentation.")
 
-
-  message("Building Programmer documentation.")
+  message("Building Programmer documentation...")
   execute_process(COMMAND ${DOXYGEN} "${objConfDir}/Programmer_temp.conf"
                   WORKING_DIRECTORY ${docBuildFolder}/src/docsys/Object/)
+  message("Finished building Programmer documentation.")
 
   # TODO: Make sure there are no Latex lib conflicts
   message("Building Developer documentation...")
   execute_process(COMMAND ${DOXYGEN} "${objConfDir}/Developer_temp.conf"
                   WORKING_DIRECTORY ${docBuildFolder}/src/docsys/Object/)
+  message("Finished building Developer documentation.")
 
 
 endfunction()

@@ -74,7 +74,7 @@ option(buildMissions "Build the mission specific modules" ON)
 if(APPLE)
   set(ENV{ISIS3DATA} "/Users/smcmich1/release_isis/isis3data/")
 else()
-  set(ENV{ISIS3DATA} "/Home/smcmich1/release_isis/isis3data/")
+  set(ENV{ISIS3DATA} "/home/smcmich1/release_isis/isis3data/")
 endif()
 message("Using ISIS3DATA = $ENV{ISIS3DATA}")
 
@@ -82,7 +82,7 @@ message("Using ISIS3DATA = $ENV{ISIS3DATA}")
 if(APPLE)
   set(ENV{ISIS3TESTDATA} "/Users/smcmich1/release_isis/testdata/")
 else()
-  set(ENV{ISIS3TESTDATA} "/Home/smcmich1/release_isis/testdata/")
+  set(ENV{ISIS3TESTDATA} "/home/smcmich1/release_isis/testdata/")
 endif()
 message("Using ISIS3TESTDATA = $ENV{ISIS3TESTDATA}")
 set(ISIS3TESTDATA $ENV{ISIS3TESTDATA})
@@ -141,11 +141,11 @@ message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 enable_testing()
 include(CTest)
 
-# Delete any existing plugin files in the install folder
+# Delete any existing plugin files in the build folder
 #  so that we don't get any duplication.
-file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
-if(installedPlugins)
-  file(REMOVE ${installedPlugins})
+file(GLOB existingPlugins "${CMAKE_BINARY_DIR}/src/*.plugin")
+if(existingPlugins)
+  file(REMOVE ${existingPlugins})
 endif()
 
 # Clear plugin files so they do not get filled with duplicate entries
@@ -194,10 +194,10 @@ foreach(xml ${testXmls})
   get_filename_component(folder ${xml} DIRECTORY)
   get_filename_component(name ${folder} NAME)
   set(linkName test_isis3_${name}.xml)
-#  if(NOT EXISTS ${sourceXmlFolder}/${linkName})
-#    execute_process(COMMAND ln -s "${xml}" "${linkName}"
-#                    WORKING_DIRECTORY ${sourceXmlFolder})
-#  endif()
+  if(NOT EXISTS ${sourceXmlFolder}/${linkName})
+    execute_process(COMMAND ln -s "${xml}" "${linkName}"
+                    WORKING_DIRECTORY ${sourceXmlFolder})
+  endif()
 endforeach()
 
 # Create a link from the build/src directory to each folder in 3rdPartyLibs/plugins
