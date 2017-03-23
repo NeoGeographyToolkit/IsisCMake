@@ -70,7 +70,7 @@ function(build_upper_level)
   # These folders are populated inside "build_documents_folder"
 
   # Create index.html file
-  execute_process(COMMAND ${XALAN} ${XALAN_VALIDATE_OPTION} ${XALAN_PARAM_OPTION} menuPath \"'./'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/index.html ${XALAN_INFILE_OPTION} ${docBuildFolder}/build/homepage.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/main.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_VALIDATE_OPTION} ${XALAN_PARAM_OPTION} menuPath \"\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/index.html ${XALAN_INFILE_OPTION} ${docBuildFolder}/build/homepage.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/main.xsl)
 endfunction()
 
 #------------------------------------------------------------
@@ -97,13 +97,11 @@ function(build_documents_folder)
     # Each folder in documents gets a section added to doctoc
     get_filename_component(docName ${f} NAME_WE)
     #message("Processing ${docName}")
-    execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} dirParam \"'${docName}'\"  ${XALAN_INFILE_OPTION} ${f}/${docName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/IsisDocumentTOCbuild.xsl OUTPUT_VARIABLE result)
+    execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} dirParam \"${docName}\"  ${XALAN_INFILE_OPTION} ${f}/${docName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/IsisDocumentTOCbuild.xsl OUTPUT_VARIABLE result)
     file(APPEND ${doctocPath} ${result})
     #message("result = ${result}")
   endforeach()
   cat(${docBuildFolder}/build/doctoc_footer.xml ${doctocPath})
- 
-  # TODO: Should this happen first?
 
   # Build individual documents folders
   message("    Building individual documents...")
@@ -117,20 +115,25 @@ function(build_documents_folder)
     set(thisOutputFolder ${docInstallFolder}/documents/${docName})
     file(MAKE_DIRECTORY ${thisOutputFolder})
 
-    # TODO: Verify for each output document!!!
     # Make Xalan call to generate the .html output file from the .xml input file
     # - The original makefiles used an intermediate temporary makefile in this step.
+    # - The file_contains() checks below replace some of that functionality
 
     # The .xsl file used here depends on if the file contains a primary=true tag
     set(xslFile "IsisSubPageBuild.xsl")
     file_contains("${f}/${docName}.xml" "<file primary=\"true\">" primary)
-    #message("primary = ${primary}")
     if(${primary})
       set(xslFile "IsisPrimaryPageBuild.xsl")
     endif()
+    
+    # A few folders get an index.html file instead of an ${docName}.html file.
+    set(outFile ${docName}.html)
+    file_contains("${f}/${docName}.xml" "<filename>index.html</filename>" indexName)
+    if(${indexName})
+      set(outFile index.html)
+    endif()
 
-    #set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "'../../'" ${XALAN_PARAM_OPTION} filenameParam "'${docName}.html'" ${XALAN_OUTFILE_OPTION} ${thisOutputFolder}/${docName}.html ${XALAN_INFILE_OPTION} ${f}/${docName}.xml  ${XALAN_XSL_OPTION} ${docBuildFolder}/docsys/build/${xslFile})
-    set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "'../../'" ${XALAN_PARAM_OPTION} filenameParam "'${docName}.html'" ${XALAN_OUTFILE_OPTION} ${thisOutputFolder}/${docName}.html ${XALAN_INFILE_OPTION} ${docName}.xml  ${XALAN_XSL_OPTION} ../../build/${xslFile})
+    set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "'../../'" ${XALAN_PARAM_OPTION} filenameParam "'${outFile}'" ${XALAN_OUTFILE_OPTION} ${thisOutputFolder}/${outFile} ${XALAN_INFILE_OPTION} ${docName}.xml  ${XALAN_XSL_OPTION} ../../build/${xslFile})
     #message("command = ${xalanCommand}")
     execute_process(COMMAND ${xalanCommand} WORKING_DIRECTORY ${f})
 
@@ -138,7 +141,9 @@ function(build_documents_folder)
     if(EXISTS "${f}/assets")
       copy_folder(${f}/assets ${thisOutputFolder}/assets)
     endif()
-
+    if(EXISTS "${f}/images")
+      copy_folder(${f}/images ${thisOutputFolder}/images)
+    endif()
     #message( FATAL_ERROR "STOP." )
 
   endforeach()
@@ -149,22 +154,22 @@ function(build_documents_folder)
   # These go in top level folders in /doc/
 
   # ABOUT ISIS TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/AboutIsis/index.html   ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/AboutIsis.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/AboutIsis/index.html   ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/AboutIsis.xsl)
 
   # GENERAL TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/General/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/General.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/General/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/General.xsl)
 
   # GUIDES TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Guides/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Guides.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Guides/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Guides.xsl)
 
   # INSTALLATION TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Installation/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Installation.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/Installation/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/Installation.xsl)
 
   # TECHNICAL INFO TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/TechnicalInfo/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/TechnicalInfo.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/TechnicalInfo/index.html ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/TechnicalInfo.xsl)
 
   # USER DOCS TOC
-  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"'../'\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/UserDocs/index.html    ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/UserDocs.xsl)
+  execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/UserDocs/index.html    ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/UserDocs.xsl)
 
 endfunction()
 
@@ -204,7 +209,7 @@ function(build_application_docs)
     foreach(f ${appDataFolders})
 
       get_filename_component(appName ${f} NAME_WE)
-      message("Processing application folder: ${appName}")
+      #message("Processing application folder: ${appName}")
 
       # Get printer-friendly and tabbed output folders
       set(pfAppFolder ${installPrinterFolder}/${appName})
@@ -346,12 +351,12 @@ function(build_object_conf)
   if (NOT ${pos} STREQUAL "-1")
     file(APPEND ${programmerConf} "QUIET                  = NO\n")
     file(APPEND ${programmerConf} "WARNINGS               = YES\n")
-    file(APPEND ${programmerConf} "WARN_IF_UNDOCUMENTED   = YES\n")
+    file(APPEND ${programmerConf} "WARN_IF_UNDOCUMENTED   = NO\n")
     file(APPEND ${programmerConf} "WARN_IF_DOC_ERROR      = YES\n")
     file(APPEND ${programmerConf} "WARN_NO_PARAMDOC       = YES\n")
   else()
     file(APPEND ${programmerConf} "QUIET                  = YES\n")
-    file(APPEND ${programmerConf} "WARN_IF_UNDOCUMENTED   = YES\n")
+    file(APPEND ${programmerConf} "WARN_IF_UNDOCUMENTED   = NO\n")
     file(APPEND ${programmerConf} "WARN_IF_DOC_ERROR      = YES\n")
     file(APPEND ${programmerConf} "WARN_NO_PARAMDOC       = YES\n")
   endif()
@@ -380,7 +385,7 @@ function(build_object_conf)
   if (NOT ${pos} STREQUAL "-1")
     file(APPEND ${developerConf} "QUIET                  = NO\n")
     file(APPEND ${developerConf} "WARNINGS               = YES\n")
-    file(APPEND ${developerConf} "WARN_IF_UNDOCUMENTED   = YES\n")
+    file(APPEND ${developerConf} "WARN_IF_UNDOCUMENTED   = NO\n")
     file(APPEND ${developerConf} "WARN_IF_DOC_ERROR      = YES\n")
     file(APPEND ${developerConf} "WARN_NO_PARAMDOC       = YES\n")
   else()
@@ -486,8 +491,7 @@ function(build_docs)
   add_extra_tocs()
 
   message("Building object documentation")
-  message("TODO until LATEX binary added!")
-  #build_object_docs()
+  build_object_docs()
 
   message("Finished building object documentation!")
 
