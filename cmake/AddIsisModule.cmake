@@ -56,24 +56,33 @@ function(add_isis_app folder libDependencies)
   set(testFolder ${folder}/tsts)
   file(GLOB tests "${testFolder}/*")
   foreach(f ${tests})
-  
-    get_filename_component(subName ${f} NAME)
+    add_makefile_test_folder(${f} ${appName})  
+  endforeach()
+
+endfunction(add_isis_app)
+
+#----------------------------------------------------
+
+# Add a unit test defined by a Makefile and specific input/output folders.
+function(add_makefile_test_folder folder prefix_name)
+
+    get_filename_component(subName ${folder} NAME)
     if("${subName}" STREQUAL "Makefile")
-      continue()
+      return()
     endif()
     
-    set(makeFile ${f}/Makefile) # CHECK!
+    set(makeFile ${folder}/Makefile)
     
     # Figure out the input, output, and truth paths
-    file(RELATIVE_PATH relPath ${CMAKE_SOURCE_DIR} ${f})
+    file(RELATIVE_PATH relPath ${CMAKE_SOURCE_DIR} ${folder})
     set(dataDir   ${ISIS3TESTDATA}/${relPath})
     set(inputDir  ${dataDir}/input)
     set(outputDir ${dataDir}/output) # TODO: Where to put this?
     set(truthDir  ${dataDir}/truth)
-    set(testName ${appName}_test_${subName})
-    message("dataDir = ${dataDir}")
-    message("makeFile = ${makeFile}")
-    message("testName = ${testName}")
+    set(testName ${prefix_name}_test_${subName})
+    #message("dataDir = ${dataDir}")
+    #message("makeFile = ${makeFile}")
+    #message("testName = ${testName}")
  
     # Some tests don't need an input folder but the others must exist   
     if(NOT EXISTS ${makeFile})
@@ -84,21 +93,9 @@ function(add_isis_app folder libDependencies)
     endif()
 
     #message( FATAL_ERROR "STOP." )
-    add_app_test_target(${testName} ${makeFile} ${inputDir} ${outputDir} ${truthDir})
-    
-  endforeach()
+    add_makefile_test_target(${testName} ${makeFile} ${inputDir} ${outputDir} ${truthDir})
 
-endfunction(add_isis_app)
-
-#----------------------------------------------------
-
-# TODO: Use this for category tests too?
-
-# These are under [module]/apps/[app]/tsts
-# - These tests are described by a make file
-
-# -> In TestSetup.cmake
-
+endfunction()
 
 #----------------------------------------------------
 # Set up the lone unit test in an obj folder
@@ -377,10 +374,10 @@ function(add_isis_module name)
     add_isis_app(${f} "${reqLibs}")
   endforeach()
   
-  ## Process the tests
-  #foreach(f ${tstFolders})
-  #  add_isis_module_test(${f})
-  #endforeach()  
+  # Process the tests
+  foreach(f ${tstFolders})
+    add_isis_module_test(${f} ${appName})
+  endforeach()  
   
 endfunction(add_isis_module)
 

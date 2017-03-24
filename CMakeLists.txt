@@ -138,6 +138,7 @@ SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${FLAGS_STR}" )
 message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 
 # Needed for add_test
+set(CTEST_TEST_TIMEOUT 30) # Set the maximum run time for unit and application tests
 enable_testing()
 include(CTest)
 
@@ -205,6 +206,22 @@ foreach(xml ${testXmls})
                     WORKING_DIRECTORY ${sourceXmlFolder})
   endif()
 endforeach()
+
+# Link to all application xmls from the bin/xml folder
+file(GLOB_RECURSE allXmls "${CMAKE_SOURCE_DIR}/src/*.xml")
+message("allXmls = ${allXmls}")
+foreach(xml ${allXmls})
+  string(FIND ${xml} "/apps/" pos)
+  if(NOT ${pos} EQUAL -1 )
+    get_filename_component(name ${xml} NAME)
+    if (NOT EXISTS ${sourceXmlFolder}/${name})
+      execute_process(COMMAND ln -s "${xml}" "${name}"
+                      WORKING_DIRECTORY ${sourceXmlFolder})
+    endif()
+  endif()
+endforeach()
+# TODO: Link to all app xml files in the {root}/bin/xml directory.  Needed for tests!
+
 
 # Create a link from the build/src directory to each folder in 3rdPartyLibs/plugins
 # TIP: Set "export QT_DEBUG_PLUGINS=1" to help debug plugin errors.

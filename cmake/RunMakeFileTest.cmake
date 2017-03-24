@@ -4,22 +4,6 @@
 # - To avoid using this script, all of the old MakeFile tests would need to
 #   be converted into some other format.
 
-# Sample MakeFile contents:
-#APPNAME = lronac2isis
-#FILE=nacl00015d79
-#
-#include $(ISISROOT)/make/isismake.tsts
-#
-#commands:
-#	$(APPNAME) from=$(INPUT)/$(FILE).img \
-#	  to=$(OUTPUT)/$(FILE).cub > /dev/null;
-#	crop from=$(OUTPUT)/$(FILE).cub nlines=5 \
-#	  to=$(OUTPUT)/$(FILE).small.cub > /dev/null;
-#	catlab from=$(OUTPUT)/$(FILE).small.cub \
-#	  to=$(OUTPUT)/$(FILE).small.pvl > /dev/null;
-#	$(RM) $(OUTPUT)/$(FILE).cub;
-
-
 # TODO: Move some code out of this file?
 
 
@@ -28,6 +12,10 @@
 function(run_app_makefile_test makefile inputFolder outputFolder truthFolder binFolder)
 
   #message("truth folder == ${truthFolder}")
+  get_filename_component(folder ${makeFile} DIRECTORY)
+  get_filename_component(appName ${folder} NAME)
+  message("appName = ${appName}")
+
 
   # Read in the MakeFile
   if(NOT EXISTS ${makefile})
@@ -93,9 +81,9 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
 
   # TODO: How much is needed?
   # Do some string cleanup
-  string(STRIP "${modCommand}" modCommand)                      # Clear leading whitespace
-  string(REPLACE "\\" " "  modCommand "${modCommand}")          # Remove line continuation marks.
-  string(REPLACE "\n" ""  modCommand "${modCommand}")           # Remove end-of-line characters.
+  #string(STRIP "${modCommand}" modCommand)                      # Clear leading whitespace
+  #string(REPLACE "\\" " "  modCommand "${modCommand}")          # Remove line continuation marks.
+  #string(REPLACE "\n" ""  modCommand "${modCommand}")           # Remove end-of-line characters.
   string(REPLACE ">& /dev/null" ""  modCommand "${modCommand}") # Allow output to the log file.
   string(REPLACE "> /dev/null" ""  modCommand "${modCommand}") 
   #string(REGEX REPLACE "[ \t]+" " " modCommand "${modCommand}") # Replace whitespace with " ".
@@ -113,8 +101,9 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
 
   # Execute the scrip we just generated
   set(code "")
-  set(logFile ${outputFolder}/log.txt)
+  set(logFile ${binFolder}/${appName}_log.txt)
   execute_process(COMMAND rm -rf ${outputFolder})
+  execute_process(COMMAND rm -f ${logFile})
   execute_process(COMMAND mkdir -p ${outputFolder})
   execute_process(COMMAND chmod +x ${scriptPath})
   execute_process(COMMAND ${scriptPath}
@@ -133,34 +122,105 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   
   message("Starting folder comparison...")
   compare_folders(${truthFolder} ${outputFolder})
-  
-  
-  #message(FATAL_ERROR "STOP EARLY")
-
-
-
-# Compare the files
-
+ 
 
 endfunction()
+
+
+
+
+
+function(run_app_makefile_test2 makefile inputFolder outputFolder truthFolder binFolder)
+
+  get_filename_component(folder ${makefile} DIRECTORY)
+  get_filename_component(testName ${folder} NAME)
+  get_filename_component(folder ${folder} DIRECTORY)
+  get_filename_component(folder ${folder} DIRECTORY)
+  get_filename_component(appName ${folder} NAME)
+  set(appName ${appName}_${testName})
+  message("appName = ${appName}")
+
+  # Read in the MakeFile
+  if(NOT EXISTS ${makefile})
+    message(FATAL_ERROR "App test MakeFile ${makefile} was not found!")
+  endif()
+  file(READ ${makefile} makefileContents)
+
+  # Replace include line with short list of definitions
+  set(newDefinitions "INPUT=${inputFolder}\nOUTPUT=${outputFolder}\nRM=rm -f\nCP=cp\nLS=ls\nMV=mv\nSED=sed\nTAIL=tail\nECHO=echo\nCAT=cat\nLS=ls")
+  string(REPLACE "include $(ISISROOT)/make/isismake.tsts" "${newDefinitions}" newFileContents "${makefileContents}")
+
+  string(REPLACE ">& /dev/null" ""  newFileContents "${newFileContents}") # Allow output to the log file.
+  string(REPLACE "> /dev/null" ""  newFileContents "${newFileContents}")
+
+  # TODO: Handle tolerance lines!  
+  # TODO: Make path unique!
+
+  # Copy the finished command string to a shell file for execution
+  set(scriptPath "${binFolder}/newMakeFile")
+  message("path = ${scriptPath}")
+  file(WRITE ${scriptPath} "${newFileContents}") 
+
+  set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
+  set(ENV{ISIS3DATA} "${DATA_ROOT}")
+  set(ENV{PATH} "${binFolder}:$ENV{PATH}")
+
+
+  # Execute the scrip we just generated
+  set(code "")
+  set(logFile "${binFolder}/${appName}.log")
+  message("logFile = ${logFile}")
+  execute_process(COMMAND rm -rf ${outputFolder})
+  execute_process(COMMAND rm -f ${logFile})
+  execute_process(COMMAND mkdir -p ${outputFolder})
+  #execute_process(COMMAND chmod +x ${scriptPath})
+  execute_process(COMMAND make -f "${scriptPath}"
+                  WORKING_DIRECTORY ${outputFolder} 
+                  OUTPUT_FILE ${logFile}
+                  ERROR_FILE ${logFile}
+                  OUTPUT_VARIABLE result
+                  RESULT_VARIABLE code)
+
+  if(result)
+    message("App test failed: ${result}, ${code}")
+  endif()
+
+  message("Starting folder comparison...")
+  compare_folders(${truthFolder} ${outputFolder})
+  
+endfunction()
+
+
+
+
+
 
 # Compare a .CUB file from a test result with the truth file
 function(compare_test_result_cub testResult truthFile result)
 
   set(tempFile ${testResult}.DIFF)
   set(cmd "${CMAKE_BINARY_DIR}/src/cubediff ${TSTARGS} from=${truthFile} from2=${testResult} to=compare.txt 1>>/dev/null 2>cubediffError.txt")
-  execute_process(COMMAND ${cmd})
+  execute_process(COMMAND ${cmd} RESULT_VARIABLE code)
 
+  # TODO: CHECK TOLERANCES!
+  message("code = ${code}")
+  # TODO: More detailed error reporting.
   set(result ON PARENT_SCOPE)
+  if("${code}" STREQUAL "0")
+    set(result OFF PARENT_SCOPE)
+  endif()
 endfunction()
 
 # Compare a .TXT file from a test result with the truth file
 function(compare_test_result_txt testResult truthFile result)
 
   set(cmd "diff ${truthFile} ${testResult} > /dev/null")
-  execute_process(COMMAND ${cmd})
+  execute_process(COMMAND ${cmd} RESULT_VARIABLE code)
 
   set(result ON PARENT_SCOPE)
+  if("${code}" STREQUAL "0")
+    set(result OFF PARENT_SCOPE)
+  endif()
 endfunction()
 
 # Compare a .CSV file from a test result with the truth file
@@ -168,9 +228,12 @@ function(compare_test_result_csv testResult truthFile result)
 
   set(tempFile ${testResult}.DIFF)
   set(cmd "${CMAKE_SOURCE_DIR}/scripts/csvdiff.py ${truthFile} ${testResult} ${tempFile} >& /dev/null")
-  execute_process(COMMAND ${cmd})
+  execute_process(COMMAND ${cmd} RESULT_VARIABLE code)
 
   set(result ON PARENT_SCOPE)
+  if("${code}" STREQUAL "0")
+    set(result OFF PARENT_SCOPE)
+  endif()
 endfunction()
 
 # Compare a .PVL file from a test result with the truth file
@@ -178,9 +241,19 @@ function(compare_test_result_pvl testResult truthFile result)
 
   set(tempFile ${testResult}.DIFF)
   set(cmd "${CMAKE_BINARY_DIR}/src/pvldiff ${TSTARGS} from=${truthFile} from2=${testResult} to=compare.txt diff=${tempFile} 1>>/dev/null 2>pvldiffError.txt")
-  execute_process(COMMAND ${cmd})
+  execute_process(COMMAND ${cmd} RESULT_VARIABLE code)
 
+  # TODO: More detailed error reporting.
   set(result ON PARENT_SCOPE)
+  if("${code}" STREQUAL "0")
+    # A zero error code does not mean success, we still need to do a check.
+    set(cmd "${CMAKE_BINARY_DIR}/src/getkey from=compare.txt grp=Results keyword=Compare | tr '[:upper:]' '[:lower:]'")
+    execute_process(COMMAD ${cmd} RESULT_VARIABLE code)
+
+    if("${code}" STREQUAL "identical") # This code means a successful match
+      set(result OFF PARENT_SCOPE)
+    endif()
+  endif()
 endfunction()
 
 # Compare a .NET file from a test result with the truth file
@@ -188,9 +261,14 @@ function(compare_test_result_net testResult truthFile result)
 
   set(tempFile ${testResult}.DIFF)
   set(cmd "${CMAKE_BINARY_DIR}/src/cnetdiff ${TSTARGS} from=${truthFile} from2=${testResult} to=compare.txt diff=${tempFile} 1>>/dev/null 2>cnetdiffError.txt")
-  execute_process(COMMAND ${cmd})
+  execute_process(COMMAND ${cmd} RESULT_VARIABLE code)
 
+  # TODO: More detailed error reporting.
   set(result ON PARENT_SCOPE)
+  if("${code}" STREQUAL "0")
+    set(result OFF PARENT_SCOPE)
+  endif()
+
 endfunction()
 
 # Compare a test output to the corresponding truth file.
@@ -219,8 +297,10 @@ function(compare_test_result_file testResult truthFile result)
   elseif (${ext} STREQUAL ".net")
     compare_test_result_net(${testResult} ${truthFile} result)
   else()
-    # TODO: Use DIFF here?
-    message(FATAL_ERROR "No rule to check test results of type ${ext}")
+    # TODO: Explicitly check the binary extension list: jpg tif bin fits raw bmp png bc img imq
+    compare_test_result_txt(${testResult} ${truthFile} result)
+
+#    message(FATAL_ERROR "No rule to check test results of type ${ext}")
   endif()
 
   message("result = ${result}")
@@ -267,6 +347,6 @@ set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
 set(ENV{ISIS3DATA} "${DATA_ROOT}")
 message("IROOT = ${CMAKE_SOURCE_DIR}/../..")
 
-run_app_makefile_test(${MAKEFILE} ${INPUT_DIR} ${OUTPUT_DIR} ${TRUTH_DIR} ${BIN_DIR})
+run_app_makefile_test2(${MAKEFILE} ${INPUT_DIR} ${OUTPUT_DIR} ${TRUTH_DIR} ${BIN_DIR})
 
 

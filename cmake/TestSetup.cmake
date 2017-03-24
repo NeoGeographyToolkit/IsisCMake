@@ -29,7 +29,7 @@ endmacro()
 
 
 # Set up an app test
-macro(add_app_test_target testName makeFile inputDir outputDir truthDir)
+macro(add_makefile_test_target testName makeFile inputDir outputDir truthDir)
   #add_custom_target(${test_target}_runtest
   #                  COMMAND ${test_target} #cmake 2.6 required
   #                  DEPENDS ${test_target}
