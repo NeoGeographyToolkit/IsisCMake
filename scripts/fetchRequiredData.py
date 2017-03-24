@@ -358,6 +358,7 @@ messenger/kernels/pck/kernels.0002.db
 messenger/kernels/pck/kernels.0003.db
 messenger/kernels/pck/kernels.0004.db
 messenger/kernels/tspk/
+messenger/testData/EW0131770376G.equi.cub
 mgs/calibration
 mro/kernels/fk/
 mro/kernels/ik/
@@ -574,8 +575,8 @@ base/dems/
     dbList   = dbList.split()
 
     # TODO: Input argument
-    #installDir = '/home/smcmich1/release_isis/isis3data/'
-    installDir = '/Users/smcmich1/release_isis/isis3data/'
+    installDir = '/home/smcmich1/release_isis/isis3data/'
+    #installDir = '/Users/smcmich1/release_isis/isis3data/'
 
     cmd    = 'rsync -azv --delete --partial '
     remote = 'isisdist.astrogeology.usgs.gov::isis3data/data/'

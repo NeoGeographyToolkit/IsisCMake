@@ -79,23 +79,27 @@ function(add_makefile_test_folder folder prefix_name)
     set(inputDir  ${dataDir}/input)
     set(outputDir ${dataDir}/output) # TODO: Where to put this?
     set(truthDir  ${dataDir}/truth)
-    set(testName ${prefix_name}_test_${subName})
+    set(testName  ${prefix_name}_test_${subName})
+
     #message("dataDir = ${dataDir}")
     #message("makeFile = ${makeFile}")
     #message("testName = ${testName}")
  
-    # Some tests don't need an input folder but the others must exist   
-    if(NOT EXISTS ${makeFile})
-      message(FATAL_ERROR "Required file does not exist: ${makeFile}")
-    endif()
-    if(NOT EXISTS ${truthDir})
-      message(FATAL_ERROR "Required data folder does not exist: ${truthDir}")
-    endif()
+    ## Some tests don't need an input folder but the others must exist   
+    #if(NOT EXISTS ${makeFile})
+    #  message(FATAL_ERROR "Required file does not exist: ${makeFile}")
+    #endif()
+    #if(NOT EXISTS ${truthDir})
+    #  message(FATAL_ERROR "Required data folder does not exist: ${truthDir}")
+    #endif()
 
     #message( FATAL_ERROR "STOP." )
     add_makefile_test_target(${testName} ${makeFile} ${inputDir} ${outputDir} ${truthDir})
+    
+  endforeach()
 
-endfunction()
+endfunction(add_isis_app)
+
 
 #----------------------------------------------------
 # Set up the lone unit test in an obj folder
@@ -125,14 +129,13 @@ macro(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
   # Create the executable and link it to the module library
   #message("link to ${moduleName}")
   add_executable( ${executableName} ${testFile}  )
-  set(depLibs "${reqLibs};${matchedLibs}") # TODO: Check!
+  set(depLibs "${reqLibs};${matchedLibs}")
   #message("depLibs = ${depLibs}")
-  target_link_libraries(${executableName} ${moduleName} ${depLibs}) # TODO: Check!
-  #message( FATAL_ERROR "STOP." )
+  target_link_libraries(${executableName} ${moduleName} ${depLibs})
 
-  # TODO: Make test build/installion optional!
-  set(testFolder tests) # TODO: Where do the unit tests go??
-  install(TARGETS ${executableName} DESTINATION ${testFolder})
+  # TODO: Delete this code if not installing tests!
+  #set(testFolder tests)
+  #install(TARGETS ${executableName} DESTINATION ${testFolder})
 
   # Add this test to the unit test command
   add_unit_test_target(${executableName} ${truthFile})
@@ -363,7 +366,7 @@ function(add_isis_module name)
     foreach(val RANGE ${numTests})
       list(GET unitTestFiles ${val} testFile )
       list(GET truthFiles    ${val} truthFile)
-      #make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
+      make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
     endforeach()
 
   endif()
@@ -376,7 +379,7 @@ function(add_isis_module name)
   
   # Process the tests
   foreach(f ${tstFolders})
-    add_isis_module_test(${f} ${appName})
+    add_makefile_test_folder(${f} ${name})
   endforeach()  
   
 endfunction(add_isis_module)

@@ -20,6 +20,7 @@ set(XALAN   "${BIN_DIR}/Xalan")
 #set(LATEX   "${BIN_DIR}/latex") # MISSING
 #set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
 set(DOXYGEN "/home/smcmich1/doxygen-1.8.8/bin/doxygen")
+set(LATEX   "/usr/bin/latex") # MISSING
 # Also need the DOT tool for doxygen.
 
 #verify_file_exists(${XALAN})
@@ -105,7 +106,7 @@ else() # Linux
 
   set(QTLIBDIR ${LIB_DIR})
 
-  set(QTLIB    -lQtCore -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
+  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
 
   set(QT_DYNAMIC_LIBS)
   set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
@@ -300,13 +301,13 @@ verify_file_exists(${PROTOC})
 #  below (i.e., be sure to add -I, -L and -l to the variables for KAKADUINCDIR,
 #  KAKADULIBDIR and KAKADULIB, respectively).
 #---------------------------------------------------------------------------
-set(KAKADUINCDIR "${INCLUDE_DIR}/kakadu/v6_3-00967N")
-set(KAKADULIBDIR "${LIB_DIR}")
-set(KAKADULIB    "-lkdu_a63R")
-
+set(KAKADUINCDIR  "${INCLUDE_DIR}/kakadu/v6_3-00967N")
+set(KAKADULIBDIR  "${LIB_DIR}")
+set(KAKADULIB     "-lkdu_a63R")
+set(KAKADULIBFILE "${KAKADULIBDIR}/libkdu_a63R${SO}") 
 # Detect if Kakadu library is available
 set(JP2KFLAG "0")
-if(EXISTS "${KAKADUINCDIR}")
+if((EXISTS "${KAKADUINCDIR}") AND (EXISTS "${KAKADULIBFILE}"))
   set(JP2KFLAG "1")
 endif()
 
