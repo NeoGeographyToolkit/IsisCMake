@@ -5,6 +5,7 @@ def main():
     
     # Hardcoded list of downloadable files needed to run tests
     fileList = '''
+
 messenger/kernels/ck/msgr20111020.bc
 cassini/calibration/vims/RC19/solar-spectrum/
 base/templates/labels/
@@ -542,9 +543,38 @@ messenger/kernels/spk/msgr_20040803_20150328_od332sc_0.bsp
 messenger/kernels/spk/msgr_20040803_20150430_od431sc_2.bsp
 messenger/kernels/sclk/messenger_1930.tsc
 base/translations/pdsProjectionLineSampToXY.def
+dawn/kernels/fk/
+dawn/kernels/iak/
+dawn/kernels/ik/
+dawn/kernels/pck/
+dawn/kernels/sclk/
+dawn/kernels/tspk/
+mro/kernels/fk/
+mro/kernels/iak/
+mro/kernels/ik/
+mro/kernels/sclk/
+cassini/kernels/spk/050105RB_SCPSE_04247_04336.bsp
+newhorizons/kernels/fk/
+newhorizons/kernels/iak/
+newhorizons/kernels/ik/
+newhorizons/kernels/pck/
+newhorizons/kernels/sclk/
+newhorizons/kernels/spk/
+lro/kernels/ck/lrolc_2009243_2009274_v01.bc
+mro/kernels/spk/mro_psp8.bsp
+newhorizons/kernels/tspk/de413.bsp
+lro/kernels/ck/moc42r_2009243_2009274_v08.bc
+mro/kernels/ck/mro_sc_psp_080923_080929.bc
+newhorizons/kernels/tspk/jup260.bsp
+near/kernels/fk/
+newhorizons/kernels/ck/merged_nhpc_2007_v006.bc
 '''
 
     dbList = '''
+newhorizons/kernels/ck/
+near/kernels/ck/
+dawn/kernels/ck/
+dawn/kernels/pck/
 mro/kernels/
 messenger/kernels/
 messenger/kernels/spk/
@@ -575,8 +605,8 @@ base/dems/
     dbList   = dbList.split()
 
     # TODO: Input argument
-    installDir = '/home/smcmich1/release_isis/isis3data/'
-    #installDir = '/Users/smcmich1/release_isis/isis3data/'
+    #installDir = '/home/smcmich1/release_isis/isis3data/'
+    installDir = '/Users/smcmich1/release_isis/isis3data/'
 
     cmd    = 'rsync -azv --delete --partial '
     remote = 'isisdist.astrogeology.usgs.gov::isis3data/data/'
@@ -600,7 +630,7 @@ base/dems/
 
     # This is for folders where we want just the small files
     for f in dbList:
-        fullCmd = (cmd + remote + f+' --max-size=5m ' + installDir+f)
+        fullCmd = (cmd + remote + f+' --max-size=3m ' + installDir+f)
         print fullCmd
         os.system('mkdir -p '+ installDir +f)
         os.system(fullCmd)

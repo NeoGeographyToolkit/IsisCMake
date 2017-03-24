@@ -14,7 +14,7 @@ function(add_isis_app folder libDependencies)
   # - This deals with problems compiling same-named targets on case-insensitive machines.
   get_filename_component(appName ${folder}  NAME)
   set(internalAppName ${appName}_app)
-  message("Proccesing APP folder: ${folder}")
+  #message("Processing APP folder: ${folder}")
 
   # Find the source and header files
   file(GLOB headers "${folder}/*.h" "${folder}/*.hpp")
@@ -56,7 +56,7 @@ function(add_isis_app folder libDependencies)
   set(testFolder ${folder}/tsts)
   file(GLOB tests "${testFolder}/*")
   foreach(f ${tests})
-    add_makefile_test_folder(${f} ${appName})  
+    add_makefile_test_folder(${f} ${appName}_app)  
   endforeach()
 
 endfunction(add_isis_app)
@@ -95,10 +95,8 @@ function(add_makefile_test_folder folder prefix_name)
 
     #message( FATAL_ERROR "STOP." )
     add_makefile_test_target(${testName} ${makeFile} ${inputDir} ${outputDir} ${truthDir})
-    
-  endforeach()
 
-endfunction(add_isis_app)
+endfunction()
 
 
 #----------------------------------------------------
@@ -120,7 +118,7 @@ macro(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
   endforeach()
   #message("matchedLibs = ${matchedLibs}")
   # Generate a name for the executable  
-  set(executableName "test_${moduleName}_${filename}")
+  set(executableName "${moduleName}_unit_test_${filename}")
 
   #message("testfile = ${testFile}")
   #message("truthfile = ${truthFile}")
@@ -302,11 +300,11 @@ function(add_isis_module name)
 
     SUBDIRLIST(${objsDir} thisObjFolders)
     SUBDIRLIST(${appsDir} thisAppFolders)
-    #SUBDIRLIST(${tstsDir} thisTstFolders)
+    SUBDIRLIST(${tstsDir} thisTstFolders)
 
     set(objFolders ${objFolders} ${thisObjFolders})
     set(appFolders ${appFolders} ${thisAppFolders})
-    #set(tstFolders ${tstFolders} ${thisTstFolders})
+    set(tstFolders ${tstFolders} ${thisTstFolders})
 
   endforeach()
 
@@ -378,8 +376,10 @@ function(add_isis_module name)
   endforeach()
   
   # Process the tests
+  # - The test suite in qisis/SquishTests are not properly located or handled by this code!
+  message("testFolders = ${tstFolders}")
   foreach(f ${tstFolders})
-    add_makefile_test_folder(${f} ${name})
+    add_makefile_test_folder(${f} ${name}_module)
   endforeach()  
   
 endfunction(add_isis_module)

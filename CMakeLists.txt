@@ -209,7 +209,7 @@ endforeach()
 
 # Link to all application xmls from the bin/xml folder
 file(GLOB_RECURSE allXmls "${CMAKE_SOURCE_DIR}/src/*.xml")
-message("allXmls = ${allXmls}")
+#message("allXmls = ${allXmls}")
 foreach(xml ${allXmls})
   string(FIND ${xml} "/apps/" pos)
   if(NOT ${pos} EQUAL -1 )

@@ -490,7 +490,7 @@ function(build_docs)
   add_extra_tocs()
 
   message("Building object documentation")
-  build_object_docs()
+#  build_object_docs()
 
   message("Finished building object documentation!")
 
