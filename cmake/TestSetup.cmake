@@ -1,44 +1,47 @@
-
-# Tools to help set up the various ISIS tests.  
-# There are three test categories:
-# - Unit tests
-# - App tests
-# - Category tests
-
-# Set up the build target for each test type
-add_custom_target(run_unit_tests)
-add_custom_target(run_app_tests)
-add_custom_target(run_category_tests)
-
-# Set up a unit test
-macro(add_unit_test_target testFile truthFile)
-  
-  set(thisFolder "${PROJECT_SOURCE_DIR}/cmake")
-  set(fullTestPath "${CMAKE_BINARY_DIR}/src/${testFile}") # The binary that the script will execute
-
-  # Redirect the test and truth file through a CMake script to run the
-  #  test and check the outputs
-  set(testName ${testFile})
-  add_test(NAME ${testName} 
-           COMMAND ${CMAKE_COMMAND}
-           -DTEST_PROG=${fullTestPath}
-           -DTRUTH_FILE=${truthFile}
-           -DDATA_ROOT=$ENV{ISIS3DATA}
-           -P ${thisFolder}/RunUnitTest.cmake)
-endmacro()
+#============================================================
+# This file contains functions to help set tests.
+#============================================================
 
 
-# Set up an app test
+# Generate a test from a folder containing a Makefile and specific sub folders.
+# - These are used for application and module tests.
+function(add_makefile_test_folder folder prefix_name)
+
+    # For convenience, quietly ignore Makefiles that get passed in instead of folders.
+    get_filename_component(subName ${folder} NAME)
+    if("${subName}" STREQUAL "Makefile")
+      return()
+    endif()
+    
+    # Figure out the input, output, and truth paths
+    file(RELATIVE_PATH relPath ${CMAKE_SOURCE_DIR} ${folder})
+    set(dataDir   ${ISIS3TESTDATA}/${relPath})
+    set(inputDir  ${dataDir}/input)
+    set(outputDir ${dataDir}/output) # TODO: Where should this be placed?
+    set(truthDir  ${dataDir}/truth)
+    set(makeFile  ${folder}/Makefile)
+    
+    # Define the name CTest will use to refer to this test.
+    set(testName  ${prefix_name}_test_${subName})
+ 
+    ## Some tests don't need an input folder but the others must exist   
+    #if(NOT EXISTS ${makeFile})
+    #  message(FATAL_ERROR "Required file does not exist: ${makeFile}")
+    #endif()
+    #if(NOT EXISTS ${truthDir})
+    #  message(FATAL_ERROR "Required data folder does not exist: ${truthDir}")
+    #endif()
+
+    # Call lower level function to finish adding the test.
+    add_makefile_test_target(${testName} ${makeFile} ${inputDir} ${outputDir} ${truthDir})
+
+endfunction()
+
+
+# Add a Makefile based test to the CMake test list.
 macro(add_makefile_test_target testName makeFile inputDir outputDir truthDir)
-  #add_custom_target(${test_target}_runtest
-  #                  COMMAND ${test_target} #cmake 2.6 required
-  #                  DEPENDS ${test_target}
-  #                  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
-  #add_dependencies(run_unit_tests ${test_target}_runtest)
   
   set(thisFolder "${PROJECT_SOURCE_DIR}/cmake")
-
-  # TODO: Set things up so the tests are run by separate commands!!!!
 
   # Set up a cmake script which will execute the command in the makefile
   #  and then check the results against the truth folder.
@@ -55,3 +58,23 @@ macro(add_makefile_test_target testName makeFile inputDir outputDir truthDir)
            -P ${thisFolder}/RunMakeFileTest.cmake)
 
 endmacro()
+
+
+# Add a class based unit test with an executable and a truth file.
+macro(add_unit_test_target testFile truthFile)
+  
+  set(thisFolder "${PROJECT_SOURCE_DIR}/cmake")
+  set(fullTestPath "${CMAKE_BINARY_DIR}/src/${testFile}") # The binary that the script will execute
+
+  # Set up a cmake script which will run the executable
+  #  and then check the results against the truth file.
+  set(testName ${testFile})
+  add_test(NAME ${testName} 
+           COMMAND ${CMAKE_COMMAND}
+           -DTEST_PROG=${fullTestPath}
+           -DTRUTH_FILE=${truthFile}
+           -DDATA_ROOT=$ENV{ISIS3DATA}
+           -P ${thisFolder}/RunUnitTest.cmake)
+endmacro()
+
+

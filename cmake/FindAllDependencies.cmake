@@ -1,10 +1,10 @@
 #===============================================================================
-#        High level script to find all required 3rd party dependencies
-#
+# High level script to handle all required 3rd party dependencies
+# - All of them are expected to be in the 3rdParty folder, this script does not
+#   go looking for them if they are not?
 #===============================================================================
 
-
-# TODO: Indent all!
+# Specify top level directories
 
 set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
 
@@ -13,19 +13,16 @@ set(LIB_DIR     "${thirdPartyDir}/lib")
 set(PLUGIN_DIR  "${thirdPartyDir}/plugins")
 set(BIN_DIR     "${thirdPartyDir}/bin")
 
-# TODO: Any way to set this automatically?
-#set(ENV{LD_LIBRARY_PATH} ${LIB_DIR})
-
 set(XALAN   "${BIN_DIR}/Xalan")
 #set(LATEX   "${BIN_DIR}/latex") # MISSING
 #set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
-set(DOXYGEN "/home/smcmich1/doxygen-1.8.8/bin/doxygen")
+set(DOXYGEN "/home/smcmich1/doxygen-1.8.8/bin/doxygen") # TODO: 
 set(LATEX   "/usr/bin/latex") # MISSING
 # Also need the DOT tool for doxygen.
 
-#verify_file_exists(${XALAN})
-#verify_file_exists(${LATEX})
-#verify_file_exists(${DOXYGEN})
+verify_file_exists(${XALAN})
+verify_file_exists(${LATEX})
+verify_file_exists(${DOXYGEN})
 
 # Other packages that had to be installed:
 # libmng-dev
@@ -67,13 +64,10 @@ foreach(f ${qtIncludes})
   set(QTINCDIR ${QTINCDIR} ${qtDir}/${f}) 
 endforeach()
 
-# TODO: Update include paths for mac?
-
 # One set of libs is for link statements, the other is for installation.
 
 if(APPLE)
 
-  # TODO: Clean up by using this!
   set(QTLIBDIR ${LIB_DIR}/qt5)
 
   # Use find_library cmake function to find the QT frameworks
@@ -100,8 +94,6 @@ if(APPLE)
   
   set(QTLIBDIR ${QT_DYNAMIC_LIBS}) # The same in this case since frameworks are folders
 
-  #message("QTLIB = ${QTLIB}")
-
 else() # Linux
 
   set(QTLIBDIR ${LIB_DIR})
@@ -109,30 +101,30 @@ else() # Linux
   set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
 
   set(QT_DYNAMIC_LIBS)
-  set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
-                   ${LIB_DIR}/libQt5Core.so
-                   ${LIB_DIR}/libQt5DBus.so
-                   ${LIB_DIR}/libQt5Gui.so
-                   ${LIB_DIR}/libQt5Multimedia.so
-                   ${LIB_DIR}/libQt5MultimediaWidgets.so
-                   ${LIB_DIR}/libQt5Network.so
-                   ${LIB_DIR}/libQt5OpenGL.so
-                   ${LIB_DIR}/libQt5Positioning.so
-                   ${LIB_DIR}/libQt5PrintSupport.so
-                   ${LIB_DIR}/libQt5Qml.so
-                   ${LIB_DIR}/libQt5Quick.so
-                   ${LIB_DIR}/libQt5Sensors.so
-                   ${LIB_DIR}/libQt5Sql.so
-                   ${LIB_DIR}/libQt5Svg.so
-                   ${LIB_DIR}/libQt5Test.so
-                   ${LIB_DIR}/libQt5WebChannel.so
-                   ${LIB_DIR}/libQt5WebEngineCore.so
-                   ${LIB_DIR}/libQt5WebEngine.so
-                   ${LIB_DIR}/libQt5WebEngineWidgets.so
-                   ${LIB_DIR}/libQt5Widgets.so
-                   ${LIB_DIR}/libQt5XcbQpa.so
-                   ${LIB_DIR}/libQt5Xml.so
-                   ${LIB_DIR}/libQt5XmlPatterns.so)
+  set(QT_DYNAMIC_IN  ${QTLIBDIR}/libQt5Concurrent.so
+                   ${QTLIBDIR}/libQt5Core.so
+                   ${QTLIBDIR}/libQt5DBus.so
+                   ${QTLIBDIR}/libQt5Gui.so
+                   ${QTLIBDIR}/libQt5Multimedia.so
+                   ${QTLIBDIR}/libQt5MultimediaWidgets.so
+                   ${QTLIBDIR}/libQt5Network.so
+                   ${QTLIBDIR}/libQt5OpenGL.so
+                   ${QTLIBDIR}/libQt5Positioning.so
+                   ${QTLIBDIR}/libQt5PrintSupport.so
+                   ${QTLIBDIR}/libQt5Qml.so
+                   ${QTLIBDIR}/libQt5Quick.so
+                   ${QTLIBDIR}/libQt5Sensors.so
+                   ${QTLIBDIR}/libQt5Sql.so
+                   ${QTLIBDIR}/libQt5Svg.so
+                   ${QTLIBDIR}/libQt5Test.so
+                   ${QTLIBDIR}/libQt5WebChannel.so
+                   ${QTLIBDIR}/libQt5WebEngineCore.so
+                   ${QTLIBDIR}/libQt5WebEngine.so
+                   ${QTLIBDIR}/libQt5WebEngineWidgets.so
+                   ${QTLIBDIR}/libQt5Widgets.so
+                   ${QTLIBDIR}/libQt5XcbQpa.so
+                   ${QTLIBDIR}/libQt5Xml.so
+                   ${QTLIBDIR}/libQt5XmlPatterns.so)
   foreach(f ${QT_DYNAMIC_IN})
     set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6.0)
   endforeach()
@@ -149,11 +141,6 @@ set(RCC "${BIN_DIR}/rcc")
 verify_file_exists(${UIC})
 verify_file_exists(${MOC})
 verify_file_exists(${RCC})
-
-# TODO: Is this required?  Looks like QT needs to be properly installed for this to work.
-#set(Qt5Widgets_DIR ${LIB_DIR}/cmake/Qt5Widgets)
-#message("Qt5Widgets_DIR = ${Qt5Widgets_DIR}")
-#find_package(Qt5Widgets)
 
 # Had to manually install required dependencies libsnappy-dev and libsrtp-dev
 
@@ -230,14 +217,7 @@ set(GEOSLIBDIR "${LIB_DIR}")
 set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
 
 #---------------------------------------------------------------------------
-# Set up for the GNU Scientific Library (GSL).  Note that this setup
-# suppports include patterns such as <gsl/gsl_errno.h>.  With this
-# format, any other include spec that points to the general include
-# directory, such as GEOS, will suffice.  Therefore, an explicit
-# include directive is ommitted but provided as an empty reference
-# in cases where it may be located elsewhere.  This also goes for the
-# library reference.
-#---------------------------------------------------------------------------
+# Set up for the GNU Scientific Library (GSL).  #---------------------------------------------------------------------------
 set(GSLINCDIR "${INCLUDE_DIR}")
 set(GSLLIBDIR "${LIB_DIR}")
 set(GSLLIB    "-lgsl -lgslcblas")
@@ -261,7 +241,7 @@ set(GMMINCDIR ${INCLUDE_DIR}/gmm  ${INCLUDE_DIR}/gmm/gmm-5.0  ${INCLUDE_DIR}/gmm
 set(GMMLIBDIR)
 set(GMMLIB)
 
-set(ISISCPPFLAGS ${ISISCPPFLAGS} -DGMM_USES_SUPERLU)
+set(thirdPartyCppFlags ${thirdPartyCppFlags} -DGMM_USES_SUPERLU)
 
 #---------------------------------------------------------------------------
 # Set up for SuperLU
@@ -293,13 +273,6 @@ verify_file_exists(${PROTOC})
 # should be set to true if you are building with the Kakadu library and
 # you want to use the JPEG2000 specific code in the ISIS3 system. Otherwise,
 # set the ENABLEJP2K flag to false.
-#
-#  Added abililty to automatically detect the existance of the Kakadu include
-#  directory.  One can set the environment variable JP2KFLAG with a 1 or 0
-#  depending upon need.  Developers can define appropriate enviroment variables
-#  for the complete JP2K environment.  Just redefine them based upon the usage
-#  below (i.e., be sure to add -I, -L and -l to the variables for KAKADUINCDIR,
-#  KAKADULIBDIR and KAKADULIB, respectively).
 #---------------------------------------------------------------------------
 set(KAKADUINCDIR  "${INCLUDE_DIR}/kakadu/v6_3-00967N")
 set(KAKADULIBDIR  "${LIB_DIR}")
@@ -311,7 +284,7 @@ if((EXISTS "${KAKADUINCDIR}") AND (EXISTS "${KAKADULIBFILE}"))
   set(JP2KFLAG "1")
 endif()
 
-set(ISISCPPFLAGS ${ISISCPPFLAGS} "-DENABLEJP2K=${JP2KFLAG}")
+set(thirdPartyCppFlags ${thirdPartyCppFlags} "-DENABLEJP2K=${JP2KFLAG}")
 
 #---------------------------------------------------------------------------
 # Set up for BOOST
@@ -319,6 +292,7 @@ set(ISISCPPFLAGS ${ISISCPPFLAGS} "-DENABLEJP2K=${JP2KFLAG}")
 set(BOOSTINCDIR ${INCLUDE_DIR}/boost  ${INCLUDE_DIR}/boost/boost1.59.0)
 #set(BOOSTLIBDIR ${LIB_DIR})
 set(BOOSTLIB    "")
+# TODO: Do we not need any of these?
 #BOOSTLIB    = 
 #BOOSTLIBDIR = -L$(ISIS3LOCAL)/lib
 #BOOSTLIB    = -lboost_date_time -lboost_filesystem -lboost_graph -lboost_math_c99f
@@ -348,17 +322,9 @@ set(HDF5LIB    -lhdf5 -lhdf5_hl -lhdf5_cpp -lhdf5_hl_cpp)
 
 #---------------------------------------------------------------------------
 # Set up for OpenCV libraries 
-#
-# Add the following line to your app's Makefile (see the NN notes)
-# $(OPENCVLIBS)
 #---------------------------------------------------------------------------
 set(OPENCVINCDIR "${INCLUDE_DIR}")
 set(OPENCVLIBDIR "${LIB_DIR}")
-#set(OPENCVLIB     -lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_features2d
-#                  -lopencv_flann -lopencv_gpu -lopencv_highgui -lopencv_imgproc
-#                  -lopencv_legacy -lopencv_ml -lopencv_nonfree -lopencv_objdetect
-#                  -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_ts
-#                  -lopencv_video -lopencv_videostab)
 set(OPENCVLIB     -lopencv_calib3d -lopencv_core -lopencv_features2d -lopencv_xfeatures2d
                   -lopencv_flann -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs 
                   -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching 
@@ -370,14 +336,6 @@ set(OPENCVLIB     -lopencv_calib3d -lopencv_core -lopencv_features2d -lopencv_xf
 
 #---------------------------------------------------------------------------
 # Set up for Natural Neigbor Library (NN)
-#
-# * Note that NNINCDIR is not added to ALLINCDIRS in isismake.os
-# * and NNLIB is not added to ALLLIBDIRS in isismake.os
-#
-# For now, if you want to use this library, modify your app's Makefile. 
-# Add an empty line after the last line in the Makefile, then add
-# $(NNLIB)
-# on a new line.
 #---------------------------------------------------------------------------
 set(NNINCDIR "${INCLUDE_DIR}/nn")
 set(NNLIBDIR ${LIB_DIR})

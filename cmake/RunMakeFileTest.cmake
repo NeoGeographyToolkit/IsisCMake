@@ -1,144 +1,19 @@
-# The purpose of this script is to read in one of the existing application 
-# tests defined in a MakeFile and then run the test without relying on any
+#============================================================================
+# Script to read in a MakeFile based test and run it without relying on any
 # of the old Makefile infrastructure.
-# - To avoid using this script, all of the old MakeFile tests would need to
-#   be converted into some other format.
-
-# TODO: Move some code out of this file?
+#============================================================================
 
 
-# Parse an app folder Makefile to generate and run a 
-# command line string for a test.
+# Function to run the test and check the results
 function(run_app_makefile_test makefile inputFolder outputFolder truthFolder binFolder)
 
-  #message("truth folder == ${truthFolder}")
-  get_filename_component(folder ${makeFile} DIRECTORY)
-  get_filename_component(appName ${folder} NAME)
-  message("appName = ${appName}")
-
-
-  # Read in the MakeFile
-  if(NOT EXISTS ${makefile})
-    message(FATAL_ERROR "App test MakeFile ${makefile} was not found!")
-  endif()
-  file(READ ${makefile} makefileContents)
-  
-  # Split out the command section
-  string(FIND "${makefileContents}" "commands:" commandLoc)
-  #message("commandLoc = ${commandLoc}")
-  
-  string(SUBSTRING "${makefileContents}" 0 ${commandLoc} definitions)
-  math(EXPR commandLoc "${commandLoc}+10")
-  string(SUBSTRING "${makefileContents}" ${commandLoc} -1 command)
-  
-  message("definitions = ${definitions}")
-  message("command = ${command}")
-  set(modCommand "${command}")
-
-  #message("modcommand = ${modCommand}")
-
-  # Parse out the name assignments
-  set(regexWord "[A-Za-z0-9 \\.-]+")
-  string(REGEX MATCHALL "${regexWord}=${regexWord}"
-       parsedDefinitions "${definitions}")
-  message("parsedDefinitions: ${parsedDefinitions}")
-  
-  # Add name assignments not specified in the file
-  list(APPEND parsedDefinitions "INPUT=${inputFolder}" "OUTPUT=${outputFolder}" "RM=rm" "CP=cp" "LS=ls" "MV=mv" "SED=sed")
-  
-  # TODO: Look out for weird tolerance variables.
-  #TSTARGS = -preference=${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences
-  
-  # Find/Replace all the word name assignments in the command.
-  foreach(pair ${parsedDefinitions})
-    string(REGEX MATCHALL "[^= ]+" parts "${pair}")
-    list(GET parts 0 name)
-    list(GET parts 1 value)
-
-    #message("parts: ${parts}")
-    #message("name = ${name}")
-    #message("value = ${value}")
-
-    # Handle specified tolerance parameters
-    # - These are just arguments specified in a roundabout method
-    
-    string(FIND "${name}" "TOLERANCE" tolPos)
-    if(${tolPos} EQUAL -1)
-      # Non-tolerance parameter
-      string(REPLACE "$(${name})" ${value} modCommand "${modCommand}")
-    else()
-      # Extract the file name this value applies to
-      string(REPLACE ".TOLERANCE" "" fileName ${name})
-      #message("filename = ${fileName}")
-      # Insert the tolerance argument
-      string(REPLACE ${fileName} "${fileName} tolerance=${value}" modCommand "${modCommand}")
-    endif()
-    
-  endforeach()
-
-  message("modCommand = ${modCommand}")
-  #message("binFolder = ${binFolder}")
-
-  # TODO: How much is needed?
-  # Do some string cleanup
-  #string(STRIP "${modCommand}" modCommand)                      # Clear leading whitespace
-  #string(REPLACE "\\" " "  modCommand "${modCommand}")          # Remove line continuation marks.
-  #string(REPLACE "\n" ""  modCommand "${modCommand}")           # Remove end-of-line characters.
-  string(REPLACE ">& /dev/null" ""  modCommand "${modCommand}") # Allow output to the log file.
-  string(REPLACE "> /dev/null" ""  modCommand "${modCommand}") 
-  #string(REGEX REPLACE "[ \t]+" " " modCommand "${modCommand}") # Replace whitespace with " ".
-  message("modCommand = ${modCommand}")
-
-  # TODO: Make path unique!
-
-  # Copy the finished command string to a shell file for execution
-  set(scriptPath "${binFolder}/tempScript.sh")
-  message("path = ${scriptPath}")
-  execute_process(COMMAND rm -rf ${scriptPath})
-  file(WRITE ${scriptPath}  "export PATH=${binFolder}:$PATH;\n") # Append the binary location to PATH
-  file(APPEND ${scriptPath} "export ISISROOT=$ENV{ISISROOT};\n")
-  file(APPEND ${scriptPath} "${modCommand}") 
-
-  # Execute the scrip we just generated
-  set(code "")
-  set(logFile ${binFolder}/${appName}_log.txt)
-  execute_process(COMMAND rm -rf ${outputFolder})
-  execute_process(COMMAND rm -f ${logFile})
-  execute_process(COMMAND mkdir -p ${outputFolder})
-  execute_process(COMMAND chmod +x ${scriptPath})
-  execute_process(COMMAND ${scriptPath}
-                  WORKING_DIRECTORY ${outputFolder} 
-                  OUTPUT_FILE ${logFile}
-                  ERROR_FILE ${logFile}
-                  OUTPUT_VARIABLE result
-                  RESULT_VARIABLE code)
-
-  if(result)
-    message("App test failed: ${result}, ${code}")
-  endif()
-
-  
-  # TODO: Handle TOLERANCE lines!
-  
-  message("Starting folder comparison...")
-  compare_folders(${truthFolder} ${outputFolder})
- 
-
-endfunction()
-
-
-
-
-
-function(run_app_makefile_test2 makefile inputFolder outputFolder truthFolder binFolder)
-
-  get_filename_component(folder ${makefile} DIRECTORY)
-  get_filename_component(testName ${folder} NAME)
-  get_filename_component(folder ${folder} DIRECTORY)
-  get_filename_component(folder ${folder} DIRECTORY)
-  get_filename_component(appName ${folder} NAME)
+  # Build the test name
+  get_filename_component(folder   ${makefile} DIRECTORY)
+  get_filename_component(testName ${folder}   NAME)
+  get_filename_component(folder   ${folder}   DIRECTORY)
+  get_filename_component(folder   ${folder}   DIRECTORY)
+  get_filename_component(appName  ${folder}   NAME)
   set(appName ${appName}_${testName})
-  message("appName = ${appName}")
 
   # Read in the MakeFile
   if(NOT EXISTS ${makefile})
@@ -146,11 +21,12 @@ function(run_app_makefile_test2 makefile inputFolder outputFolder truthFolder bi
   endif()
   file(READ ${makefile} makefileContents)
 
-  # Replace include line with short list of definitions
+  # Replace include line with a short list of definitions
   set(newDefinitions "INPUT=${inputFolder}\nOUTPUT=${outputFolder}\nRM=rm -f\nCP=cp\nLS=ls\nMV=mv\nSED=sed\nTAIL=tail\nECHO=echo\nCAT=cat\nLS=ls")
   string(REPLACE "include $(ISISROOT)/make/isismake.tsts" "${newDefinitions}" newFileContents "${makefileContents}")
 
-  string(REPLACE ">& /dev/null" ""  newFileContents "${newFileContents}") # Allow output to the log file.
+  # Remove the output suppressant so that the log contains more information
+  string(REPLACE ">& /dev/null" ""  newFileContents "${newFileContents}") 
   string(REPLACE "> /dev/null" ""  newFileContents "${newFileContents}")
 
   # TODO: Handle tolerance lines!  
@@ -158,47 +34,43 @@ function(run_app_makefile_test2 makefile inputFolder outputFolder truthFolder bi
 
   # Copy the finished command string to a shell file for execution
   set(scriptPath "${binFolder}/newMakeFile")
-  message("path = ${scriptPath}")
   file(WRITE ${scriptPath} "${newFileContents}") 
 
+  # Set required environment variables
   set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
   set(ENV{ISIS3DATA} "${DATA_ROOT}")
   set(ENV{PATH} "${binFolder}:$ENV{PATH}")
 
-
-  # Execute the scrip we just generated
-  set(code "")
-  set(logFile "${binFolder}/${appName}.log")
+  # Select the log file
+  set(logFile "${binFolder}/${appName}.output")
   message("logFile = ${logFile}")
+
+  # Execute the Makefile we just generated
+  set(code "")
   execute_process(COMMAND rm -rf ${outputFolder})
   execute_process(COMMAND rm -f ${logFile})
   execute_process(COMMAND mkdir -p ${outputFolder})
-  #execute_process(COMMAND chmod +x ${scriptPath})
   execute_process(COMMAND make -f "${scriptPath}"
                   WORKING_DIRECTORY ${outputFolder} 
                   OUTPUT_FILE ${logFile}
                   ERROR_FILE ${logFile}
                   OUTPUT_VARIABLE result
                   RESULT_VARIABLE code)
-
   if(result)
-    message("App test failed: ${result}, ${code}")
+    message("Makefile test failed: ${result}, ${code}")
   endif()
 
-  message("Starting folder comparison...")
+  # Now verify the results
   compare_folders(${truthFolder} ${outputFolder})
   
 endfunction()
 
 
 
-
-
-
 # Compare a .CUB file from a test result with the truth file
 function(compare_test_result_cub testResult truthFile result)
 
-  set(tempFile ${testResult}.DIFF)
+  # Execute the cubediff script
   set(cmd "${CMAKE_BINARY_DIR}/src/cubediff ${TSTARGS} from=${truthFile} from2=${testResult} to=compare.txt 1>>/dev/null 2>cubediffError.txt")
   execute_process(COMMAND ${cmd} RESULT_VARIABLE code)
 
@@ -275,8 +147,6 @@ endfunction()
 # - Each type of file has a different comparison method.
 function(compare_test_result_file testResult truthFile result)
 
-  # TODO: Common comparison tasks.
-
   # TODO: SHARE THIS!
   message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
   set(TSTARGS "-preference=${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences")
@@ -284,7 +154,6 @@ function(compare_test_result_file testResult truthFile result)
   # Redirect to the type specific comparison via the extension
   string(FIND ${truthFile} "." pos REVERSE)
   string(SUBSTRING ${truthFile} ${pos} -1 ext)
-  message("Read extension: ${ext}")  
 
   if (${ext} STREQUAL ".cub")
     compare_test_result_cub(${testResult} ${truthFile} result)
@@ -318,9 +187,9 @@ function(compare_folders truthFolder outputFolder)
 
   # Get a list of all files in the truth folder
   file(GLOB truthFiles "${truthFolder}/*")
+  
   # Compare the contents of each truth file to the associated output file
   foreach(f ${truthFiles})
-    message("comparing truth filename = ${f}")
     get_filename_component(name ${f} NAME)
     set(testFile ${outputFolder}/${name})
     if(NOT EXISTS ${testFile})
@@ -336,17 +205,11 @@ endfunction()
 # This is the main script that gets run during the test.
 # - Just redirect to the main function call.
 
-#message("makefile = ${MAKEFILE}")
-#message("input dir = ${INPUT_DIR}")
-#message("output dir  = ${OUTPUT_DIR}")
-#message("truth dir  = ${TRUTH_DIR}")
-#message("bin dir  = ${BIN_DIR}")
-
+# TODO: Check these work from other build folders
 # Needed for IsisPreferences and other test data to be found
 set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
 set(ENV{ISIS3DATA} "${DATA_ROOT}")
-message("IROOT = ${CMAKE_SOURCE_DIR}/../..")
 
-run_app_makefile_test2(${MAKEFILE} ${INPUT_DIR} ${OUTPUT_DIR} ${TRUTH_DIR} ${BIN_DIR})
+run_app_makefile_test(${MAKEFILE} ${INPUT_DIR} ${OUTPUT_DIR} ${TRUTH_DIR} ${BIN_DIR})
 
 

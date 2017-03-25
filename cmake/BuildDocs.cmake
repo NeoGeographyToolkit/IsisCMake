@@ -1,5 +1,12 @@
+#==============================================================================
+# File for building the ISIS documentation.
+# - This is one of the most complicated parts of the build system!
+#   It makes heavy use of the Xalan XML tool and also requires Latex and Doxygen.
+# - This file is called as a stand-alone script when "make docs" is executed.
+#==============================================================================
 
-cmake_minimum_required(VERSION 3.1)
+
+cmake_minimum_required(VERSION 3.3)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -15,7 +22,9 @@ set(XALAN_XSL_OPTION      ""  )
 # TODO: How should this be set?
 set(MODE "")
 
-#------------------------------------------------------------
+
+#------------------------------------------------------------------------
+
 
 # Populate application doc files into "isis/doc/Application/presentation"
 function(copy_app_docs_info)
@@ -49,14 +58,15 @@ function(copy_app_docs_info)
 
   endforeach() # End loop through modules
 
-endfunction()
+endfunction(copy_app_docs_info)
 
-#------------------------------------------------------------
+
+
+
 
 # Build the top level of the documents directory
 function(build_upper_level)
 
-  # TODO: Why not there??
   # Copy existing folders to the install directory
   copy_folder(${docBuildFolder}/assets ${docInstallFolder})
   copy_folder(${docBuildFolder}/w3c    ${docInstallFolder})
@@ -71,9 +81,11 @@ function(build_upper_level)
 
   # Create index.html file
   execute_process(COMMAND ${XALAN} ${XALAN_VALIDATE_OPTION} ${XALAN_PARAM_OPTION} menuPath \"\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/index.html ${XALAN_INFILE_OPTION} ${docBuildFolder}/build/homepage.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/main.xsl)
-endfunction()
 
-#------------------------------------------------------------
+endfunction(build_upper_level)
+
+
+
 
 
 # Build src/docsys/documents folder.
@@ -96,10 +108,10 @@ function(build_documents_folder)
   foreach(f ${docFolders})
     # Each folder in documents gets a section added to doctoc
     get_filename_component(docName ${f} NAME_WE)
-    #message("Processing ${docName}")
+
     execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} dirParam \"${docName}\"  ${XALAN_INFILE_OPTION} ${f}/${docName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/IsisDocumentTOCbuild.xsl OUTPUT_VARIABLE result)
     file(APPEND ${doctocPath} ${result})
-    #message("result = ${result}")
+
   endforeach()
   cat(${docBuildFolder}/build/doctoc_footer.xml ${doctocPath})
 
@@ -125,16 +137,13 @@ function(build_documents_folder)
     #  to generate the output documentation files.
            
     set(xalanCommand ${XALAN} ${XALAN_PARAM_OPTION} menuPath "../../" ${XALAN_PARAM_OPTION} dirParam "'${docName}'" ${XALAN_OUTFILE_OPTION} ${f}/Makefile_temp ${XALAN_INFILE_OPTION} ${docName}.xml  ${XALAN_XSL_OPTION} ${modDocBuildXslFile})
-    #message("command = ${xalanCommand}")
     execute_process(COMMAND ${xalanCommand} WORKING_DIRECTORY ${f})
     
-    #message( FATAL_ERROR "STOP." )
     execute_process(COMMAND make -f Makefile_temp docs WORKING_DIRECTORY ${f})
-    execute_process(COMMAND rm -f ${f}/Makefile_temp)
+    execute_process(COMMAND rm -f ${f}/Makefile_temp) # Clean up
 
     # Copy all generated html files and any assets to the install folder
     file(GLOB htmlFiles ${f}/*.html)
-    #message("Copying: ${htmlFiles}")
     file(COPY ${htmlFiles} DESTINATION ${thisOutputFolder})
     if(EXISTS "${f}/assets")
       copy_folder(${f}/assets ${thisOutputFolder}/assets)
@@ -166,12 +175,11 @@ function(build_documents_folder)
   # USER DOCS TOC
   execute_process(COMMAND ${XALAN} ${XALAN_PARAM_OPTION} menuPath \"../\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/UserDocs/index.html    ${XALAN_INFILE_OPTION} ${doctocPath} ${XALAN_XSL_OPTION} ${docBuildFolder}/build/UserDocs.xsl)
 
-  #message( FATAL_ERROR "STOP." )
-
-endfunction()
+endfunction(build_documents_folder)
 
 
-#------------------------------------------------------------
+
+
 
 # Supporting files should already be in /src/docsys/Application
 function(build_application_docs)
@@ -206,7 +214,6 @@ function(build_application_docs)
     foreach(f ${appDataFolders})
 
       get_filename_component(appName ${f} NAME_WE)
-      #message("Processing application folder: ${appName}")
 
       # Get printer-friendly and tabbed output folders
       set(pfAppFolder ${installPrinterFolder}/${appName})
@@ -246,21 +253,21 @@ function(build_application_docs)
     foreach(f ${appDataFolders})
 
       get_filename_component(docName ${f} NAME_WE)
-      #message("Adding TOC for app ${docName}")
 
       # Use Xalan to generate a piece of the TOC and append it to the file
       execute_process(COMMAND ${XALAN} ${XALAN_INFILE_OPTION} ${f}/${moduleName}.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/Application/build/IsisApplicationTOCbuild.xsl  OUTPUT_VARIABLE result)
       file(APPEND ${appTocPath} ${result})
-      #message("result = ${result}")
     endforeach()
   endforeach()
+  
   # Append the footer to complete the TOC file!
   cat(${docBuildFolder}/Application/build/toc_footer.xml ${appTocPath})
 
-endfunction()
+endfunction(build_application_docs)
 
 
-#------------------------------------------------------------
+
+
 
 # Use the application TOC file to build some other TOCs
 function(add_extra_tocs)
@@ -281,9 +288,11 @@ function(add_extra_tocs)
   # Build applicationCategories.xml
   execute_process(COMMAND ${XALAN} ${XALAN_OUTFILE_OPTION} ${CMAKE_INSTALL_PREFIX}/bin/xml/applicationCategories.xml ${XALAN_INFILE_OPTION} ${docBuildFolder}/Schemas/Application/application.xsd ${XALAN_XSL_OPTION} ${buildFolder}/IsisApplicationCategoriesbuild.xsl)
 
-endfunction()
+endfunction(add_extra_tocs)
 
-#------------------------------------------------------------
+
+
+
 
 # Set up three Doxygen configuration files
 function(build_object_conf)
@@ -397,13 +406,13 @@ function(build_object_conf)
     file(APPEND ${developerConf} "${dirname} \\\n")
   endforeach()
 
-endfunction()
+endfunction(build_object_conf)
 
 
 
+
+# Build doxygen output for ISIS code 
 function(build_object_docs)
-
-  # TODO: Install doxygen and test!
 
   # Create app, developer, and programmer Doxygen configuration files.
   build_object_conf()
@@ -411,13 +420,11 @@ function(build_object_docs)
   # TODO: Do prog_tester conf here as well?
 
   set(objConfDir  ${docBuildFolder}/src/docsys/Object/build)
-  #set(objBuildDir ${docBuildFolder}/Object/build)
-  
-  message("Copying assets...")
+    
+  message("Copying object assets...")
   file(MAKE_DIRECTORY "${docInstallFolder}/Object")
   execute_process(COMMAND cp -r ${docBuildFolder}/Object/assets ${docInstallFolder}/Object/)
 
-  # TODO: Check no double assets folder?
 
   message("Creating Object Documentation")
   file(MAKE_DIRECTORY ${docInstallFolder}/Object/apps)
@@ -427,7 +434,7 @@ function(build_object_docs)
   copy_wildcard("${docBuildFolder}/Object/*.html" ${docInstallFolder}/Object/)
   #copy_file(${objBuildDir}/isisDoxyDefs.doxydef ${docInstallFolder}/documents/DocStyle/assets/isisDoxyDefs.doxydef)
 
-#message( FATAL_ERROR "STOP." )
+
   message("Building Apps documentation..")
   execute_process(COMMAND ${DOXYGEN} "${objConfDir}/apps_tag_temp.conf"
                   WORKING_DIRECTORY ${docBuildFolder}/src/docsys/Object/)
@@ -440,24 +447,25 @@ function(build_object_docs)
                   WORKING_DIRECTORY ${docBuildFolder}/src/docsys/Object/)
   message("Finished building Programmer documentation.")
 
-  # TODO: Make sure there are no Latex lib conflicts
   message("Building Developer documentation...")
   execute_process(COMMAND ${DOXYGEN} "${objConfDir}/Developer_temp.conf"
                   WORKING_DIRECTORY ${docBuildFolder}/src/docsys/Object/)
   message("Finished building Developer documentation.")
 
+endfunction(build_object_docs)
 
-endfunction()
 
-#------------------------------------------------------------
+
+
+
 # Build all the documentation
 function(build_docs)
 
   message("Building Isis Documentation...")
 
   # Set up output directory and a temporary directory for building
-  set(docBuildFolder   ${CMAKE_BINARY_DIR}/docBuild) #TODO: Is this needed???
-  set(appDataFolder    ${docBuildFolder}/Application/data) # TODO: What is this for?
+  set(docBuildFolder   ${CMAKE_BINARY_DIR}/docBuild)
+  set(appDataFolder    ${docBuildFolder}/Application/data)
   set(docInstallFolder ${CMAKE_INSTALL_PREFIX}/doc) # Final output documentation
 
   # Clean up existing files
@@ -489,12 +497,16 @@ function(build_docs)
   message("Building additional TOCs...")
   add_extra_tocs()
 
+  # This step requires Latex and Doxygen
   message("Building object documentation")
-#  build_object_docs()
+  build_object_docs()
 
   message("Finished building object documentation!")
 
-endfunction()
+endfunction(build_docs)
+
+
+
 
 # This file gets called as a script, so call this function to run
 #  all the code in the file.
