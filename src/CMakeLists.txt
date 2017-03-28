@@ -17,7 +17,7 @@ if (${buildMissions})
   add_isis_module(hayabusa hayabusa)
   add_isis_module(kaguya kaguya)
   add_isis_module(lo lo)
-  add_isis_module(local local)
+  add_isis_module(local local) # TODO: Make optional?
   add_isis_module(lro lro)
   add_isis_module(mariner mariner)
   add_isis_module(mer mer)
