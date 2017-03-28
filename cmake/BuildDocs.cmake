@@ -30,7 +30,7 @@ set(MODE "")
 function(copy_app_docs_info)
 
   # Go through all application folders, copy .xml and assets
-  SUBDIRLIST("${PROJECT_SOURCE_DIR}/src" moduleFolders)
+  get_subdirectory_list("${PROJECT_SOURCE_DIR}/src" moduleFolders)
   foreach(f ${moduleFolders})
     get_filename_component(moduleName ${f} NAME_WE)
 
@@ -41,7 +41,7 @@ function(copy_app_docs_info)
 
     file(MAKE_DIRECTORY ${appDataFolder}/${moduleName})
 
-    SUBDIRLIST(${f}/apps appFolders)
+    get_subdirectory_list(${f}/apps appFolders)
     foreach(appF ${appFolders})
       # Each app gets its own folder in the build directory
       get_filename_component(appName ${appF} NAME_WE)
@@ -95,7 +95,7 @@ function(build_documents_folder)
   message("    Building table of contents XML...")
 
   # Get list of folders of interest  
-  SUBDIRLIST(${docBuildFolder}/documents docFolders)
+  get_subdirectory_list(${docBuildFolder}/documents docFolders)
   set(blacklistFolders  ${docBuildFolder}/documents/ReleaseNotes # Folders we don't want
                         ${docBuildFolder}/documents/ParameterChanges 
                         ${docBuildFolder}/documents/ApiChanges)
@@ -204,13 +204,13 @@ function(build_application_docs)
   copy_wildcard("${tabbedStyleFolder}/*.css"  ${installTabbedFolder}/styles/ )
 
   # Loop through module folders
-  SUBDIRLIST(${appDataFolder} moduleFolders)
+  get_subdirectory_list(${appDataFolder} moduleFolders)
   foreach(mod ${moduleFolders})
 
     get_filename_component(moduleName ${mod} NAME_WE)
 
     # Loop through application folders
-    SUBDIRLIST(${mod} appDataFolders)
+    get_subdirectory_list(${mod} appDataFolders)
     foreach(f ${appDataFolders})
 
       get_filename_component(appName ${f} NAME_WE)
@@ -240,7 +240,7 @@ function(build_application_docs)
   set(appTocPath "${CMAKE_INSTALL_PREFIX}/bin/xml/applicationTOC.xml")
   file(REMOVE ${appTocPath})
   cat(${docBuildFolder}/Application/build/toc_header.xml ${appTocPath})
-  SUBDIRLIST(${appDataFolder} moduleFolders)
+  get_subdirectory_list(${appDataFolder} moduleFolders)
 
   # Loop through module folders
   foreach(mod ${moduleFolders})
@@ -249,7 +249,7 @@ function(build_application_docs)
     message("Looking at module ${moduleName}")
 
     # Loop through application folders
-    SUBDIRLIST(${mod} appDataFolders)
+    get_subdirectory_list(${mod} appDataFolders)
     foreach(f ${appDataFolders})
 
       get_filename_component(docName ${f} NAME_WE)
@@ -300,10 +300,10 @@ function(build_object_conf)
   message("Building apps configuration...")
 
   # Make a list of each object folder with an assets folder
-  SUBDIRLIST(moduleFolders ${PROJECT_SOURCE_DIR})
+  get_subdirectory_list(moduleFolders ${PROJECT_SOURCE_DIR})
   set(OBJECTASSETS)
   foreach(mod ${moduleFolders})
-    SUBDIRLIST(objFolders ${mod}/objs)
+    get_subdirectory_list(objFolders ${mod}/objs)
     foreach(obj ${objFolders})
       if(EXISTS ${obj}/assets)
         set(OBJECTASSETS ${OBJECTASSETS} ${obj}/assets)

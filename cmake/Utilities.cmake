@@ -46,7 +46,7 @@ endfunction()
 
 
 # Set result to a list of all the subdirectories in the given directory.
-function(SUBDIRLIST curdir result)
+function(get_subdirectory_list curdir result)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
   set(dirlist "")
   foreach(child ${children})
@@ -56,7 +56,7 @@ function(SUBDIRLIST curdir result)
       list(APPEND dirlist ${curdir}/${child})
     endif()
   endforeach()
-  set(${result} ${dirlist})
+  set(${result} ${dirlist} PARENT_SCOPE)
 endfunction()
 
 # Append the contents of IN_FILE to the end of OUT_FILE
@@ -72,15 +72,15 @@ function(cat inFile outFile)
   file(APPEND ${outFile} "${contents}")
 endfunction()
 
-#TODO: Clarify!!
-# Get the correct location to generate code for an input folder
-function(get_code_gen_dir inputFolder outputFolder)
+# Get the correct location to generate code for items in a given input folder
+# - Generated code includes uic, moc, and protobuf files.
+function(get_code_gen_dir inputFolder codeGenFolder)
   file(RELATIVE_PATH relPath ${PROJECT_SOURCE_DIR} ${inputFolder})
-  set(${outputFolder} "${PROJECT_BINARY_DIR}/${relPath}")
-  file(MAKE_DIRECTORY ${${outputFolder}})
+  set(${codeGenFolder} "${PROJECT_BINARY_DIR}/${relPath}" PARENT_SCOPE)
+  file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/${relPath}")
   
   # Also add this folder to the include path
-  include_directories(${${outputFolder}})
+  include_directories("${PROJECT_BINARY_DIR}/${relPath}")
 endfunction()
 
 # Determine the text string used to describe this OS version
@@ -146,7 +146,8 @@ function(add_library_wrapper name sourceFiles libDependencies)
   target_link_libraries(${name} ${libDependencies})
   install(TARGETS ${name} DESTINATION lib)
     
-  if(alsoStatic)
+  #if(alsoStatic)
+  if(OFF) # TODO TURN BACK ON!
     # The static version needs a different name, but in the end the file
     # needs to have the same name as the shared lib.
     set(staticName "${name}_static") 

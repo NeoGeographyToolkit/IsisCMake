@@ -62,22 +62,22 @@ set(BUILD_SHARED_LIBS ON)
 set(thirdPartyCppFlags -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 
 # Specify user options that can be passed in with the initial CMake command.
-option(isis3DataDir     "Directory containing Isis3Data"     OFF)
-option(isis3TestDataDir "Directory containing Isis3TestData" OFF)
-option(buildCore        "Build the core ISIS modules"        ON)
-option(buildMissions    "Build the mission specific modules" ON)
+option(isis3Data     "Directory containing Isis3Data"     "NA")
+option(isis3TestData "Directory containing Isis3TestData" "NA")
+option(buildCore     "Build the core ISIS modules"        ON)
+option(buildMissions "Build the mission specific modules" ON)
 
-if(NOT EXISTS ${isis3DataDir})
-  message(WARNING "Isis3Data directory not found, unit tests will fail.")
-else()
-  set(ENV{ISIS3DATA} "${isis3DataDir}")
+if(EXISTS ${isis3Data})
+  set(ENV{ISIS3DATA} "${isis3Data}")
   message("Using ISIS3DATA = $ENV{ISIS3DATA}")
-endif()
-if(NOT EXISTS ${isis3TestDataDir})
-  message(WARNING "Isis3TestData directory not found, application and module tests will fail.")
 else()
-  set(ENV{ISIS3TESTDATA} "${isis3TestDataDir}")
+  message(WARNING "Isis3Data directory ${isis3Data} not found, unit tests will fail.")
+endif()
+if(EXISTS ${isis3TestData})
+  set(ENV{ISIS3TESTDATA} "${isis3TestData}")
   message("Using ISIS3TESTDATA = $ENV{ISIS3TESTDATA}")
+else()
+  message(WARNING "Isis3TestData directory ${isis3TestData} not found, application and module tests will fail.")
 endif()
 
 # TODO: Set LD_LIBRARY_DIR also?
@@ -146,7 +146,7 @@ endif()
 
 # Create an xml folder in the source directory that we will need later
 set(sourceXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
-execute_process(COMMAND mkdir -p ${sourceXmlFolder})
+execute_process(COMMAND mkdir -p ${CMAKE_BINARY_DIR}/src/xml)
 
 ## TODO: Is this required????!?!?!?!
 ## Copy the template folder to the install folder.

@@ -34,5 +34,3 @@ if (${buildMissions})
   add_isis_module(viking viking)
   add_isis_module(voyager voyager)
 endif()
-
-# TODO: docsys

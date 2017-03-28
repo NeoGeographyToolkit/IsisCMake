@@ -21,8 +21,8 @@ set(LATEX   "/usr/bin/latex") # MISSING
 # Also need the DOT tool for doxygen.
 
 verify_file_exists(${XALAN})
-verify_file_exists(${LATEX})
-verify_file_exists(${DOXYGEN})
+#verify_file_exists(${LATEX})
+#verify_file_exists(${DOXYGEN})
 
 # Other packages that had to be installed:
 # libmng-dev

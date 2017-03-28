@@ -33,7 +33,9 @@ function(install_third_party_libs)
       #message("name = ${installLibFolder}/${relPath} target = ${link}")
       install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${link} ${installLibFolder}/${relPath})")
     endif()      
-	                                                
+
+  endforeach()
+                                                
 endfunction()
 
 
@@ -45,11 +47,11 @@ function(install_third_party_plugins)
   set(installPluginFolder "${CMAKE_INSTALL_PREFIX}/3rdParty/plugins")
 
   # Copy all of the plugin files
-	foreach(plugin ${THIRDPARTYPLUGINS})
-	  file(RELATIVE_PATH relPath "${thirdPartyDir}/plugins" ${plugin})
-	  get_filename_component(relPath ${relPath} DIRECTORY) # Strip filename
-	  INSTALL(FILES ${plugin} DESTINATION ${installPluginFolder}/${relPath})
-	endforeach()
+  foreach(plugin ${THIRDPARTYPLUGINS})
+    file(RELATIVE_PATH relPath "${thirdPartyDir}/plugins" ${plugin})
+    get_filename_component(relPath ${relPath} DIRECTORY) # Strip filename
+    INSTALL(FILES ${plugin} DESTINATION ${installPluginFolder}/${relPath})
+  endforeach()
 	
 endfunction()
 

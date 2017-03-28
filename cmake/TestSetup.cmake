@@ -15,7 +15,7 @@ function(add_makefile_test_folder folder prefix_name)
     
     # Figure out the input, output, and truth paths
     file(RELATIVE_PATH relPath ${CMAKE_SOURCE_DIR} ${folder})
-    set(dataDir   ${ISIS3TESTDATA}/${relPath})
+    set(dataDir   $ENV{ISIS3TESTDATA}/${relPath})
     set(inputDir  ${dataDir}/input)
     set(outputDir ${dataDir}/output) # TODO: Where should this be placed?
     set(truthDir  ${dataDir}/truth)

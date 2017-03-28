@@ -13,7 +13,7 @@ function( generate_ui_files uiGenOut folder)
   file(GLOB uiInput "${folder}/*.ui")
 
   # If no .ui files in this folder we are finished.
-  list(LENGTH UI_INPUT numFiles)
+  list(LENGTH uiInput numFiles)
   if (${numFiles} EQUAL 0)
     set(${uiGenOut} "" PARENT_SCOPE)
     return()
@@ -79,7 +79,7 @@ function( generate_moc_files mocGenOut folder)
     # Get the name of the file without extension
     get_filename_component(mocName ${mocFile} NAME_WE)
     
-    # Add the generated file to MOC_GEN variable
+    # Add the generated file to mocGen variable
     set(outMocFile "${mocGenDir}/moc_${mocName}.cpp")
     set(mocGen       ${mocGen} ${outMocFile})
 

@@ -23,9 +23,15 @@ function(add_isis_app folder libDependencies)
   install(FILES ${xmlFiles} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/xml")
   #file(COPY ${xmlFiles} DESTINATION ${CMAKE_SOURCE_DIR}/bin/xml)
   foreach(xml ${xmlFiles})
-    get_filename_component(name ${xml} NAME)
-    execute_process(COMMAND ln -s "${xml}" "${name}"
-                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/xml)
+    #get_filename_component(folder ${xml} DIRECTORY)
+    get_filename_component(name ${name} NAME)
+    #set(name isis3_unit_test_${name})
+    #message("xml = ${xml}")
+    #message("Install xml: ${CMAKE_SOURCE_DIR}/bin/xml/${name}")
+    if(NOT EXISTS ${CMAKE_SOURCE_DIR}/bin/xml/${name})
+      execute_process(COMMAND ln -s "${xml}" "${name}"
+                      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/xml)
+    endif()
   endforeach()
 
   # Generate required QT files
@@ -85,6 +91,17 @@ function(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
   add_executable( ${executableName} ${testFile}  )
   set(depLibs "${reqLibs};${matchedLibs}")
   target_link_libraries(${executableName} ${moduleName} ${depLibs})
+
+  # Create a link to the xml file needed for the unit test to run
+  if(EXISTS ${folder}/unitTest.xml)
+    set(linkName ${moduleName}_unit_test_${filename}.xml)
+    #message("folder = ${folder}")
+    #message("Link name = ${linkName}")
+    if(NOT EXISTS ${CMAKE_SOURCE_DIR}/bin/xml/${linkName})
+      execute_process(COMMAND ln -s "${folder}/unitTest.xml" "${linkName}"
+                      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/xml)
+    endif()
+  endif()
 
   # Call function to add the test
   add_unit_test_target(${executableName} ${truthFile})
@@ -213,9 +230,9 @@ function(add_isis_module name)
     set(tstsDir "${CMAKE_CURRENT_LIST_DIR}/${f}/tsts")
 
     # Start with the objs folder
-    SUBDIRLIST(${objsDir} thisObjFolders)
-    SUBDIRLIST(${appsDir} thisAppFolders)
-    SUBDIRLIST(${tstsDir} thisTstFolders)
+    get_subdirectory_list(${objsDir} thisObjFolders)
+    get_subdirectory_list(${appsDir} thisAppFolders)
+    get_subdirectory_list(${tstsDir} thisTstFolders)
 
     set(objFolders ${objFolders} ${thisObjFolders})
     set(appFolders ${appFolders} ${thisAppFolders})
@@ -281,7 +298,6 @@ function(add_isis_module name)
   
   # Process the tests
   # - The test suite in qisis/SquishTests are not properly located or handled by this code!
-  message("testFolders = ${tstFolders}")
   foreach(f ${tstFolders})
     add_makefile_test_folder(${f} ${name}_module)
   endforeach()  

@@ -50,6 +50,9 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   execute_process(COMMAND rm -rf ${outputFolder})
   execute_process(COMMAND rm -f ${logFile})
   execute_process(COMMAND mkdir -p ${outputFolder})
+  if(NOT EXISTS ${outputFolder})
+    message(FATAL_ERROR "Failed to create output folder: ${outputFolder}")
+  endif()
   execute_process(COMMAND make -f "${scriptPath}"
                   WORKING_DIRECTORY ${outputFolder} 
                   OUTPUT_FILE ${logFile}
