@@ -108,26 +108,41 @@ from the source directory (there should only be a couple folders) run "make clea
 
 # Build system details =======================================================
 
+# File listing ----------------------------------------------------------------
+
 The CMake build system consists of 15 files, each of which is described below.
 
 README.txt = This file!  Contains a description of the build system.
 
-CMakeLists.txt = 
+CMakeLists.txt = The top level build file.  Handles input options, defines project
+characteristics, sets up some required links, and calls all of the other required modules.
 
-src/CMakeLists.txt
+src/CMakeLists.txt = The lower level build file.  This defines which module folders
+are used to create libraries.  There is one core library and one library per mission
+directory.
 
-AddIsisModule.cmake
-FindAllDependencies.cmake
-RunUnitTest.cmake
-BuildDocs.cmake
-InstallThirdParty.cmake
-TestSetup.cmake
-CodeGeneration.cmake
-RunMakeFileTest.cmake
-Utilities.cmake
-fetchRequiredData.py
-finalizeInstalledOsxRpaths.py
-IsisInlineDocumentBuild_mod.xsl
+In the /cmake folder:
+
+AddIsisModule.cmake       = Functions for parsing a module folder and adding all 
+                            of the components to the build.
+BuildDocs.cmake           = This file handles tho documentation production.
+CodeGeneration.cmake      = Functions for generating moc, uic, and protobuf files.
+FindAllDependencies.cmake = Identify all of the required 3rd party libraries.
+InstallThirdParty.cmake   = Handle transfer of 3rd party libraries to the install folder.
+RunMakeFileTest.cmake     = Script that is called to execute an app or module (Makefile based) test.
+RunUnitTest.cmake         = Script that is called to execute a unit test.
+TestSetup.cmake           = Helper functions for setting up tests.
+Utilities.cmake           = Miscellaneous functions used in the other files.
+
+In the /scripts folder:
+
+fetchRequiredData.py            = Script for fetching a subset of the ISIS mission 
+                                  data for the purpose of running unit tests.  
+                                  TODO: Remove from final version.
+finalizeInstalledOsxRpaths.py   = Script to correct the RPaths of OSX libraries 
+                                  after they are installed.
+IsisInlineDocumentBuild_mod.xsl = An old documentation build file modified for 
+                                  use by the CMake build system.
 
 
 
