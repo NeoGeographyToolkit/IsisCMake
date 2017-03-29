@@ -92,16 +92,16 @@ function(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
   set(depLibs "${reqLibs};${matchedLibs}")
   target_link_libraries(${executableName} ${moduleName} ${depLibs})
 
-  # Create a link to the xml file needed for the unit test to run
-  if(EXISTS ${folder}/unitTest.xml)
-    set(linkName ${moduleName}_unit_test_${filename}.xml)
-    #message("folder = ${folder}")
-    #message("Link name = ${linkName}")
-    if(NOT EXISTS ${CMAKE_SOURCE_DIR}/bin/xml/${linkName})
-      execute_process(COMMAND ln -s "${folder}/unitTest.xml" "${linkName}"
-                      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/xml)
-    endif()
-  endif()
+  ## Create a link to the xml file needed for the unit test to run
+  #if(EXISTS ${folder}/unitTest.xml)
+  #  set(linkName ${moduleName}_unit_test_${filename}.xml)
+  #  #message("folder = ${folder}")
+  #  #message("Link name = ${linkName}")
+  #  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/bin/xml/${linkName})
+  #    execute_process(COMMAND ln -s "${folder}/unitTest.xml" "${linkName}"
+  #                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/xml)
+  #  endif()
+  #endif()
 
   # Call function to add the test
   add_unit_test_target(${executableName} ${truthFile})

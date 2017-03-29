@@ -20,8 +20,20 @@ file(REMOVE ${outputFile}) # Make sure no old file exists
 #  so that they can find input data files.
 get_filename_component(truthFolder ${TRUTH_FILE} DIRECTORY)
 
+# Test programs also need to be run with the EXACT name "unitTest",
+#  otherwise a GUI will pop up and ruin the test.
+get_filename_component(binFolder ${TEST_PROG} DIRECTORY)
+get_filename_component(binName   ${TEST_PROG} NAME)
+set(tempDir  ${binFolder}/${binName}_temp)
+set(tempLink ${tempDir}/unitTest)
+execute_process(COMMAND rm -rf ${tempDir})
+execute_process(COMMAND mkdir -p ${tempDir})
+execute_process(COMMAND ln -s ${TEST_PROG} ${tempLink})
+execute_process(COMMAND ln -s ${truthFolder}/unitTest.xml ${tempDir}/unitTest.xml)
+
 # Run the unit test executable and pipe the output to a text file.
-execute_process(COMMAND ${TEST_PROG}
+#execute_process(COMMAND ${TEST_PROG}
+execute_process(COMMAND ${tempLink}
                 WORKING_DIRECTORY ${truthFolder}
                 OUTPUT_FILE ${outputFile}
                 ERROR_FILE ${outputFile}
@@ -37,8 +49,9 @@ endif()
 set(comp1 ${outputFile})
 set(comp2 ${TRUTH_FILE})
 set(exclusionPath ${truthFolder}/unitTest.exclude)
-message("exclusionPath = ${exclusionPath}")
 if(EXISTS ${exclusionPath})
+  set(comp1 ${tempDir}/output_exclude.txt)
+  set(comp2 ${tempDir}/truth_exclude.txt)
   # This throws out all lines containing a word from the exclusion file.
   execute_process(COMMAND cat ${outputFile} | grep -v -f ${exclusionPath}
                   OUTPUT_FILE ${comp1})
@@ -57,12 +70,6 @@ else()
   file(REMOVE ${outputFile}) # On success, clean out the result file.
 endif()
 
-if(EXISTS ${exclusionPath})
-  # Clean up temporary files if we created them
-  file(REMOVE ${comp1})
-  file(REMOVE ${comp2})
-endif()
-
-
-
+# Clean up our temporary folder
+execute_process(COMMAND rm -f ${tempDir})
 

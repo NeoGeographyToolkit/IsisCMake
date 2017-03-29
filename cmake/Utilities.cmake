@@ -68,7 +68,7 @@ function(cat inFile outFile)
   endif()
 
   # Perform the file concatenation.
-  file(READ ${inFile} contens)
+  file(READ ${inFile} contents)
   file(APPEND ${outFile} "${contents}")
 endfunction()
 

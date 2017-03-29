@@ -5,7 +5,10 @@ def main():
     
     # Hardcoded list of downloadable files needed to run tests
     fileList = '''
-
+cassini/testData/CM_1540484927_1_001.ir.cub
+mer/testData/mer.img
+mer/testData/mer.lab
+galileo/testData/1213r.img
 messenger/kernels/ck/msgr20111020.bc
 cassini/calibration/vims/RC19/solar-spectrum/
 base/templates/labels/
@@ -599,14 +602,15 @@ lro/kernels/
 messenger/calibration/
 newhorizons/kernels/
 base/dems/
+base/translations/
 '''
 
     fileList = fileList.split()
     dbList   = dbList.split()
 
     # TODO: Input argument
-    #installDir = '/home/smcmich1/release_isis/isis3data/'
-    installDir = '/Users/smcmich1/release_isis/isis3data/'
+    installDir = '/home/smcmich1/release_isis/isis3data/'
+    #installDir = '/Users/smcmich1/release_isis/isis3data/'
 
     cmd    = 'rsync -azv --delete --partial '
     remote = 'isisdist.astrogeology.usgs.gov::isis3data/data/'
