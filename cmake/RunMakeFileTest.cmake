@@ -8,12 +8,21 @@
 function(run_app_makefile_test makefile inputFolder outputFolder truthFolder binFolder)
 
   # Build the test name
-  get_filename_component(folder   ${makefile} DIRECTORY)
-  get_filename_component(testName ${folder}   NAME)
-  get_filename_component(folder   ${folder}   DIRECTORY)
-  get_filename_component(folder   ${folder}   DIRECTORY)
-  get_filename_component(appName  ${folder}   NAME)
+  get_filename_component(sourceFolder ${makefile}     DIRECTORY)
+  get_filename_component(testName     ${sourceFolder} NAME)
+  get_filename_component(folder       ${sourceFolder} DIRECTORY)
+  get_filename_component(folder       ${folder}       DIRECTORY)
+  get_filename_component(appName      ${folder}       NAME)
   set(appName ${appName}_${testName})
+
+  # Check if there are copies of the input/truth folders in the source folder,
+  #  if so use those instead of the original location.
+  if(EXISTS ${sourceFolder}/input)
+    set(inputFolder ${sourceFolder}/input)
+  endif()
+  if(EXISTS ${sourceFolder}/truth)
+    set(truthFolder ${sourceFolder}/truth)
+  endif()
 
   # Read in the MakeFile
   if(NOT EXISTS ${makefile})

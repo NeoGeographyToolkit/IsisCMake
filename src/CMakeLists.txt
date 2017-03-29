@@ -5,6 +5,15 @@
 
 if (${buildCore})
   add_isis_module(${CORE_LIB_NAME} base database control qisis system)
+
+  # This folder is for under-development test code so if it is
+  #  missing just ignore it.
+  # - TODO: The install behavior should be disabled for this folder!
+  if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/local)
+    message("Detected optional directory 'local'")
+    add_isis_module(local local)
+  endif()
+
 endif()
 
 if (${buildMissions})
@@ -17,7 +26,6 @@ if (${buildMissions})
   add_isis_module(hayabusa hayabusa)
   add_isis_module(kaguya kaguya)
   add_isis_module(lo lo)
-  add_isis_module(local local) # TODO: Make optional?
   add_isis_module(lro lro)
   add_isis_module(mariner mariner)
   add_isis_module(mer mer)

@@ -17,10 +17,13 @@ function(add_makefile_test_folder folder prefix_name)
     file(RELATIVE_PATH relPath ${CMAKE_SOURCE_DIR} ${folder})
     set(dataDir   $ENV{ISIS3TESTDATA}/${relPath})
     set(inputDir  ${dataDir}/input)
-    set(outputDir ${dataDir}/output) # TODO: Where should this be placed?
     set(truthDir  ${dataDir}/truth)
     set(makeFile  ${folder}/Makefile)
-    
+
+    # TODO: Improve variable name (from top level file)
+    # The output folder may be in a different directory
+    set(outputDir ${testOutputDir}/${relPath}/output)
+   
     # Define the name CTest will use to refer to this test.
     set(testName  ${prefix_name}_test_${subName})
  

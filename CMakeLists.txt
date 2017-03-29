@@ -64,6 +64,7 @@ set(thirdPartyCppFlags -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 # Specify user options that can be passed in with the initial CMake command.
 option(isis3Data     "Directory containing Isis3Data"     "NA")
 option(isis3TestData "Directory containing Isis3TestData" "NA")
+option(testOutputDir "Directory to store app test output folders" "NA")
 option(buildCore     "Build the core ISIS modules"        ON)
 option(buildMissions "Build the mission specific modules" ON)
 
@@ -78,6 +79,14 @@ if(EXISTS ${isis3TestData})
   message("Using ISIS3TESTDATA = $ENV{ISIS3TESTDATA}")
 else()
   message(WARNING "Isis3TestData directory ${isis3TestData} not found, application and module tests will fail.")
+endif()
+if(${testOutputDir} STREQUAL "NA")
+  # User did not specify the test directory, default to the test input folder.
+  message(WARNING "Test output directory not specified, setting it to ${isis3TestData}.")
+else()
+  # User specified a test output folder, make sure it exists.
+  message("Writing test data folders to = ${testOutputDir}")
+  execute_process(COMMAND mkdir -p ${testOutputDir})
 endif()
 
 # TODO: Set LD_LIBRARY_DIR also?
