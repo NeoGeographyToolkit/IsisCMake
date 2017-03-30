@@ -5,7 +5,7 @@
 just the references to them.
 '''
 
-import os, sys, subprocess
+import os, sys, subprocess, stat
 
 def fixOneFile(inputPath, resetRpath):
     '''Correct a single file'''
@@ -34,8 +34,17 @@ def fixOneFile(inputPath, resetRpath):
             continue
 
         # Trim off just the library name and prepend @rpath
-        pos     = line.rfind('/')
-        end     = line[pos:]
+        #print line
+        if 'framework' in line: # Need whole framework part
+            posF = line.rfind('framework')
+            pos  = line.rfind('/', 0, posF)
+        else: # Simple case
+            pos = line.rfind('/')
+        end = line[pos:]
+
+        #print 'CROPPED: ' + end
+        #continue
+
         newPath = '@rpath' + end
 
         if newPath == line: # Skip already correct lines
@@ -80,10 +89,16 @@ def main():
     # Fix all of the .dylib files in the given folder
     files = os.listdir(inputFolder)
     for f in files:
-        if '.dylib' in f:
-            numUpdates = fixOneFile(os.path.join(inputFolder, f), resetRpath)
-            print f + ' --> ' + str(numUpdates) + ' changes made.' 
-            #raise Exception('DEBUG')
+
+      fullPath = os.path.join(inputFolder, f)
+ 
+      isBinary = (os.path.isfile(fullPath) and (stat.S_IXUSR & os.stat(fullPath)[stat.ST_MODE]))
+      isLib    = ('.dylib' in f)
+  
+      if isBinary or isLib:
+          numUpdates = fixOneFile(fullPath, resetRpath)
+          print f + ' --> ' + str(numUpdates) + ' changes made.' 
+          #raise Exception('DEBUG')
     
 
 # Execute main() when called from command line

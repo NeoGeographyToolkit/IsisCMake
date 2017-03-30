@@ -52,7 +52,7 @@ macro(add_makefile_test_target testName makeFile inputDir outputDir truthDir)
            COMMAND ${CMAKE_COMMAND}
            -DMAKEFILE=${makeFile}
            -DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}
-           -DCMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
+           -DCODE_ROOT=${PROJECT_SOURCE_DIR}
            -DDATA_ROOT=$ENV{ISIS3DATA}
            -DINPUT_DIR=${inputDir}
            -DOUTPUT_DIR=${outputDir}
@@ -77,6 +77,7 @@ macro(add_unit_test_target testFile truthFile)
            -DTEST_PROG=${fullTestPath}
            -DTRUTH_FILE=${truthFile}
            -DDATA_ROOT=$ENV{ISIS3DATA}
+           -DCODE_ROOT=${PROJECT_SOURCE_DIR}
            -P ${thisFolder}/RunUnitTest.cmake)
 endmacro()
 

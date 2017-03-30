@@ -112,18 +112,16 @@ link_directories(${ALLLIBDIRS})
 
 set(CORE_LIB_NAME isis3)
 
-# TODO: Do we need these?
-#set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
-#set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
 
 # Specify relative library include paths which will be set up on
 #  the installed files.
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../3rdParty/lib")
+if(APPLE)
+  set(CMAKE_INSTALL_RPATH "@loader_path/../lib;@loader_path/../3rdParty/lib")
+else()
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../3rdParty/lib")
+endif()
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
-# TODO: Do we need these?
-#set(THIRD_PARTY_LIB_DIR    "${CMAKE_SOURCE_DIR}/3rdParty/lib")
-#set(THIRD_PARTY_PLUGIN_DIR "${CMAKE_SOURCE_DIR}/3rdParty/plugins")
 
 # Append CPP flags set in the third party lib file to the string set in this file.
 string(REPLACE ";" " " FLAGS_STR "${thirdPartyCppFlags}")

@@ -4,9 +4,8 @@
 #============================================================================
 
 cmake_minimum_required(VERSION 3.3)
-#message("source dir = ${CMAKE_SOURCE_DIR}")
-list(APPEND CMAKE_MODULE_PATH "$ENV{ISISROOT}/cmake")
-list(APPEND CMAKE_PREFIX_PATH "$ENV{ISISROOT}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CODE_ROOT}/cmake")
+list(APPEND CMAKE_PREFIX_PATH "${CODE_ROOT}/cmake")
 include(Utilities)
 
 # Function to run the test and check the results
@@ -43,7 +42,6 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   string(REPLACE ">& /dev/null" ""  newFileContents "${newFileContents}") 
   string(REPLACE "> /dev/null" ""  newFileContents "${newFileContents}")
 
-  # TODO: Handle tolerance lines!  
   # TODO: Make path unique!
 
   # Copy the finished command string to a shell file for execution
@@ -51,8 +49,6 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   file(WRITE ${scriptPath} "${newFileContents}") 
 
   # Set required environment variables
-  set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
-  set(ENV{ISIS3DATA} "${DATA_ROOT}")
   set(ENV{PATH} "${binFolder}:$ENV{PATH}")
 
   # Select the log file
@@ -210,6 +206,7 @@ function(compare_test_result_pvl testResult truthFile result)
       set(result OFF PARENT_SCOPE)
     endif()
   endif()
+  file(REMOVE ${OUTPUT_DIR}/compare.txt ${OUTPUT_DIR}/pvldiffOut.txt ${OUTPUT_DIR}/pvldiffError.txt)
 endfunction()
 
 # Compare a .NET file from a test result with the truth file
@@ -233,6 +230,7 @@ function(compare_test_result_net testResult truthFile result)
       set(result OFF PARENT_SCOPE)
    endif()
   endif()
+  file(REMOVE ${OUTPUT_DIR}/compare.txt ${OUTPUT_DIR}/cnetdiffError.txt)
 endfunction()
 
 # Compare a test output to the corresponding truth file.
@@ -313,10 +311,10 @@ endfunction()
 
 # TODO: Check these work from other build folders
 # Needed for IsisPreferences and other test data to be found
-set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
+set(ENV{ISISROOT} "${CODE_ROOT}")
 set(ENV{ISIS3DATA} "${DATA_ROOT}")
 
-message("source dir = ${CMAKE_SOURCE_DIR}")
+message("ISISROOT = $ENV{ISISROOT}")
 
 run_app_makefile_test(${MAKEFILE} ${INPUT_DIR} ${OUTPUT_DIR} ${TRUTH_DIR} ${BIN_DIR})
 

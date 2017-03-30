@@ -3,10 +3,9 @@
 # - This replaces the ISIS UnitTester script.
 #=========================================================================
 
-# TODO: Do these need to be passed in?
 # Multiple ISIS files need to find things relative to ISISROOT
 #  and ISIS3DATA so make sure those are set.
-set(ENV{ISISROOT} "${CMAKE_SOURCE_DIR}/../..")
+set(ENV{ISISROOT} "${CODE_ROOT}")
 set(ENV{ISIS3DATA} "${DATA_ROOT}")
 message("ISISROOT = $ENV{ISISROOT}")
 message("ISIS3DATA = $ENV{ISIS3DATA}")

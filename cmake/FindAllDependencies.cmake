@@ -156,10 +156,14 @@ if(APPLE)
   # Use dedicated cmake code to find the QT frameworks
   find_library(frameQwt Qwt PATHS ${QWTLIBDIR})
   set(QWTLIB ${frameQwt})
+
+  set(QWT_DYNAMIC_LIBS ${QWTLIBDIR}/qwt.framework)
+
 else()
   
   set(QWTLIBDIR "${LIB_DIR}")
   set(QWTLIB    "-lqwt")
+  set(QWT_DYNAMIC_LIBS ${LIB_DIR}/libqwt.so ${LIB_DIR}/libqwt.so.6 ${LIB_DIR}/libqwt.so.6.1 ${LIB_DIR}/libqwt.so.6.12)
 endif()
 
 
@@ -375,7 +379,7 @@ endforeach()
 
 
 
-set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${QT_DYNAMIC_LIBS})
+set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${QT_DYNAMIC_LIBS} ${QWT_DYNAMIC_LIBS})
 
 # TODO: Check on these
 #set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(ISIS3SYSLIB)/libblas*${SO}*)
