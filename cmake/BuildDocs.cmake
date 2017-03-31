@@ -72,7 +72,7 @@ function(build_upper_level)
   copy_folder(${docBuildFolder}/w3c    ${docInstallFolder})
 
   # Make new (empty) output folders
-  set(newFolders UserDocs AboutIsis General Guides Installation TechnicalInfo Schemas)
+  set(newFolders UserDocs AboutIsis General Guides Installation TechnicalInfo)
   foreach(f ${newFolders})
     file(MAKE_DIRECTORY "${docInstallFolder}/${f}")
   endforeach()
@@ -81,6 +81,9 @@ function(build_upper_level)
 
   # Create index.html file
   execute_process(COMMAND ${XALAN} ${XALAN_VALIDATE_OPTION} ${XALAN_PARAM_OPTION} menuPath \"\" ${XALAN_OUTFILE_OPTION} ${docInstallFolder}/index.html ${XALAN_INFILE_OPTION} ${docBuildFolder}/build/homepage.xml ${XALAN_XSL_OPTION} ${docBuildFolder}/build/main.xsl)
+
+ # This folder just gets copied as-is
+ execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/src/docsys/Schemas  ${docInstallFolder}/Schemas)
 
 endfunction(build_upper_level)
 
