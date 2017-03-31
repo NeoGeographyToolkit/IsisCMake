@@ -8,6 +8,77 @@ list(APPEND CMAKE_MODULE_PATH "${CODE_ROOT}/cmake")
 list(APPEND CMAKE_PREFIX_PATH "${CODE_ROOT}/cmake")
 include(Utilities)
 
+
+# Return a list of (name, value) pairs containing the definitions from a Makefile
+function(read_makefile_definitions makefile definitions)
+
+   # Read in the MakeFile
+  if(NOT EXISTS ${makefile})
+    message(FATAL_ERROR "App test MakeFile ${makefile} was not found!")
+  endif()
+  file(READ ${makefile} makefileContents)
+
+  # Split out the command section
+  string(FIND "${makefileContents}" "commands:" commandLoc)
+  string(SUBSTRING "${makefileContents}" 0 ${commandLoc} defText)
+
+  # Parse out the name assignments
+  set(regexWord "[A-Z_a-z0-9 \\.-]+")
+  set(regexWord2 "[A-Z_:a-z0-9 \\.-]+")
+  string(REGEX MATCHALL "${regexWord}=${regexWord2}"
+         parsedDefinitions "${defText}")
+
+  set(definitions ${parsedDefinitions} PARENT_SCOPE)
+endfunction()
+
+
+# Finds the number of lines to skip and the list of words to ignore for a file
+function(get_skip_ignore_lines makefile filename skipNumber ignoreWords)
+
+  read_makefile_definitions(${makefile} definitions)
+
+  get_filename_component(targetName ${filename} NAME)
+  message("Checking for file ${targetName}")
+
+  # Set default values
+  set(skipNumber  "0" PARENT_SCOPE)
+  set(ignoreWords "" PARENT_SCOPE)
+  
+  # Find/Replace all the word name assignments in the command.
+  foreach(pair ${definitions})
+    #message("pair = ${pair}")
+    string(REGEX MATCHALL "[^= ]+" parts "${pair}")
+    #message("parts = ${parts}")
+    list(GET parts 0 name)
+    list(REMOVE_AT parts 0)
+    string(REPLACE ";" " " value "${parts}")
+    #list(GET parts 1 value)
+    message("name = ${name}")
+    message("value = ${value}")
+
+    # Check if entry for this file
+    string(FIND "${name}" ${targetName} namePos)
+    if(${namePos} EQUAL -1)
+      continue()
+    endif()
+
+    # Check types
+    string(FIND "${name}" "SKIPLINES"   skipPos)
+    string(FIND "${name}" "IGNORELINES" ignorePos)
+
+    if(NOT ${skipPos} EQUAL -1)
+      set(skipNumber ${value} PARENT_SCOPE)
+      message("Set skip number = ${value}")
+    endif()
+    if(NOT ${ignorePos} EQUAL -1)
+      set(ignoreWords ${value} PARENT_SCOPE)
+      message("Set ignore words = ${value}")
+    endif()
+  endforeach()
+
+endfunction()
+
+
 # Function to run the test and check the results
 function(run_app_makefile_test makefile inputFolder outputFolder truthFolder binFolder)
 
@@ -39,13 +110,11 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
   string(REPLACE "include $(ISISROOT)/make/isismake.tsts" "${newDefinitions}" newFileContents "${makefileContents}")
 
   # Remove the output suppressant so that the log contains more information
-  string(REPLACE ">& /dev/null" ""  newFileContents "${newFileContents}") 
-  string(REPLACE "> /dev/null" ""  newFileContents "${newFileContents}")
-
-  # TODO: Make path unique!
+  #string(REPLACE ">& /dev/null" ""  newFileContents "${newFileContents}") 
+  #string(REPLACE "> /dev/null" ""  newFileContents "${newFileContents}")
 
   # Copy the finished command string to a shell file for execution
-  set(scriptPath "${binFolder}/newMakeFile")
+  set(scriptPath "${binFolder}/make_app_${testName}")
   file(WRITE ${scriptPath} "${newFileContents}") 
 
   # Set required environment variables
@@ -73,31 +142,29 @@ function(run_app_makefile_test makefile inputFolder outputFolder truthFolder bin
     message("Makefile test failed: ${result}, ${code}")
   endif()
 
+  # Modify output files according to SKIPLINES and IGNORELINES
+  file(GLOB fileList ${outputFolder}/*)
+  foreach(filepath ${fileList})
+    get_skip_ignore_lines(${makefile} ${filepath} skipNumber ignoreWords)
+
+    apply_skiplines(${filepath} ${skipNumber})
+    if(NOT ${ignoreWords} STREQUAL "")
+      apply_ignorelines(${filepath} "${ignoreWords}")
+    endif()
+  endforeach()
+  
+
   # Now verify the results
   compare_folders(${truthFolder} ${outputFolder} ${makefile})
-  
+ 
+  #file(REMOVE ${scriptPath})
+ 
 endfunction()
-
-
-
 
 # Set result to the tolerance string to be passed to a cubediff call for a given file.
 function(find_tolerance_value makefile filename toleranceString)
-  
-   # Read in the MakeFile
-  if(NOT EXISTS ${makefile})
-    message(FATAL_ERROR "App test MakeFile ${makefile} was not found!")
-  endif()
-  file(READ ${makefile} makefileContents)
-  
-  # Split out the command section
-  string(FIND "${makefileContents}" "commands:" commandLoc) 
-  string(SUBSTRING "${makefileContents}" 0 ${commandLoc} definitions)
-
-  # Parse out the name assignments
-  set(regexWord "[A-Za-z0-9 \\.-]+")
-  string(REGEX MATCHALL "${regexWord}=${regexWord}"
-       parsedDefinitions "${definitions}") 
+ 
+  read_makefile_definitions(${makefile} parsedDefinitions)
 
   get_filename_component(filename ${filename} NAME)
 
@@ -138,9 +205,8 @@ function(compare_test_result_cub testResult truthFile makefile result)
   execute_process(COMMAND ${cmd} RESULT_VARIABLE code 
                   OUTPUT_FILE ${OUTPUT_DIR}/cubediffOut.txt 
                   ERROR_FILE ${OUTPUT_DIR}/cubediffError.txt)
-
-  message("cmd = ${cmd}")
-  message("code = ${code}")
+  #message("cmd = ${cmd}")
+  #message("code = ${code}")
 
   set(result ON PARENT_SCOPE)
   if("${code}" STREQUAL "0")
@@ -264,8 +330,8 @@ function(compare_test_result_file testResult truthFile makefile result)
   if(${result} STREQUAL ON)
     message("Files ${testResult} and ${truthFile} are different!")
     # TODO: Print error log!
-  else() # OFF
-    message("Files ${testResult} and ${truthFile} match!") # TODO: Remove
+  #else() # OFF
+  #  message("Files ${testResult} and ${truthFile} match!")
   endif()
   set(result ${result} PARENT_SCOPE)
 
@@ -315,6 +381,7 @@ set(ENV{ISISROOT} "${CODE_ROOT}")
 set(ENV{ISIS3DATA} "${DATA_ROOT}")
 
 message("ISISROOT = $ENV{ISISROOT}")
+message("ISISDATA = $ENV{ISIS3DATA}")
 
 run_app_makefile_test(${MAKEFILE} ${INPUT_DIR} ${OUTPUT_DIR} ${TRUTH_DIR} ${BIN_DIR})
 

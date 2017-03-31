@@ -131,6 +131,41 @@ function(get_os_version text)
   set(${text} ${prefix}${name}${version} PARENT_SCOPE)
 endfunction()
 
+
+# Delete the first N lines of a file
+function(apply_skiplines path number)
+
+  if(${number} EQUAL 0)
+    return()
+  endif()
+
+  # The first line counts as line 1 for the tail command
+  MATH(EXPR number "${number}+1")
+
+  set(temp ${path}_temp)
+  file(RENAME ${path} ${temp})
+  message("tail -n +${number} ${temp} OUTPUT_FILE ${path}")
+  execute_process(COMMAND tail -n +${number} ${temp} OUTPUT_FILE ${path})
+  #file(REMOVE ${temp})
+endfunction()
+
+# Strip all lines beginning with one of the words
+function(apply_ignorelines path words)
+
+  set(temp ${path}_temp)
+  file(RENAME ${path} ${temp})
+
+  #Set up special grep command to remove these lines
+  message("words = ${words}")
+  string(REPLACE " " "|" fullS "${words}")
+
+  message("COMMAND grep -vEw ${fullS} ${temp}")
+  execute_process(COMMAND grep -vEw ${fullS} ${temp} OUTPUT_FILE ${path})
+
+  #file(REMOVE ${temp})
+endfunction()
+
+
 #------------------------------------------------------------
 
 # Wrapper function to add a library and its components
