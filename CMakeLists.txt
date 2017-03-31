@@ -139,9 +139,8 @@ if(existingPlugins)
   file(REMOVE ${existingPlugins})
 endif()
 
-# TODO: Verify the tests work in an alternate build directory!
 # Add a config file to the install bin directory so that QT can find the plugin libraries.
-file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
+file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../3rdParty/plugins/\n")
 install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 # Some tests rely on a hardcoded path to $ISISROOT/bin, so set up a 

@@ -18,6 +18,14 @@ if (APPLE)
   install(CODE "EXECUTE_PROCESS(COMMAND python ${CMAKE_SOURCE_DIR}/scripts/finalizeInstalledOsxRpaths.py ${CMAKE_INSTALL_PREFIX}/lib)")
   install(CODE "EXECUTE_PROCESS(COMMAND python ${CMAKE_SOURCE_DIR}/scripts/finalizeInstalledOsxRpaths.py ${CMAKE_INSTALL_PREFIX}/3rdParty/lib resetRpath)")
 install(CODE "EXECUTE_PROCESS(COMMAND python ${CMAKE_SOURCE_DIR}/scripts/finalizeInstalledOsxRpaths.py ${CMAKE_INSTALL_PREFIX}/bin)")
+  
+  # Also need to get the plugin folders
+  get_subdirectory_list(${CMAKE_SOURCE_DIR}/3rdParty/plugins pluginFolders)
+  foreach(f ${pluginFolders})
+    get_filename_component(name ${f} NAME)
+    install(CODE "EXECUTE_PROCESS(COMMAND python ${CMAKE_SOURCE_DIR}/scripts/finalizeInstalledOsxRpaths.py ${CMAKE_INSTALL_PREFIX}/3rdParty/plugins/${name} resetRpath)")
+  endforeach()
+
 endif()
 
 

@@ -94,11 +94,21 @@ def main():
  
       isBinary = (os.path.isfile(fullPath) and (stat.S_IXUSR & os.stat(fullPath)[stat.ST_MODE]))
       isLib    = ('.dylib' in f)
+      isFrame  = 'framework' in f
+
+      # Dig into framework folders to correct the rpaths in the underlying lib file
+      if isFrame:
+          name     = f.replace('.framework', '')
+          path     = f+'/Versions/Current/'+name
+          fullPath = os.path.join(inputFolder, path)
+          isLib    = True
   
       if isBinary or isLib:
+          #print fullPath
           numUpdates = fixOneFile(fullPath, resetRpath)
           print f + ' --> ' + str(numUpdates) + ' changes made.' 
           #raise Exception('DEBUG')
+
     
 
 # Execute main() when called from command line
