@@ -12,7 +12,7 @@ include(Utilities)
 # Return a list of (name, value) pairs containing the definitions from a Makefile
 function(read_makefile_definitions makefile definitions)
 
-   # Read in the MakeFile
+  # Read in the MakeFile
   if(NOT EXISTS ${makefile})
     message(FATAL_ERROR "App test MakeFile ${makefile} was not found!")
   endif()
@@ -27,7 +27,7 @@ function(read_makefile_definitions makefile definitions)
   set(regexWord2 "[A-Z_:a-z0-9 \\.-]+")
   string(REGEX MATCHALL "${regexWord}=${regexWord2}"
          parsedDefinitions "${defText}")
-
+  #message("parsedDefinitions = ${parsedDefinitions}")
   set(definitions ${parsedDefinitions} PARENT_SCOPE)
 endfunction()
 
@@ -53,8 +53,8 @@ function(get_skip_ignore_lines makefile filename skipNumber ignoreWords)
     list(REMOVE_AT parts 0)
     string(REPLACE ";" " " value "${parts}")
     #list(GET parts 1 value)
-    message("name = ${name}")
-    message("value = ${value}")
+    #message("name = ${name}")
+    #message("value = ${value}")
 
     # Check if entry for this file
     string(FIND "${name}" ${targetName} namePos)
@@ -163,13 +163,14 @@ endfunction()
 
 # Set result to the tolerance string to be passed to a cubediff call for a given file.
 function(find_tolerance_value makefile filename toleranceString)
- 
-  read_makefile_definitions(${makefile} parsedDefinitions)
 
+  #message("Finding tolerance for file ${filename}") 
+  read_makefile_definitions(${makefile} definitions)
+  #message("Defs = ${definitions}")
   get_filename_component(filename ${filename} NAME)
 
   # Find/Replace all the word name assignments in the command.
-  foreach(pair ${parsedDefinitions})
+  foreach(pair ${definitions})
     string(REGEX MATCHALL "[^= ]+" parts "${pair}")
     list(GET parts 0 name)
     list(GET parts 1 value)
@@ -184,6 +185,7 @@ function(find_tolerance_value makefile filename toleranceString)
       
       # Generate the tolerance argument
       set(toleranceString "tolerance=${value}" PARENT_SCOPE)
+      message("Set tolerance ${value} for file ${filename}")
       return()
     endif()
   endforeach()
