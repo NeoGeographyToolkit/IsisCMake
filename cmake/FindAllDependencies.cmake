@@ -359,8 +359,13 @@ set(OPENCVLIB     -lopencv_calib3d -lopencv_core -lopencv_features2d -lopencv_xf
                   -lopencv_flann -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs 
                   -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching 
                   -lopencv_superres  -lopencv_video -lopencv_videostab)
-set(OPENCV_DYNAMIC_LIBS ${OPENCVLIBDIR}/libopencv_${end} ${OPENCVLIBDIR}/libavcodec${end} 
-                        ${OPENCVLIBDIR}/libavformat${end} ${OPENCVLIBDIR}/libavutil${end})
+if(APPLE)
+  set(OPENCV_DYNAMIC_LIBS ${OPENCVLIBDIR}/libopencv_*.dylib ${OPENCVLIBDIR}/libavcodec${end} 
+                          ${OPENCVLIBDIR}/libavformat${end} ${OPENCVLIBDIR}/libavutil${end})
+else()
+  set(OPENCV_DYNAMIC_LIBS ${OPENCVLIBDIR}/libopencv_*.so* ${OPENCVLIBDIR}/libavcodec${end} 
+                          ${OPENCVLIBDIR}/libavformat${end} ${OPENCVLIBDIR}/libavutil${end})
+endif()
 
 # Missing the following required OpenCV libraries:
 #    libavcodec.so.54, libavformat.so.54, libavutil.so.52, libswscale.so.2
@@ -382,8 +387,7 @@ set(NNLIB    "-lnn")
 set(EXTRA_DYNAMIC_LIBS)
 if(APPLE)
 
-  set(EXTRALIBDIR ${LIB_DIR})
-  set(temp
+  set(extras
     # QT dependencies
     libpcre16*.dylib
     libgthread-*.dylib
@@ -472,10 +476,15 @@ if(APPLE)
     # libgeotiff depends on these libraries
     libproj*.dylib)
 
-  foreach(lib ${temp})
-    set(EXTRA_DYNAMIC_LIBS ${EXTRA_DYNAMIC_LIBS} ${EXTRALIBDIR}/${lib})
-  endforeach()
+else() # Linux
+  
+  set(extras libtbb.so*)
 endif()
+
+set(EXTRALIBDIR ${LIB_DIR})
+foreach(lib ${extras})
+  set(EXTRA_DYNAMIC_LIBS ${EXTRA_DYNAMIC_LIBS} ${EXTRALIBDIR}/${lib})
+endforeach()
 
 #message("EXTRA_DYNAMIC_LIBS = ${EXTRA_DYNAMIC_LIBS}")
 
