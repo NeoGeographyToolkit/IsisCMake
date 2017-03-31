@@ -13,6 +13,14 @@ set(LIB_DIR     "${thirdPartyDir}/lib")
 set(PLUGIN_DIR  "${thirdPartyDir}/plugins")
 set(BIN_DIR     "${thirdPartyDir}/bin")
 
+# The common method of putting a version in a library name differs
+#  between OSX and Linux.
+if(APPLE)
+  set(end "*.dylib")
+else()
+  set(end ".so*")
+endif()
+
 set(XALAN   "${BIN_DIR}/Xalan")
 #set(LATEX   "${BIN_DIR}/latex") # MISSING
 #set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
@@ -173,6 +181,7 @@ endif()
 set(XERCESINCDIR ${INCLUDE_DIR}/xercesc ${INCLUDE_DIR}/xercesc/xercesc-3.1.2)
 set(XERCESLIBDIR "${LIB_DIR}")
 set(XERCESLIB    "-lxerces-c")
+set(XERCES_DYNAMIC_LIBS ${XERCESLIBDIR}/libxerces-c${end})
 
 #---------------------------------------------------------------------------
 # Set up for geotiff 
@@ -180,6 +189,7 @@ set(XERCESLIB    "-lxerces-c")
 set(GEOTIFFINCDIR "${INCLUDE_DIR}/geotiff")
 set(GEOTIFFLIBDIR "${LIB_DIR}")
 set(GEOTIFFLIB    "-lgeotiff")
+set(GEOTIFF_DYNAMIC_LIBS ${GEOTIFFLIBDIR}/libgeotiff${end})
 
 #---------------------------------------------------------------------------
 # Set up for Tiff 
@@ -187,6 +197,7 @@ set(GEOTIFFLIB    "-lgeotiff")
 set(TIFFINCDIR "${INCLUDE_DIR}/tiff/tiff-4.0.5")
 set(TIFFLIBDIR "${LIB_DIR}")
 set(TIFFLIB    "-ltiff")
+set(TIFF_DYNAMIC_LIBS ${TIFFLIBDIR}/libtiff${end})
 
 #---------------------------------------------------------------------------
 # Set up for naif dsk and cspice libraries
@@ -195,9 +206,12 @@ set(NAIFINCDIR "${INCLUDE_DIR}/naif")
 set(NAIFLIBDIR "${LIB_DIR}")
 if(APPLE)
   set(NAIFLIB    "-ldsklib -lcspice")
+  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsklib${end} ${NAIFLIBDIR}/libcspice${end})
 else()
   set(NAIFLIB    "-ldsk -lcspice")
+  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsk${end} ${NAIFLIBDIR}/libcspice${end})
 endif()
+
 
 #---------------------------------------------------------------------------
 # Set up for TNT
@@ -219,12 +233,15 @@ set(JAMA)
 set(GEOSINCDIR ${INCLUDE_DIR}/geos ${INCLUDE_DIR}/geos/geos3.5.0)
 set(GEOSLIBDIR "${LIB_DIR}")
 set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
+set(GEOS_DYNAMIC_LIBS ${GEOSLIBDIR}/libgeos${end})
 
 #---------------------------------------------------------------------------
-# Set up for the GNU Scientific Library (GSL).  #---------------------------------------------------------------------------
+# Set up for the GNU Scientific Library (GSL).  
+#---------------------------------------------------------------------------
 set(GSLINCDIR "${INCLUDE_DIR}")
 set(GSLLIBDIR "${LIB_DIR}")
 set(GSLLIB    "-lgsl -lgslcblas")
+set(GSL_DYNAMIC_LIBS ${GSLLIBDIR}/libgsl${end} ${GSLLIBDIR}/libgslcblas${end})
 
 #---------------------------------------------------------------------------
 # Set up for X11
@@ -253,9 +270,11 @@ set(thirdPartyCppFlags ${thirdPartyCppFlags} -DGMM_USES_SUPERLU)
 set(SUPERLUINCDIR ${INCLUDE_DIR}/superlu  ${INCLUDE_DIR}/superlu/superlu4.3)
 set(SUPERLULIBDIR "${LIB_DIR}")
 if(APPLE)
-  set(SUPERLULIB    -lsuperlu_4.3) # TODO: blas is missing, do we need gfortran?
+  set(SUPERLULIB    -lsuperlu_4.3)
+  set(SUPERLU_DYNAMIC_LIBS ${SUPERLULIBDIR}/libsuperlu.dylib ${SUPERLULIBDIR}/libsuperlu_*.dylib)
 else()
   set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
+  set(SUPERLU_DYNAMIC_LIBS ${SUPERLULIBDIR}/libsuperlu_*.so ${SUPERLULIBDIR}/libblas.so.* ${SUPERLULIBDIR}/libgfortran.so.*)
 endif()
 
 #---------------------------------------------------------------------------
@@ -265,6 +284,7 @@ set(PROTOBUFINCDIR ${INCLUDE_DIR}/google/  ${INCLUDE_DIR}/google-protobuf/protob
 set(PROTOBUFLIBDIR "${LIB_DIR}")
 set(PROTOBUFLIB    "-lprotobuf")
 set(PROTOC         "${BIN_DIR}/protoc")
+set(PROTOBUF_DYNAMIC_LIBS ${PROTOBUFLIBDIR}/libproto${end})
 
 verify_file_exists(${PROTOC})
 
@@ -281,11 +301,13 @@ verify_file_exists(${PROTOC})
 set(KAKADUINCDIR  "${INCLUDE_DIR}/kakadu/v6_3-00967N")
 set(KAKADULIBDIR  "${LIB_DIR}")
 set(KAKADULIB     "-lkdu_a63R")
-set(KAKADULIBFILE "${KAKADULIBDIR}/libkdu_a63R${SO}") 
+
 # Detect if Kakadu library is available
 set(JP2KFLAG "0")
+set(KAKADU_DYNAMIC_LIBS)
 if((EXISTS "${KAKADUINCDIR}") AND (EXISTS "${KAKADULIBFILE}"))
   set(JP2KFLAG "1")
+  set(KAKADU_DYNAMIC_LIBS ${KAKADULIBDIR}/libkdu_a63R${end})
 endif()
 
 set(thirdPartyCppFlags ${thirdPartyCppFlags} "-DENABLEJP2K=${JP2KFLAG}")
@@ -294,16 +316,8 @@ set(thirdPartyCppFlags ${thirdPartyCppFlags} "-DENABLEJP2K=${JP2KFLAG}")
 # Set up for BOOST
 #---------------------------------------------------------------------------
 set(BOOSTINCDIR ${INCLUDE_DIR}/boost  ${INCLUDE_DIR}/boost/boost1.59.0)
-#set(BOOSTLIBDIR ${LIB_DIR})
-set(BOOSTLIB    "")
-# TODO: Do we not need any of these?
-#BOOSTLIB    = 
-#BOOSTLIBDIR = -L$(ISIS3LOCAL)/lib
-#BOOSTLIB    = -lboost_date_time -lboost_filesystem -lboost_graph -lboost_math_c99f
-#              -lboost_math_c99l -lboost_math_c99 -lboost_math_tr1f -lboost_math_tr1l
-#              -lboost_math_tr1 -lboost_prg_exec_monitor -lboost_program_options
-#              -lboost_regex -lboost_serialization -lboost_signals -lboost_system
-#              -lboost_thread -lboost_unit_test_framework -lboost_wave -lboost_wserialization
+set(BOOSTLIB)
+
 
 #---------------------------------------------------------------------------
 # Set up for Cholmod libraries 
@@ -311,10 +325,12 @@ set(BOOSTLIB    "")
 set(CHOLMODINCDIR "${INCLUDE_DIR}/SuiteSparse;${INCLUDE_DIR}/SuiteSparse/SuiteSparse4.4.5/SuiteSparse")
 set(CHOLMODLIBDIR "${LIB_DIR}")
 set(CHOLMODLIB    -lcholmod -lamd -lcamd -lccolamd -lcolamd -lsuitesparseconfig)
-set(CHOLMODLIBFILES libcolamd${SO} libccolamd${SO} libamd${SO} libcamd${SO} libcholmod${SO} libsuitesparseconfig${SO})
+set(CHOLMOD_DYNAMIC_LIBS ${CHOLMODLIBDIR}/libcolamd${end}  ${CHOLMODLIBDIR}/libccolamd${end} 
+                         ${CHOLMODLIBDIR}/libamd${end}     ${CHOLMODLIBDIR}/libcamd${end} 
+                         ${CHOLMODLIBDIR}/libcholmod${end} ${CHOLMODLIBDIR}/libsuitesparseconfig${end})
 if(NOT APPLE)
+  set(CHOLMOD_DYNAMIC_LIBS ${CHOLMOD_DYNAMIC_LIBS} ${CHOLMODLIBDIR}/liblapack.so)
   set(CHOLMODLIB ${CHOLMODLIB} -llapack)
-  set(CHOLMODLIBFILES ${CHOLMODLIBFILES} liblapack${SO})
 endif()
 
 #---------------------------------------------------------------------------
@@ -323,6 +339,8 @@ endif()
 set(HDF5INCDIR "${INCLUDE_DIR}/hdf5")
 set(HDF5LIBDIR "${LIB_DIR}")
 set(HDF5LIB    -lhdf5 -lhdf5_hl -lhdf5_cpp -lhdf5_hl_cpp)
+set(HDF5_DYNAMIC_LIBS ${HDF5LIBDIR}/libhdf5${end}     ${HDF5LIBDIR}/libhdf5_hl${end} 
+                      ${HDF5LIBDIR}/libhdf5_cpp${end} ${HDF5LIBDIR}/libhdf5_hl_cpp${end})
 
 #---------------------------------------------------------------------------
 # Set up for OpenCV libraries 
@@ -333,6 +351,8 @@ set(OPENCVLIB     -lopencv_calib3d -lopencv_core -lopencv_features2d -lopencv_xf
                   -lopencv_flann -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs 
                   -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching 
                   -lopencv_superres  -lopencv_video -lopencv_videostab)
+set(OPENCV_DYNAMIC_LIBS ${OPENCVLIBDIR}/libopencv_${end} ${OPENCVLIBDIR}/libavcodec${end} 
+                        ${OPENCVLIBDIR}/libavformat${end} ${OPENCVLIBDIR}/libavutil${end})
 
 # Missing the following required OpenCV libraries:
 #    libavcodec.so.54, libavformat.so.54, libavutil.so.52, libswscale.so.2
@@ -350,36 +370,144 @@ set(NNLIB    "-lnn")
 #  Define the third party distribution libraries (patterns)
 #---------------------------------------------------------------------------
 
+# On OSX we need to include a LOT of extra libraries!
+set(EXTRA_DYNAMIC_LIBS)
+if(APPLE)
+
+  set(EXTRALIBDIR ${LIB_DIR})
+  set(temp
+    # QT dependencies
+    libpcre16*.dylib
+    libgthread-*.dylib
+    libpcre.*dylib
+    libharfbuzz*.dylib
+    libgraphite2.*dylib
+    libleveldb*.dylib*
+    libsnappy.*dylib
+    libwebp*.dylib
+    libdbus*.dylib
+    libiconv*.dylib
+    liblzma*.dylib
+    libz*.dylib
+    libssl*.dylib
+    libcrypto*.dylib
+    libpng*.dylib
+    libjpeg.*dylib
+    libmng.*dylib
+    liblcms2.*dylib
+    libsqlite3.*dylib
+    postgresql*/libpq.*dylib
+    mysql56/mysql/libmysqlclient*.dylib
+    libiodbc*.dylib
+    # OpenCV dependancies
+    libtbb*.dylib
+    libjasper*.dylib
+    libImath*.dylib
+    libIlmImf*.dylib
+    libIex*.dylib
+    libHalf*.dylib
+    libIlmThread*.dylib
+    libswscale*.dylib
+    # Secondary requirements to all OpenCV dependancies
+    libSDL-1*.dylib
+    libnettle*.dylib
+    libhogweed*.dylib
+    libgmp*.dylib
+    libxvidcore*.dylib
+    libx264*.dylib
+    libvorbisenc*.dylib
+    libvorbis*.dylib
+    libogg*.dylib
+    libtheoraenc*.dylib
+    libtheoradec*.dylib
+    libspeex*.dylib
+    libschroedinger-1*.dylib
+    libopus*.dylib
+    libopenjpeg*.dylib
+    libmp3lame*.dylib
+    libmodplug*.dylib
+    libfreetype*.dylib
+    libbluray*.dylib
+    libass*.dylib
+    libgnutls*.dylib
+    libbz2*.dylib
+    libXrandr*.dylib
+    libXext*.dylib
+    libXrender*.dylib
+    libX11*.dylib
+    libxcb*.dylib
+    libXau*.dylib
+    libXdmcp*.dylib
+    liborc-0*.dylib
+    libxml2*.dylib
+    libfribidi*.dylib
+    libfontconfig*.dylib
+    libexpat*.dylib
+    libintl*.dylib
+    libglib-*.dylib
+    libp11-kit*.dylib
+    libffi*.dylib
+    # OpenCV3 dependencies
+    libavresample*.dylib
+    libxcb-shm*.dylib
+    libsoxr*.dylib
+    libopenjp2*.dylib
+    libOpenNI*.dylib
+    libswresample*.dylib
+    libidn*.dylib
+    libtasn1*.dylib
+    libusb*.dylib
+    # libxerces-c depends on these libraries
+    libicui18n*.dylib
+    libicuuc*.dylib
+    libicudata*.dylib
+    # libgeotiff depends on these libraries
+    libproj*.dylib)
+
+  foreach(lib ${temp})
+    set(EXTRA_DYNAMIC_LIBS ${EXTRA_DYNAMIC_LIBS} ${EXTRALIBDIR}/${lib})
+  endforeach()
+endif()
+
+#message("EXTRA_DYNAMIC_LIBS = ${EXTRA_DYNAMIC_LIBS}")
+
 #  Libraries
 set(THIRDPARTYLIBS)
 
-# Normal libraries
-foreach(lib ${CHOLMODLIBFILES})
-  set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${CHOLMODLIBDIR}/${lib})
-endforeach()
+set(RAW_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS}
+                     ${QWT_DYNAMIC_LIBS}
+                     ${XERCES_DYNAMIC_LIBS}
+                     ${GEOTIFF_DYNAMIC_LIBS}
+                     ${HDF5_DYNAMIC_LIBS}
+                     ${TIFF_DYNAMIC_LIBS}
+                     ${NAIF_DYNAMIC_LIBS}
+                     ${GEOS_DYNAMIC_LIBS}
+                     ${GSL_DYNAMIC_LIBS}
+                     ${SUPERLU_DYNAMIC_LIBS}
+                     ${PROTOBUF_DYNAMIC_LIBS}
+                     ${KAKADU_DYNAMIC_LIBS} # Empty if not available
+                     ${CHOLMOD_DYNAMIC_LIBS}
+                     ${OPENCV_DYNAMIC_LIBS}
+                     ${EXTRA_DYNAMIC_LIBS})
 
-# Wildcard library list
+#message("THIRDPARTYLIBS = ${RAW_DYNAMIC_LIBS}")
 
-set(wildcardLibraries libqwt${SO}* libprotobuf${SO}* libprotobuf.*${SO}  libgeos-*${SO} libgeos_c${SO}* libdsk${SO}* libcspice${SO}* libsuperlu*${SO} libxerces-c*${SO}* libgeotiff*${SO}* libtiff*${SO}* libgsl*${SO}* libkdu_a63R${SO}* libhdf5${SO}* libhdf5_hl${SO}* libhdf5_cpp${SO}* libhdf5_hl_cpp${SO}* libopencv_*${SO}* libtbb${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libcwd_r${SO}*)
 
 # For each item in this list, expand the wildcard to get the actual library list.
-foreach(wildcardLib ${wildcardLibraries})
-  file(GLOB expandedLibs ${LIB_DIR}/${wildcardLib})
-  #message("wildcardLib = ${wildcardLib}")
-  #message("expandedLibs = ${expandedLibs}")
-  set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${expandedLibs})
+foreach(lib ${RAW_DYNAMIC_LIBS})
+  
+  string(FIND "${lib}" "*" position)
+  if(${position} EQUAL -1)
+    # No wildcard, just add it.
+    set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${lib})
+  else()
+    # Expand wildcard, then add.
+    file(GLOB expandedLibs ${lib})
+    set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${expandedLibs})
+  endif() 
 endforeach()
 
-# Add all the OpenCV libraries
-# These and some other libs are missing from the 3rd party folder:
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavcodec${SO}*))
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavformat${SO}*))
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(wildcard ${ISIS3ALTSYSLIB}/libavutil${SO}*))
-
-
-
-set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${QT_DYNAMIC_LIBS} ${QWT_DYNAMIC_LIBS})
+#message("THIRDPARTYLIBS = ${THIRDPARTYLIBS}")
 
 # TODO: Check on these
 #set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(ISIS3SYSLIB)/libblas*${SO}*)
