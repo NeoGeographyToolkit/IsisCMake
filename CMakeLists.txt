@@ -174,36 +174,6 @@ if(NOT EXISTS ${CMAKE_SOURCE_DIR}/lib)
                   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 endif()
 
-# TODO: Take care of when the test is added!
-## TODO: Verify name still works for all tests!
-## GUI using unit tests require an XML file to be in $ISISROOT/bin/xml,
-##  so set up the appropriate links here.
-#file(GLOB_RECURSE testXmls "${CMAKE_SOURCE_DIR}/src/unitTest.xml")
-#foreach(xml ${testXmls})
-#  get_filename_component(folder ${xml} DIRECTORY)
-#  get_filename_component(name ${folder} NAME)
-#  set(linkName isis3_unit_test_${name}.xml)
-#  if(NOT EXISTS ${sourceXmlFolder}/${linkName})
-#    execute_process(COMMAND ln -s "${xml}" "${linkName}"
-#                    WORKING_DIRECTORY ${sourceXmlFolder})
-#  endif()
-#endforeach()
-
-# TODO: Taken care of when the tests are added?
-## Certain application tests require an XML file to be in $ISISROOT/bin/xml,
-##  so set up the appropriate links here.
-#file(GLOB_RECURSE allXmls "${CMAKE_SOURCE_DIR}/src/*.xml")
-#foreach(xml ${allXmls})
-#  string(FIND ${xml} "/apps/" pos) # Only link xml files in app folders
-#  if(NOT ${pos} EQUAL -1 )
-#    get_filename_component(name ${xml} NAME)
-#    if (NOT EXISTS ${sourceXmlFolder}/${name})
-#      execute_process(COMMAND ln -s "${xml}" "${name}"
-#                      WORKING_DIRECTORY ${sourceXmlFolder})
-#    endif()
-#  endif()
-#endforeach()
-
 # Create a link from the build/src directory to each folder in 3rdPartyLibs/plugins.
 # - This is required so that the plugins can be found during unit tests.
 # TIP: Set "export QT_DEBUG_PLUGINS=1" to help debug plugin errors.

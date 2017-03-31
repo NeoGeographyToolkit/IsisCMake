@@ -106,7 +106,7 @@ else() # Linux
 
   set(QTLIBDIR ${LIB_DIR})
 
-  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
+  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineCore -lQt5WebEngineWidgets -lQt5DBus)
 
   set(QT_DYNAMIC_LIBS)
   set(QT_DYNAMIC_IN  ${QTLIBDIR}/libQt5Concurrent.so
@@ -134,7 +134,7 @@ else() # Linux
                    ${QTLIBDIR}/libQt5Xml.so
                    ${QTLIBDIR}/libQt5XmlPatterns.so)
   foreach(f ${QT_DYNAMIC_IN})
-    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6.0)
+    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6 ${f}.5.6.0)
   endforeach()
 endif()
 #message("QT_DYNAMIC_LIBS = ${QT_DYNAMIC_LIBS}")
@@ -167,11 +167,11 @@ if(APPLE)
 
   set(QWT_DYNAMIC_LIBS ${QWTLIBDIR}/qwt.framework)
 
-else()
+else() # Linux
   
   set(QWTLIBDIR "${LIB_DIR}")
   set(QWTLIB    "-lqwt")
-  set(QWT_DYNAMIC_LIBS ${LIB_DIR}/libqwt.so ${LIB_DIR}/libqwt.so.6 ${LIB_DIR}/libqwt.so.6.1 ${LIB_DIR}/libqwt.so.6.12)
+  set(QWT_DYNAMIC_LIBS ${LIB_DIR}/libqwt.so ${LIB_DIR}/libqwt.so.6 ${LIB_DIR}/libqwt.so.6.1 ${LIB_DIR}/libqwt.so.6.1.2)
 endif()
 
 
@@ -181,7 +181,11 @@ endif()
 set(XERCESINCDIR ${INCLUDE_DIR}/xercesc ${INCLUDE_DIR}/xercesc/xercesc-3.1.2)
 set(XERCESLIBDIR "${LIB_DIR}")
 set(XERCESLIB    "-lxerces-c")
-set(XERCES_DYNAMIC_LIBS ${XERCESLIBDIR}/libxerces-c${end})
+if(APPLE)
+  set(XERCES_DYNAMIC_LIBS ${XERCESLIBDIR}/libxerces-c*.dylib)
+else()
+  set(XERCES_DYNAMIC_LIBS ${XERCESLIBDIR}/libxerces-c*.so)
+endif()
 
 #---------------------------------------------------------------------------
 # Set up for geotiff 
@@ -233,7 +237,11 @@ set(JAMA)
 set(GEOSINCDIR ${INCLUDE_DIR}/geos ${INCLUDE_DIR}/geos/geos3.5.0)
 set(GEOSLIBDIR "${LIB_DIR}")
 set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
-set(GEOS_DYNAMIC_LIBS ${GEOSLIBDIR}/libgeos${end})
+if(APPLE)
+  set(GEOS_DYNAMIC_LIBS ${GEOSLIBDIR}/libgeos*.dylib ${GEOSLIBDIR}/libgeos_c*.dylib)
+else() # Linux
+  set(GEOS_DYNAMIC_LIBS ${GEOSLIBDIR}/libgeos*.so ${GEOSLIBDIR}/libgeos_c.so*)
+endif()
 
 #---------------------------------------------------------------------------
 # Set up for the GNU Scientific Library (GSL).  
@@ -284,7 +292,7 @@ set(PROTOBUFINCDIR ${INCLUDE_DIR}/google/  ${INCLUDE_DIR}/google-protobuf/protob
 set(PROTOBUFLIBDIR "${LIB_DIR}")
 set(PROTOBUFLIB    "-lprotobuf")
 set(PROTOC         "${BIN_DIR}/protoc")
-set(PROTOBUF_DYNAMIC_LIBS ${PROTOBUFLIBDIR}/libproto${end})
+set(PROTOBUF_DYNAMIC_LIBS ${PROTOBUFLIBDIR}/libprotobuf${end})
 
 verify_file_exists(${PROTOC})
 
