@@ -18,6 +18,9 @@ function(read_makefile_definitions makefile definitions)
   endif()
   file(READ ${makefile} makefileContents)
 
+  # Remove line continuations so they do not interrupt the regex
+  string(REPLACE "\\\n" " " makefileContents "${makefileContents}")
+ 
   # Split out the command section
   string(FIND "${makefileContents}" "commands:" commandLoc)
   string(SUBSTRING "${makefileContents}" 0 ${commandLoc} defText)
@@ -52,7 +55,6 @@ function(get_skip_ignore_lines makefile filename skipNumber ignoreWords)
     list(GET parts 0 name)
     list(REMOVE_AT parts 0)
     string(REPLACE ";" " " value "${parts}")
-    #list(GET parts 1 value)
     #message("name = ${name}")
     #message("value = ${value}")
 
