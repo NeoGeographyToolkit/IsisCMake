@@ -21,13 +21,9 @@ function(add_isis_app folder libDependencies)
   # All the XML files need to be copied to the install directory
   # - They also need be put in the source folder for the app tests
   install(FILES ${xmlFiles} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/xml")
-  #file(COPY ${xmlFiles} DESTINATION ${CMAKE_SOURCE_DIR}/bin/xml)
   foreach(xml ${xmlFiles})
     get_filename_component(folder ${xml} DIRECTORY)
     get_filename_component(name ${folder} NAME)
-    #set(name isis3_unit_test_${name})
-    message("xml = ${xml}")
-    message("Install xml: ${CMAKE_SOURCE_DIR}/bin/xml/${name}.xml")
     if(NOT EXISTS ${CMAKE_SOURCE_DIR}/bin/xml/${name}.xml)
       execute_process(COMMAND ln -s "${xml}" "${name}.xml"
                       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/xml)
@@ -41,16 +37,8 @@ function(add_isis_app folder libDependencies)
   add_executable(${internalAppName} ${headers} ${sources} ${mocFiles})
   set_target_properties(${internalAppName} PROPERTIES LINKER_LANGUAGE CXX)
 
-  # Handle special case apps that have additional library requirements
-  set(finalLibDeps ${libDependencies})
-  if((${appName} STREQUAL "amicacal") OR (${appName} STREQUAL "findfeatures"))
-    set(finalLibDeps ${finalLibDeps} ${OPENCVLIB})
-  elseif(${appName} STREQUAL "cnet2dem")
-    set(finalLibDeps ${finalLibDeps} ${NNLIB})
-  endif()
-
   # Have the app install with the real name, not the internal name.
-  target_link_libraries(${internalAppName} ${finalLibDeps})
+  target_link_libraries(${internalAppName} ${libDependencies})
   set_target_properties(${internalAppName} PROPERTIES OUTPUT_NAME ${appName})
   install(TARGETS ${internalAppName} DESTINATION bin)
 
@@ -91,17 +79,6 @@ function(make_obj_unit_test moduleName testFile truthFile reqLibs pluginLibs)
   add_executable( ${executableName} ${testFile}  )
   set(depLibs "${reqLibs};${matchedLibs}")
   target_link_libraries(${executableName} ${moduleName} ${depLibs})
-
-  ## Create a link to the xml file needed for the unit test to run
-  #if(EXISTS ${folder}/unitTest.xml)
-  #  set(linkName ${moduleName}_unit_test_${filename}.xml)
-  #  #message("folder = ${folder}")
-  #  #message("Link name = ${linkName}")
-  #  if(NOT EXISTS ${CMAKE_SOURCE_DIR}/bin/xml/${linkName})
-  #    execute_process(COMMAND ln -s "${folder}/unitTest.xml" "${linkName}"
-  #                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/xml)
-  #  endif()
-  #endif()
 
   # Call function to add the test
   add_unit_test_target(${executableName} ${truthFile})

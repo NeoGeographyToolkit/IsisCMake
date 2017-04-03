@@ -180,9 +180,9 @@ function(add_library_wrapper name sourceFiles libDependencies)
   set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX) 
   target_link_libraries(${name} ${libDependencies})
   install(TARGETS ${name} DESTINATION lib)
-    
-  #if(alsoStatic)
-  if(OFF) # TODO TURN BACK ON!
+
+  # buildStaticCore is a command line option specified in the top CMakeLists.txt file.
+  if(alsoStatic AND ${buildStaticCore})
     # The static version needs a different name, but in the end the file
     # needs to have the same name as the shared lib.
     set(staticName "${name}_static") 

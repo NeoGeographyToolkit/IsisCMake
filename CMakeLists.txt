@@ -62,11 +62,12 @@ set(BUILD_SHARED_LIBS ON)
 set(thirdPartyCppFlags -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 
 # Specify user options that can be passed in with the initial CMake command.
-option(isis3Data     "Directory containing Isis3Data"     "NA")
-option(isis3TestData "Directory containing Isis3TestData" "NA")
-option(testOutputDir "Directory to store app test output folders" "NA")
-option(buildCore     "Build the core ISIS modules"        ON)
-option(buildMissions "Build the mission specific modules" ON)
+option(isis3Data       "Directory containing Isis3Data"     "NA")
+option(isis3TestData   "Directory containing Isis3TestData" "NA")
+option(testOutputDir   "Directory to store app test output folders" "NA")
+option(buildCore       "Build the core ISIS modules"        ON)
+option(buildMissions   "Build the mission specific modules" ON)
+option(buildStaticCore "Build libisis3 static as well as dynamic" OFF)
 
 if(EXISTS ${isis3Data})
   set(ENV{ISIS3DATA} "${isis3Data}")

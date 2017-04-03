@@ -49,16 +49,13 @@ Standard CMake options:
 CMAKE_INSTALL_PREFIX = Specify where the installation folder.
 
 Special options for ISIS:
-isis3Data = Specify where the downloadable ISIS data is located.
-isis3TestData = Specify the location containing the special ISIS application 
-test data.
-buildCore = Set to OFF to skip building any code.  TODO: Force buildMissions=OFF
-buildMissions = Set to OFF to skip building this code.
-
-TODO options: 
-disable building local folder?
-makefile test output directory
-buildStatic = Set to OFF to disable building the core static library.
+isis3Data     = Specify where the downloadable ISIS data is located.
+isis3TestData = Specify the location containing the special ISIS application test data.
+testOutputDir = Specify where output folder from running app/module tests will go.
+                Can be set to the same location as isis3TestData.
+buildCore     = Set to OFF to skip building core code.
+buildMissions = Set to OFF to skip building mission code.
+buildStatic   = Set to ON to build the core library as static in addition to dynamic.
 
 Once CMake finishes running, run "make" to build the code, "make install" to 
 install it to the output, and "make docs" to generate the documentation files
@@ -88,8 +85,6 @@ useful built-in options to help run the tests which you can see by running
 the build system you can choose to run only a certain category of tests by adding
 the options "-R _unit_", "-R _app_", or "-R _module_".
 
-TODO: Specify location of output files.
-
 
 # Building the documentation --------------------------------------------------------
 
@@ -104,6 +99,21 @@ To completely clean up the build just delete the entire build folder and create 
 one.  You can also run "make clean" to remove files generated during the build as 
 opposed to files generated while running CMake.  To remove all cmake generated files
 from the source directory (there should only be a couple folders) run "make clean_source".
+
+# Troubleshooting -------------------------------------------------------------
+
+Q: I am running cmake from a build directory but the files are being generated in
+the source directory.
+A: Completely clean the cmake generated files from the source directory and try again.
+If generated cmake files are there it will continue to generate them in that location.
+
+Q: The build fails early on complaining about a library not found.
+A: Make sure that the dynamic libraries needed to run uic, moc, and protoc are in the
+search path.  This may mean adding the 3rdParty/lib folder to LD_LIBRARY_PATH.
+
+Q: A third party library is not being found.
+A: Verify that the library is installed on your system or in the 3rdParty/lib folder.
+The build system does not search for libraries outside these locations.
 
 
 # Build system details =======================================================
@@ -136,13 +146,55 @@ Utilities.cmake           = Miscellaneous functions used in the other files.
 
 In the /scripts folder:
 
-fetchRequiredData.py            = Script for fetching a subset of the ISIS mission 
-                                  data for the purpose of running unit tests.  
-                                  TODO: Remove from final version.
 finalizeInstalledOsxRpaths.py   = Script to correct the RPaths of OSX libraries 
                                   after they are installed.
 IsisInlineDocumentBuild_mod.xsl = An old documentation build file modified for 
                                   use by the CMake build system.
+fetchRequiredData.py            = Script for fetching a subset of the ISIS mission 
+                                  data for the purpose of running unit tests.  
+                                  Can be removed.
+
+
+# Maintenance tips ----------------------------------------------------------------
+
+- There are a number of file requirements of ISIS that the build system takes extra 
+steps to work around.  These include:
+  - Unit tests (as opposed to application or module tests) must be run from an executable
+    named "unitTest" in order for certain GUIs to be suppressed.  They must have the 
+    associated xml file with the same name in the same directory.
+  - Application xml files must be located in $ISISROOT/bin/xml
+  - $ISISROOT/IsisPreferences must exist.
+  - $ISISROOT/src/base/objs/Preference/TestPreferences must exist to run tests.
+  
+- New files are added automatically when CMake is run, but new module folders must be
+  manually added in src/CMakeLists.txt.  Tests of all types are added automatically.
+
+- Required 3rd party libraries are explicitly listed in FindAllDependencies.cmake
+
+- Miscellaneous installation and build settings are found in the top level CMakeLists.txt
+
+- Turning on static building of the core library increases the build time.
+
+- The file organization in the build folder does not mimic the file organization
+  in the source directory but all of the .o files are there and can be accessed.
+
+
+# Future development ----------------------------------------------------------------
+
+- libisis is the only library with a static build option but it would be easy to make
+the other libraries also built as static.
+
+- CMake has its own system for test coverage that could be used as an alternative for
+a proprietary system.  Neither is currently implemented in the current system.
+
+- CMake has tools for automated fetching and building of 3rd party libraries that could
+be used to obtain all of the ISIS dependencies.  Ames Stereo Pipeline has a system to do
+this that predates CMake's and currently installs nearly all of ISIS' dependencies.
+
+- The flat file system in the build folder is the result of only having on CMakeLists.txt 
+  file in the /src directory.
+
+
 
 
 

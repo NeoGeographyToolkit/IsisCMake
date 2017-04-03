@@ -22,10 +22,10 @@ else()
 endif()
 
 set(XALAN   "${BIN_DIR}/Xalan")
-#set(LATEX   "${BIN_DIR}/latex") # MISSING
-#set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
-set(DOXYGEN "/home/smcmich1/doxygen-1.8.8/bin/doxygen") # TODO: 
-set(LATEX   "/usr/bin/latex") # MISSING
+set(LATEX   "${BIN_DIR}/latex") # MISSING
+set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
+#set(DOXYGEN "/home/smcmich1/doxygen-1.8.8/bin/doxygen") # TODO: 
+#set(LATEX   "/usr/bin/latex") # MISSING
 # Also need the DOT tool for doxygen.
 
 verify_file_exists(${XALAN})
@@ -614,10 +614,9 @@ set(ALLLIBS   ${ISISLIB}
               ${CHOLMODLIB}
               ${HDF5LIB}
               ${SUPERLULIB}
-              ${GMMLIB})
-#ifeq ($(findstring STATIC, $(MODE)),STATIC)
-#  ALLLIBS = $(ISISSTATIC) $(ISISLIB) $(ISISDYNAMIC)
-#endif
+              ${GMMLIB}
+              ${NNLIB}
+              ${OPENCVLIB})
 
 # Only include Kakadu if it is available
 if(${JP2KFLAG} EQUAL "1")
