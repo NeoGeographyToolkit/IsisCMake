@@ -28,10 +28,7 @@ function(install_third_party_libs)
     else()
       # Recreate symlinks
       string(REGEX REPLACE "\n$" "" link "${link}") # Strip trailing newline
-      # TODO: Why does cmake link command not work?
-      #install_symlink(${link} ${installLibFolder}/${relPath})
-      #message("name = ${installLibFolder}/${relPath} target = ${link}")
-      install(CODE "EXECUTE_PROCESS(COMMAND ln -s ${link} ${installLibFolder}/${relPath})")
+      install(CODE "EXECUTE_PROCESS(COMMAND ln -fs ${link} ${installLibFolder}/${relPath})")
     endif()      
 
   endforeach()
