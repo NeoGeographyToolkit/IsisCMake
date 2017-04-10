@@ -42,14 +42,16 @@ function(add_isis_app folder libDependencies)
   set_target_properties(${internalAppName} PROPERTIES OUTPUT_NAME ${appName})
   install(TARGETS ${internalAppName} DESTINATION bin)
 
-  # Set up the app tests
-  # - There may be multiple test folders in the /tsts directory, each
-  #   with its own Makefile describing the test.
-  set(testFolder ${folder}/tsts)
-  file(GLOB tests "${testFolder}/*")
-  foreach(f ${tests})
-    add_makefile_test_folder(${f} ${appName}_app)  
-  endforeach()
+  if(${buildTests})
+    # Set up the app tests
+    # - There may be multiple test folders in the /tsts directory, each
+    #   with its own Makefile describing the test.
+    set(testFolder ${folder}/tsts)
+    file(GLOB tests "${testFolder}/*")
+    foreach(f ${tests})
+      add_makefile_test_folder(${f} ${appName}_app)  
+    endforeach()
+  endif()
 
 endfunction(add_isis_app)
 
@@ -258,26 +260,31 @@ function(add_isis_module name)
     # For everything beyond the module library, require the module library.
     set(reqLibs "${reqLibs};${name}")
 
-    # Now that the library is added, add all the unit tests for it.
-    list(LENGTH unitTestFiles temp)
-    math(EXPR numTests "${temp} - 1")
-    foreach(val RANGE ${numTests})
-      list(GET unitTestFiles ${val} testFile )
-      list(GET truthFiles    ${val} truthFile)
-      make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
-    endforeach()
+    if(${buildTests})
+      # Now that the library is added, add all the unit tests for it.
+      list(LENGTH unitTestFiles temp)
+      math(EXPR numTests "${temp} - 1")
+      foreach(val RANGE ${numTests})
+        list(GET unitTestFiles ${val} testFile )
+        list(GET truthFiles    ${val} truthFile)
+        make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
+      endforeach()
+    endif()
+    
   endif()
  
   # Process the apps (core library always required)
   foreach(f ${appFolders})
     add_isis_app(${f} "${reqLibs}")
   endforeach()
-  
-  # Process the tests
-  # - The test suite in qisis/SquishTests are not properly located or handled by this code!
-  foreach(f ${tstFolders})
-    add_makefile_test_folder(${f} ${name}_module)
-  endforeach()  
+
+  if(${buildTests})  
+    # Process the tests
+    # - The test suite in qisis/SquishTests are not properly located or handled by this code!
+    foreach(f ${tstFolders})
+      add_makefile_test_folder(${f} ${name}_module)
+    endforeach()  
+  endif()
   
 endfunction(add_isis_module)
 

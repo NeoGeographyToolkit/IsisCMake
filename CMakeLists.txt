@@ -68,6 +68,7 @@ option(testOutputDir   "Directory to store app test output folders" "NA")
 option(buildCore       "Build the core ISIS modules"        ON)
 option(buildMissions   "Build the mission specific modules" ON)
 option(buildStaticCore "Build libisis3 static as well as dynamic" OFF)
+option(buildTests      "Set up unit, application, and module tests." ON)
 
 if(EXISTS ${isis3Data})
   set(ENV{ISIS3DATA} "${isis3Data}")
@@ -170,7 +171,6 @@ execute_process(COMMAND mkdir -p ${CMAKE_BINARY_DIR}/src/xml)
 # Have CMake process all of the source code and tests.
 add_subdirectory(src)
 
-# TODO: Double check that everything installs properly on OSX!
 # Set up third party libraries for installation
 install_third_party()
 
