@@ -90,20 +90,41 @@ function(get_os_version text)
   
     # Fetch OS information
     execute_process(COMMAND cat "/etc/os-release"
+                    RESULT_VARIABLE code
                     OUTPUT_VARIABLE result
                     ERROR_VARIABLE result)
-    #message("result = ${result}")
-  
-    # Extract OS name and version
-    string(REGEX MATCH "NAME=[A-Za-z\"]+" name "${result}")
-    string(REGEX MATCH "VERSION_ID=[0-9\\.\"]+" version "${result}")
-    string(SUBSTRING ${name} 6 -1 name)
-    string(SUBSTRING ${version} 12 -1 version)
-    string(REPLACE "\"" "" name ${name})
-    string(REPLACE "\"" "" version ${version})
-    string(REPLACE "." "_" version ${version})
-    #message("name = ${name}")
-    #message("version = ${version}")
+    if ("${code}" STREQUAL "0")
+      # Extract OS name and version from generic Linux system
+      string(REGEX MATCH "NAME=[A-Za-z\"]+" name "${result}")
+      string(REGEX MATCH "VERSION_ID=[0-9\\.\"]+" version "${result}")
+      string(SUBSTRING ${name} 6 -1 name)
+      string(SUBSTRING ${version} 12 -1 version)
+      string(REPLACE "\"" "" name ${name})
+      string(REPLACE "\"" "" version ${version})
+      string(REPLACE "." "_" version ${version})
+    else()
+
+      execute_process(COMMAND cat "/etc/redhat-release"
+                      RESULT_VARIABLE code
+                      OUTPUT_VARIABLE result
+                      ERROR_VARIABLE result)
+      if ("${code}" STREQUAL "0")
+        # Extract OS name and version from Red Hat Linux system
+        string(REGEX MATCH "[0-9\\.]+" version "${result}")
+        set(name RedHatEnterprise) # This part is easy
+      else()
+
+        # TODO: Handle DEBIAN and LSB cases!
+
+        message("code = ${code}")
+        message("result = ${result}")
+      endif()
+    
+    endif()
+     
+    
+    message("name = ${name}")
+    message("version = ${version}")
 
     set(prefix "Linux_x86_64_")
   
