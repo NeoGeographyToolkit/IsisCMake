@@ -550,10 +550,7 @@ file(GLOB THIRDPARTYPLUGINFOLDERS "${PLUGIN_DIR}/*")
 # Consolidate information
 #---------------------------------------------------------------------------
 
-set(ALLINCDIRS  ${XTRAINCDIRS}
-                ${ISISINCDIR}
-                ${CWDINCDIR}
-                ${QTINCDIR}
+set(ALLINCDIRS  ${QTINCDIR}
                 ${QWTINCDIR}
                 ${XERCESINCDIR}
                 ${GEOTIFFINCDIR}
@@ -574,9 +571,7 @@ set(ALLINCDIRS  ${XTRAINCDIRS}
                 ${DEFAULTINCDIR}
                 ${GMMINCDIR})
 
-set(ALLLIBDIRS  ${XTRALIBDIRS}
-                ${ISISLIBDIR}
-                ${QTLIBDIR}
+set(ALLLIBDIRS  ${QTLIBDIR}
                 ${QWTLIBDIR}
                 ${XERCESLIBDIR}
                 ${GEOTIFFLIBDIR}
@@ -594,10 +589,7 @@ set(ALLLIBDIRS  ${XTRALIBDIRS}
                 ${SUPERLULIBDIR}
                 ${GMMLIBDIR})
 
-set(ALLLIBS   ${ISISLIB}
-              ${ISISSYSLIBS}
-              ${XTRALIBS}
-              ${QTLIB}
+set(ALLLIBS   ${QTLIB}
               ${QWTLIB}
               ${XERCESLIB}
               ${GEOTIFFLIB}
