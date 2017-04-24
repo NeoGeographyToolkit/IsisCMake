@@ -25,7 +25,7 @@ OSX:   Clang 7.3.0
 
 - Other software:
 
-CMake version 3.5 or higher. TODO: Verify version!
+CMake version 3.2 or higher.
 
 The 3rd party library requirements for ISIS are the same as they
 are with the old Makefile build system.
@@ -129,7 +129,8 @@ characteristics, sets up some required links, and calls all of the other require
 
 src/CMakeLists.txt = The lower level build file.  This defines which module folders
 are used to create libraries.  There is one core library and one library per mission
-directory.
+directory.  The source files under this folder are found by search functions running
+from this folder.
 
 In the /cmake folder:
 
@@ -153,7 +154,6 @@ IsisInlineDocumentBuild_mod.xsl = An old documentation build file modified for
 fetchRequiredData.py            = Script for fetching a subset of the ISIS mission 
                                   data for the purpose of running unit tests.  
                                   Can be removed.
-
 
 # Maintenance tips ----------------------------------------------------------------
 
@@ -182,19 +182,22 @@ steps to work around.  These include:
 # Future development ----------------------------------------------------------------
 
 - libisis is the only library with a static build option but it would be easy to make
-the other libraries also built as static.
+  the other libraries also built as static.
 
-- CMake has its own system for test coverage that could be used as an alternative for
-a proprietary system.  Neither is currently implemented in the current system.
+- CMake has its own system for unit test coverage that could be used as an alternative for
+  a proprietary system.  The current CMake build system does not provide any test coverage
+  options.
 
 - CMake has tools for automated fetching and building of 3rd party libraries that could
-be used to obtain all of the ISIS dependencies.  Ames Stereo Pipeline has a system to do
-this that predates CMake's and currently installs nearly all of ISIS' dependencies.
+  be used to obtain all of the ISIS dependencies.  Ames Stereo Pipeline has a longstanding
+  system to do this that installs nearly all of ISIS' dependencies.
 
-- The flat file system in the build folder is the result of only having on CMakeLists.txt 
-  file in the /src directory.
-
-
+- Unlike in the MakeFile build, there are not CMake build files spread throughout the 
+  source tree.  Setting up a tree of CMakeLists.txt files should make the CMake generated 
+  build files more closely resemble the source directory but it would require the creation
+  of many more files (as of now there are almost 2400 Makefiles in the src folder.)  
+  Some special handling may be needed to make this work with the mutually interdependent
+  core library folders.
 
 
 

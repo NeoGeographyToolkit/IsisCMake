@@ -5,7 +5,7 @@
 
 # Specify the required version of CMake.  If your machine does not
 #  have this, it should be easy to build from https://cmake.org/download/
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.2)
 
 # Point cmake to our other CMake files.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -35,7 +35,7 @@ set(PACKAGE_VERSION    ${VERSION})
 set(PACKAGE_STRING     "${PACKAGE_NAME} ${VERSION}")
 
 # Other release information
-set(VERSION_DATE              "2017-01-25")
+set(VERSION_DATE              "2017-04-24")
 set(THIRD_PARTY_LIBS_VERSION  "v006")
 set(RELEASE_STAGE             "alpha") # (alpha, beta, stable)
 
@@ -62,13 +62,13 @@ set(BUILD_SHARED_LIBS ON)
 set(thirdPartyCppFlags -Wall -ansi -DISIS_LITTLE_ENDIAN=1 -fPIC)
 
 # Specify user options that can be passed in with the initial CMake command.
-option(isis3Data       "Directory containing Isis3Data"     "NA")
-option(isis3TestData   "Directory containing Isis3TestData" "NA")
-option(testOutputDir   "Directory to store app test output folders" "NA")
-option(buildCore       "Build the core ISIS modules"        ON)
-option(buildMissions   "Build the mission specific modules" ON)
-option(buildStaticCore "Build libisis3 static as well as dynamic" OFF)
-option(buildTests      "Set up unit, application, and module tests." ON)
+option(isis3Data       "Directory containing Isis3Data"              "NA")
+option(isis3TestData   "Directory containing Isis3TestData"          "NA")
+option(testOutputDir   "Directory to store app test output folders"  "NA")
+option(buildCore       "Build the core ISIS modules"                 ON  )
+option(buildMissions   "Build the mission specific modules"          ON  )
+option(buildStaticCore "Build libisis3 static as well as dynamic"    OFF )
+option(buildTests      "Set up unit, application, and module tests." ON  )
 
 if(EXISTS ${isis3Data})
   set(ENV{ISIS3DATA} "${isis3Data}")
@@ -90,8 +90,6 @@ else()
   message("Writing test data folders to = ${testOutputDir}")
   execute_process(COMMAND mkdir -p ${testOutputDir})
 endif()
-
-# TODO: Set LD_LIBRARY_DIR also?
 
 # Set the default library extension based on the platform
 if(APPLE)
@@ -162,11 +160,8 @@ endif()
 set(sourceXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
 execute_process(COMMAND mkdir -p ${CMAKE_BINARY_DIR}/src/xml)
 
-## TODO: Is this required????!?!?!?!
-## Copy the template folder to the install folder.
-#file(MAKE_DIRECTORY "${CMAKE_INSTALL_PREFIX}/templates/gui")
-#file(GLOB templates "templates/gui/*")
-#copy_files_to_folder(${templates} "${CMAKE_INSTALL_PREFIX}/templates/gui")
+# Set up install of the templates folder.
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/templates DESTINATION templates)
 
 # Have CMake process all of the source code and tests.
 add_subdirectory(src)

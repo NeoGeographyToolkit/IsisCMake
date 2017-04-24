@@ -21,6 +21,7 @@ else()
   set(end ".so*")
 endif()
 
+# Paths to required executables
 set(XALAN   "${BIN_DIR}/Xalan")
 set(LATEX   "${BIN_DIR}/latex") # MISSING
 set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
@@ -28,6 +29,7 @@ set(DOXYGEN "${BIN_DIR}/doxygen") # MISSING
 #set(LATEX   "/usr/bin/latex") # MISSING
 # Also need the DOT tool for doxygen.
 
+# If one of these files is not found the build will fail!
 verify_file_exists(${XALAN})
 #verify_file_exists(${LATEX})
 #verify_file_exists(${DOXYGEN})
@@ -525,17 +527,6 @@ foreach(lib ${RAW_DYNAMIC_LIBS})
 endforeach()
 
 #message("THIRDPARTYLIBS = ${THIRDPARTYLIBS}")
-
-# TODO: Check on these
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(ISIS3SYSLIB)/libblas*${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} $(ISIS3ALTSYSLIB)/libgfortran${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libicuuc${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libicudata${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${LIB_DIR}/libpq${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libmysqlclient_r${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libssl${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} ${ISIS3SYSLIB}/libcrypto${SO}*)
-#set(THIRDPARTYLIBS ${THIRDPARTYLIBS} /lib64/libreadline${SO}*)
 
 # Plugins
 file(GLOB_RECURSE THIRDPARTYPLUGINS "${PLUGIN_DIR}/*${SO}")

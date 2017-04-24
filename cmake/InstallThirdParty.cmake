@@ -20,9 +20,9 @@ function(install_third_party_libs)
 
       # Copy original files and framework folders
       if(IS_DIRECTORY ${library})
-        INSTALL(DIRECTORY ${library} DESTINATION ${installLibFolder})
+        install(DIRECTORY ${library} DESTINATION ${installLibFolder})
       else()
-        INSTALL(FILES ${library} DESTINATION ${installLibFolder})
+        install(FILES ${library} DESTINATION ${installLibFolder})
       endif()
       
     else()
@@ -47,7 +47,7 @@ function(install_third_party_plugins)
   foreach(plugin ${THIRDPARTYPLUGINS})
     file(RELATIVE_PATH relPath "${thirdPartyDir}/plugins" ${plugin})
     get_filename_component(relPath ${relPath} DIRECTORY) # Strip filename
-    INSTALL(FILES ${plugin} DESTINATION ${installPluginFolder}/${relPath})
+    install(FILES ${plugin} DESTINATION ${installPluginFolder}/${relPath})
   endforeach()
 	
 endfunction()
@@ -64,7 +64,7 @@ function(install_third_party)
   install_third_party_plugins()
 
   # Finish miscellaneous file installation
-  INSTALL(FILES "${CMAKE_SOURCE_DIR}/3rdParty/lib/README" 
+  install(FILES "${CMAKE_SOURCE_DIR}/3rdParty/lib/README" 
           DESTINATION ${CMAKE_INSTALL_PREFIX}/3rdParty/lib)
           
   # TODO: This file is missing?
