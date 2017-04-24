@@ -379,7 +379,6 @@ endfunction()
 # This is the main script that gets run during the test.
 # - Just redirect to the main function call.
 
-# TODO: Check these work from other build folders
 # Needed for IsisPreferences and other test data to be found
 set(ENV{ISISROOT} "${CODE_ROOT}")
 set(ENV{ISIS3DATA} "${DATA_ROOT}")

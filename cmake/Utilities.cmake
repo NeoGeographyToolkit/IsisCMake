@@ -103,7 +103,7 @@ function(get_os_version text)
       string(REPLACE "\"" "" version ${version})
       string(REPLACE "." "_" version ${version})
     else()
-
+      # Try the Red Hat specific command.
       execute_process(COMMAND cat "/etc/redhat-release"
                       RESULT_VARIABLE code
                       OUTPUT_VARIABLE result
@@ -113,18 +113,47 @@ function(get_os_version text)
         string(REGEX MATCH "[0-9\\.]+" version "${result}")
         set(name RedHatEnterprise) # This part is easy
       else()
-
-        # TODO: Handle DEBIAN and LSB cases!
-
+        # TODO: Test!
+        # Try another command
+        execute_process(COMMAND cat "/etc/lsb-release"
+                        RESULT_VARIABLE code
+                        OUTPUT_VARIABLE result
+                        ERROR_VARIABLE result)
+                        
         message("code = ${code}")
         message("result = ${result}")
+                        
+        if ("${code}" STREQUAL "0")
+          # Extract OS name and version
+          string(REGEX MATCH "Description:[ A-Za-z0-9\\.]+" version "${result}") # Get the line
+          string(REPLACE "release"      "" version ${version}) # Strip unwanted text
+          string(REPLACE " "            "" version ${version})
+          string(REPLACE "Description:" "" version ${version})
+          set(name "") # Included in version
+        else()
+          # TODO: Test!
+          # Try the debian specific command
+          execute_process(COMMAND cat "/etc/debian_version"
+                          RESULT_VARIABLE code
+                          OUTPUT_VARIABLE result
+                          ERROR_VARIABLE result)
+                          
+          message("code = ${code}")
+          message("result = ${result}")
+          if ("${code}" STREQUAL "0")
+            set(version "${result}")
+            set(name Debian)
+          else()
+
+            message( FATAL_ERROR "Did not recognize UNIX operating system!" )
+        
+          endif()          
+        endif()
       endif()
-    
     endif()
-     
     
-    message("name = ${name}")
-    message("version = ${version}")
+    #message("name = ${name}")
+    #message("version = ${version}")
 
     set(prefix "Linux_x86_64_")
   

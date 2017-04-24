@@ -42,13 +42,8 @@ folder named "build" in the same folder as the source folder.  By
 using a new folder you can easily delete it to get a completely clean
 build and you won't introduce any new files into your source folder.
 Change directory into the new folder, then run cmake pointed at the top
-level of the ISIS folder.  The following options are supported by the
-build system:
+level of the ISIS folder.  ISIS supports the following special options:
 
-Standard CMake options:
-CMAKE_INSTALL_PREFIX = Specify where the installation folder.
-
-Special options for ISIS:
 isis3Data     = Specify where the downloadable ISIS data is located.
 isis3TestData = Specify the location containing the special ISIS application test data.
 testOutputDir = Specify where output folder from running app/module tests will go.
@@ -56,18 +51,27 @@ testOutputDir = Specify where output folder from running app/module tests will g
 buildCore     = Set to OFF to skip building core code.
 buildMissions = Set to OFF to skip building mission code.
 buildStatic   = Set to ON to build the core library as static in addition to dynamic.
+buildTests    = Set to OFF to disable building all unit tests.
+
+You can also use standard CMake options.  The following options will
+probably be the most frequently used:
+
+CMAKE_INSTALL_PREFIX = Specify where the installation folder.
+CMAKE_BUILD_TYPE     = Choose Debug, Release, RelWithDebInfo, or MinSizeRel
+
 
 Once CMake finishes running, run "make" to build the code, "make install" to 
 install it to the output, and "make docs" to generate the documentation files
-in the installation folder.  A full set of commands may look like:
+in the installation folder.  Use the "-j" argument to specify the number of
+threads to use.  A full set of commands may look like:
 
 cd ~/isis_code
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=~/isis_install -Disis3Data=~/isis3data \
--Disis3TestData=~/isis3TestData
-make
-make install
+-Disis3TestData=~/isis3TestData ~/path/to/isis/source
+make -j 4
+make install -j 4
 make docs
 
 The build system also accepts the "make clean_source" command which removes
@@ -153,7 +157,7 @@ IsisInlineDocumentBuild_mod.xsl = An old documentation build file modified for
                                   use by the CMake build system.
 fetchRequiredData.py            = Script for fetching a subset of the ISIS mission 
                                   data for the purpose of running unit tests.  
-                                  Can be removed.
+                                  Not required by the build system.
 
 # Maintenance tips ----------------------------------------------------------------
 
