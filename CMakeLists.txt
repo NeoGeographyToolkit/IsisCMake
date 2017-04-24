@@ -161,7 +161,7 @@ set(sourceXmlFolder ${CMAKE_SOURCE_DIR}/bin/xml)
 execute_process(COMMAND mkdir -p ${CMAKE_BINARY_DIR}/src/xml)
 
 # Set up install of the templates folder.
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/templates DESTINATION templates)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/templates DESTINATION .)
 
 # Have CMake process all of the source code and tests.
 add_subdirectory(src)
