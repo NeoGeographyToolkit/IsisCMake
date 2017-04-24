@@ -1,8 +1,12 @@
 ########################################################################
-#                 USGS ISIS CMake build system notes                   #
+########################################################################
+##                USGS ISIS CMake build system notes                  ##
+########################################################################
 ########################################################################
 
-# Introduction ==========================================================
+#==============================================================================
+#============================ Introduction ====================================
+#==============================================================================
 
 
 # Overview --------------------------------------------------------------
@@ -31,7 +35,27 @@ The 3rd party library requirements for ISIS are the same as they
 are with the old Makefile build system.
 
 
-# Using the build system =======================================================
+# CMake information ------------------------------------------------------------
+
+There is not a really good CMake guide on the web but here are some useful resources
+for getting started with it:
+
+The official CMake tutorial
+--> https://cmake.org/cmake-tutorial/
+
+A CMake syntax overview
+--> https://cmake.org/Wiki/CMake/Language_Syntax
+
+A list of all the supported CMake commands and their arguments
+--> https://cmake.org/cmake/help/v3.2/manual/cmake-commands.7.html
+
+A list of standard CMake variables that may be used
+--> https://cmake.org/Wiki/CMake_Useful_Variable
+
+
+#==============================================================================
+#========================= Using the build system =============================
+#==============================================================================
 
 
 # Running the build --------------------------------------------------------
@@ -45,13 +69,19 @@ Change directory into the new folder, then run cmake pointed at the top
 level of the ISIS folder.  ISIS supports the following special options:
 
 isis3Data     = Specify where the downloadable ISIS data is located.
+                This folder contains mission kernels and sensor info.
 isis3TestData = Specify the location containing the special ISIS application test data.
+                This folder contains input and truth folder for application and module tests.
 testOutputDir = Specify where output folder from running app/module tests will go.
                 Can be set to the same location as isis3TestData.
-buildCore     = Set to OFF to skip building core code.
-buildMissions = Set to OFF to skip building mission code.
+buildCore     = Set to OFF to skip building core libraries.  This includes libisis3 and
+                the "plugin" libraries such as libShade, libTopo, and libPlanar.
+buildMissions = Set to OFF to skip building mission code.  This includes all the
+                libraries with mission names such as libMsiCamera and libcassini.
 buildStatic   = Set to ON to build the core library as static in addition to dynamic.
-buildTests    = Set to OFF to disable building all unit tests.
+                Adding a static build will increase the total build time.
+buildTests    = Set to OFF to disable building all unit tests.  If this is set to ON,
+                all tests will be built for all enabled modules.
 
 You can also use standard CMake options.  The following options will
 probably be the most frequently used:
@@ -79,7 +109,28 @@ all files and folders that need to be created in the top level of the ISIS
 folder in order to run the unit tests.
 
 
-# Running tests --------------------------------------------------------
+# Building individual components --------------------------------------------
+
+Unfortunately the design of CMake does not lend itself to building individual
+software components independently of each other but it is still possible with
+some effort.  The trick to doing this is that the output of CMake is a Makefile
+based system and those Makefiles can be accessed directly.  For example, to 
+make a change to the file src/base/objs/Pvl/Pvl.cpp and rerun a unit test,
+the following steps can be performed:
+
+1 - Start from the build folder.
+2 - Recompile the .o file with this command:
+>> make -f  src/CMakeFiles/isis3.dir/build.make  src/CMakeFiles/isis3.dir/base/objs/Pvl/Pvl.cpp.o
+3 - Recompile the unit test with this command:
+>> make isis3_unit_test_Pvl
+4 - Run the unit test normally.
+>> ctest -R isis3_unit_test_Pvl
+
+If one of the make commands has no effect, try manually deleting the existing file you are
+trying to build and then re-run the make command.
+
+
+# Running tests ------------------------------------------------------------
 
 The CMake build system relies on the CTest tool, which should be included with
 CMake, to handle unit, application, and module tests.  To run the tests, simply
@@ -89,13 +140,40 @@ useful built-in options to help run the tests which you can see by running
 the build system you can choose to run only a certain category of tests by adding
 the options "-R _unit_", "-R _app_", or "-R _module_".
 
+Application and module test output folders will be placed in a directory structure
+underneath the folder specified with the "testOutputDir" option.  Console output
+from running tests is placed in the [build_folder]/src location in files ending
+with the extension ".output" and with names matching the test they correspond to.
+These test files are only retained if the test failed.  You can find additional 
+information about the last test that was run by looking at the file 
+[build_folder]/Testing/Temporary/LastTest.log.  
+
 
 # Building the documentation --------------------------------------------------------
 
 To generate the documentation, just run "make docs" after running CMake.  All of the
-relevant documentation should be placed in the installation folder.  The third party 
+relevant documentation should be placed in the installation folder.  Intermediate
+documentation build files will be placed in the build folder, but the final output
+documentation will only be created in the install folder.  The third party 
 tools "xalan", "doxygen", and "latex" must be available in order to generate the
 documentation.
+
+
+# Build versus install versus source ------------------------------------------------
+
+Unless you specify the source directory as the build or test output directory, very
+few files will be placed in the source folder as part of the build.  All of the other files
+generated by running "make" will be placed in the build folder.  The build folder contains 
+all of the compiled .o files, generated protobuf/uic/moc files, libraries, and executables.
+The build folder also contains many automatically generated CMake files which can usually
+be ignored.
+
+The "make install" step is only required to prepare software for distribution.  The
+installation folder will contain only the libraries, binaries, supporting files, and
+documentation that a user needs to run ISIS tools.  Source code, tests, and build
+system files are not placed in to the installation folder.  The installation folder
+should be ready to tar up and be used on another computer.
+
 
 # Cleaning up the build -------------------------------------------------------------
 
@@ -103,6 +181,7 @@ To completely clean up the build just delete the entire build folder and create 
 one.  You can also run "make clean" to remove files generated during the build as 
 opposed to files generated while running CMake.  To remove all cmake generated files
 from the source directory (there should only be a couple folders) run "make clean_source".
+
 
 # Troubleshooting -------------------------------------------------------------
 
@@ -120,7 +199,10 @@ A: Verify that the library is installed on your system or in the 3rdParty/lib fo
 The build system does not search for libraries outside these locations.
 
 
-# Build system details =======================================================
+#==============================================================================
+#======================== Build system details ================================
+#==============================================================================
+
 
 # File listing ----------------------------------------------------------------
 
@@ -159,6 +241,7 @@ fetchRequiredData.py            = Script for fetching a subset of the ISIS missi
                                   data for the purpose of running unit tests.  
                                   Not required by the build system.
 
+
 # Maintenance tips ----------------------------------------------------------------
 
 - There are a number of file requirements of ISIS that the build system takes extra 
@@ -182,6 +265,17 @@ steps to work around.  These include:
 - The file organization in the build folder does not mimic the file organization
   in the source directory but all of the .o files are there and can be accessed.
 
+
+# Possible new features -----------------------------------------------------------
+
+- Building/testing individual modules from within the CMake build directory is 
+  inconvenient.  It would be possible to add any number of separate build targets
+  so that a user could type "make base_Pvl_test" or something similar from the build
+  folder and have the relevant class and its unit tests rebuilt.
+  
+- It is easy in CMake to add new build targets to do things like "remove all output
+  folders from the test output directory".
+  
 
 # Future development ----------------------------------------------------------------
 
